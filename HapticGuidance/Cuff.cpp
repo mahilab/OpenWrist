@@ -19,9 +19,6 @@ void Cuff::enable() {
 
 	std::cout << "Enabling CUFF ...";
 
-	short int currents[2];
-	short int realmotpos[2];
-	
 	// attempt to open port
 	for (int attempt = 0; attempt < 10; attempt++) {
 		int opened = open_port();
@@ -73,7 +70,6 @@ void Cuff::disable() {
 }
 
 int Cuff::open_port() {
-	FILE *file;
 	char port[255] = { 'C','O','M','6' };
 
 	openRS485(&comm_settings_t_, port, 2000000);
@@ -88,6 +84,7 @@ int Cuff::open_port() {
 }
 
 // Function to select between all the ports
+/*
 int Cuff::port_selection() {
     int i;
     int aux_int;
@@ -106,18 +103,18 @@ int Cuff::port_selection() {
                 printf("[%d] - %s\n\n", i + 1, ports[i]);
             }
             printf("Serial port: ");
-            scanf("%d", &aux_int);
+            scanf_s("%d", &aux_int);
             getchar();
 
             if (aux_int && (aux_int <= num_ports)) {
-                strcpy(my_port, ports[aux_int - 1]);
+                strcpy_s(my_port, ports[aux_int - 1]);
             }
             else {
                 puts("Choice not available");
                 continue;
             }
 
-            file = fopen(QBMOVE_FILE, "w+");
+            file = fopen_s(QBMOVE_FILE, "w+");
             if (file == NULL) {
                 printf("Cannot open qbmove.conf\n");
             }
@@ -132,6 +129,9 @@ int Cuff::port_selection() {
         }
     }
 }
+
+*/
+
 
 void Cuff::pretensioning(int force_newtons, short int* motpos_zero, short int* scaling_factor) {
     std::cout << "Pretensioning CUFF ... ";

@@ -9,22 +9,12 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    <Filter Include="qbrobotics">
+      <UniqueIdentifier>{f411c49a-7d32-4bbc-aaf4-4aecb1be9149}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="commands.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Cuff.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="definitions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="HapticGuidance.h">
@@ -34,7 +24,13 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="qbmove_communications.h">
-      <Filter>Header Files</Filter>
+      <Filter>qbrobotics</Filter>
+    </ClInclude>
+    <ClInclude Include="commands.h">
+      <Filter>qbrobotics</Filter>
+    </ClInclude>
+    <ClInclude Include="definitions.h">
+      <Filter>qbrobotics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -44,14 +40,14 @@
     <ClCompile Include="HapticGuidance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="main_haptic_guidance.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Pendulum.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="qbmove_communications.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="qbmove_communications.cpp">
+      <Filter>qbrobotics</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -32,7 +32,7 @@ private:
     int io_thread_func();
 
 	int open_port();
-    int port_selection();
+    //int port_selection();
 
 	volatile std::atomic_bool io_stop_flag_;
 

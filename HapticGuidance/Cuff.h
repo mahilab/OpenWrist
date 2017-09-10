@@ -4,7 +4,7 @@
 #include "Spinlock.h"
 #include "Device.h"
 
-class Cuff : public mel::Device {
+class Cuff : public mel::core::Device{
 
 public:
 
@@ -27,7 +27,7 @@ private:
 	short int actual_motor_currents_[2];
 
 	comm_settings comm_settings_t_;
-    Spinlock spinlock;
+    mel::util::Spinlock spinlock;
     std::thread io_thread_;
     int io_thread_func();
 

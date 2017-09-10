@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include "util.h"
+#include "mel_math.h"
 #include "Integrator.h"
 #include "MelShare.h"
 
@@ -29,18 +29,18 @@ public:
     // STATE VARIABLES
     std::array<double, 2> Qdd = { 0,0 };
     std::array<double, 2> Qd = { 0,0 };
-    std::array<double, 2> Q = { -mel::PI / 2  ,0 };
+    std::array<double, 2> Q = { -mel::math::PI / 2  ,0 };
     std::array<double, 2> Tau = { 0, 0 };
 
 private:
 
     // INTEGRATORS
-    std::array<mel::Integrator, 2> Qdd2Qd = { mel::Integrator(Qd[0]), mel::Integrator(Qd[1]) };
-    std::array<mel::Integrator, 2> Qd2Q = { mel::Integrator(Q[0]), mel::Integrator(Q[1]) };
+    std::array<mel::math::Integrator, 2> Qdd2Qd = { mel::math::Integrator(Qd[0]), mel::math::Integrator(Qd[1]) };
+    std::array<mel::math::Integrator, 2> Qd2Q = { mel::math::Integrator(Q[0]), mel::math::Integrator(Q[1]) };
 
     // MELSHARES
-    mel::share::MelShare props = mel::share::MelShare("pendulum_props");
-    mel::share::MelShare state = mel::share::MelShare("pendulum_state");
+    mel::comm::MelShare props = mel::comm::MelShare("pendulum_props");
+    mel::comm::MelShare state = mel::comm::MelShare("pendulum_state");
 
     // MELSHARE DATA
     std::array<double, 10> props_data;

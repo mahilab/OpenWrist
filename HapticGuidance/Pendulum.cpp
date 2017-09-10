@@ -23,7 +23,7 @@ void Pendulum::step_simulation(double time, double position_ref, double velocity
     B_player = props_data[9];    
 
     // compute torque of first joint given reference position and velocity
-    Tau[0] = K_player * (position_ref - mel::PI / 2 - Q[0]) + B_player * (velocity_ref - Qd[0]);
+    Tau[0] = K_player * (position_ref - mel::math::PI / 2 - Q[0]) + B_player * (velocity_ref - Qd[0]);
 
     // evaluate the equations of motion
     Qdd[0] = -((L[0] * L[1] * M[1] * sin(Q[1])*pow(Qd[0], 2) - Tau[1] + Fk[1] * tanh(10 * Qd[1]) + B[1] * Qd[1] + g*L[1] * M[1] * cos(Q[0] + Q[1])) / (pow(L[1], 2) * M[1]) - (-L[0] * L[1] * M[1] * sin(Q[1])*pow(Qd[1], 2) - 2 * L[0] * L[1] * M[1] * Qd[0] * sin(Q[1])*Qd[1] - Tau[0] + Fk[0] * tanh(10 * Qd[0]) + B[0] * Qd[0] + g*L[1] * M[1] * cos(Q[0] + Q[1]) + g*L[0] * M[0] * cos(Q[0]) + g*L[0] * M[1] * cos(Q[0])) / (L[1] * M[1] * (L[1] + L[0] * cos(Q[1])))) / ((M[1] * pow(L[1], 2) + L[0] * M[1] * cos(Q[1])*L[1]) / (pow(L[1], 2) * M[1]) - (pow(L[0], 2) * M[0] + pow(L[0], 2) * M[1] + pow(L[1], 2) * M[1] + 2 * L[0] * L[1] * M[1] * cos(Q[1])) / (L[1] * M[1] * (L[1] + L[0] * cos(Q[1]))));
@@ -59,8 +59,8 @@ double Pendulum::natural_frequency(int mode) {
 void Pendulum::reset() {
     Qdd = { 0,0 };
     Qd = { 0,0 };
-    Q = { -mel::PI / 2  ,0 };
+    Q = { -mel::math::PI / 2  ,0 };
     Tau = { 0, 0 };
-    Qdd2Qd = { mel::Integrator(Qd[0]), mel::Integrator(Qd[1]) };
-    Qd2Q = { mel::Integrator(Q[0]), mel::Integrator(Q[1]) };
+    Qdd2Qd = { mel::math::Integrator(Qd[0]), mel::math::Integrator(Qd[1]) };
+    Qd2Q = { mel::math::Integrator(Q[0]), mel::math::Integrator(Q[1]) };
 }

@@ -39,11 +39,11 @@
 // Generalization (x12 - 20s ea)     | G     | 96 - 107 |
 //----------------------------------------------------------------------------
 
-class HapticGuidance : public mel::StateMachine {
+class HapticGuidance : public mel::core::StateMachine {
 
 public:
 
-    HapticGuidance(mel::Clock& clock, mel::Daq* ow_daq, mel::OpenWrist& open_wrist, mel::Daq* meii_daq, mel::MahiExoII& meii, Cuff& cuff, GuiFlag& gui_flag, int input_mode,
+    HapticGuidance(mel::core::Clock& clock, mel::core::Daq* ow_daq, mel::hdw::OpenWrist& open_wrist, mel::core::Daq* meii_daq, mel::hdw::MahiExoII& meii, Cuff& cuff, mel::util::GuiFlag& gui_flag, int input_mode,
         int subject_number, int condition, std::string start_trial = "F1-1");
 
 private:
@@ -66,28 +66,28 @@ private:
     };
 
     // STATE FUNCTIONS
-    void sf_start(const mel::NoEventData*);
-    void sf_familiarization(const mel::NoEventData*);
-    void sf_evaluation(const mel::NoEventData*);
-    void sf_training(const mel::NoEventData*);
-    void sf_break(const mel::NoEventData*);
-    void sf_generalization(const mel::NoEventData*);
-    void sf_transition(const mel::NoEventData*);
-    void sf_stop(const mel::NoEventData*);
+    void sf_start(const mel::core::NoEventData*);
+    void sf_familiarization(const mel::core::NoEventData*);
+    void sf_evaluation(const mel::core::NoEventData*);
+    void sf_training(const mel::core::NoEventData*);
+    void sf_break(const mel::core::NoEventData*);
+    void sf_generalization(const mel::core::NoEventData*);
+    void sf_transition(const mel::core::NoEventData*);
+    void sf_stop(const mel::core::NoEventData*);
 
     // STATE ACTIONS
-    mel::StateAction<HapticGuidance, mel::NoEventData, &HapticGuidance::sf_start> sa_start;
-    mel::StateAction<HapticGuidance, mel::NoEventData, &HapticGuidance::sf_familiarization> sa_familiarization;
-    mel::StateAction<HapticGuidance, mel::NoEventData, &HapticGuidance::sf_evaluation> sa_evaluation;
-    mel::StateAction<HapticGuidance, mel::NoEventData, &HapticGuidance::sf_training> sa_training;
-    mel::StateAction<HapticGuidance, mel::NoEventData, &HapticGuidance::sf_break> sa_break;
-    mel::StateAction<HapticGuidance, mel::NoEventData, &HapticGuidance::sf_generalization> sa_generlization;
-    mel::StateAction<HapticGuidance, mel::NoEventData, &HapticGuidance::sf_transition> sa_transition;
-    mel::StateAction<HapticGuidance, mel::NoEventData, &HapticGuidance::sf_stop> sa_stop;
+    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_start> sa_start;
+    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_familiarization> sa_familiarization;
+    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_evaluation> sa_evaluation;
+    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_training> sa_training;
+    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_break> sa_break;
+    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_generalization> sa_generlization;
+    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_transition> sa_transition;
+    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_stop> sa_stop;
     
     // STATE MAP
-    virtual const mel::StateMapRow* get_state_map() {
-        static const mel::StateMapRow STATE_MAP[] = {
+    virtual const mel::core::StateMapRow* get_state_map() {
+        static const mel::core::StateMapRow STATE_MAP[] = {
             &sa_start,
             &sa_familiarization,
             &sa_evaluation,
@@ -169,29 +169,29 @@ private:
     //-------------------------------------------------------------------------
 
     // UNITY GAME
-    mel::ExternalApp game = mel::ExternalApp("pendulum", "C:\\Users\\mep9\\Git\\SpacePendulum\\Builds\\SpacePendulum.exe");
+    mel::util::ExternalApp game = mel::util::ExternalApp("pendulum", "C:\\Users\\mep9\\Git\\SpacePendulum\\Builds\\SpacePendulum.exe");
 
     // GUI FLAGS
-    GuiFlag& gui_flag_;
+    mel::util::GuiFlag& gui_flag_;
 
     // DATA LOG
-    mel::DataLog log_ = mel::DataLog("hg_log", false);
+    mel::util::DataLog log_ = mel::util::DataLog("hg_log", false);
     std::vector<double> log_data_;
     void log_row();
 
     // HARDWARE CLOCK
-    mel::Clock clock_;
+    mel::core::Clock clock_;
 
     // HARDWARE
-    mel::Daq* ow_daq_;
-    mel::OpenWrist& open_wrist_;
-    mel::Daq* meii_daq_;
-    mel::MahiExoII& meii_;
+    mel::core::Daq* ow_daq_;
+    mel::hdw::OpenWrist& open_wrist_;
+    mel::core::Daq* meii_daq_;
+    mel::hdw::MahiExoII& meii_;
     Cuff& cuff_;
 
     // PD CONTROLLERS
-    mel::PdController pd1_ = mel::PdController(60, 1);
-    mel::PdController pd2_ = mel::PdController(40, 0.5);
+    mel::core::PdController pd1_ = mel::core::PdController(60, 1);
+    mel::core::PdController pd2_ = mel::core::PdController(40, 0.5);
 
     // CUFF PARAMETERS
     short int CUFF_NORMAL_FORCE_ = 3;
@@ -219,9 +219,9 @@ private:
     double length_ = 450;
     double sin_freq_ = 0.2;
     double cos_freq_ = 0.3;
-    mel::share::MelShare trajectory_x_ = mel::share::MelShare("trajectory_x", 54*4); 
-    mel::share::MelShare trajectory_y_ = mel::share::MelShare("trajectory_y", 54*4);
-    mel::share::MelShare exp_pos = mel::share::MelShare("exp_pos");
+    mel::comm::MelShare trajectory_x_ = mel::comm::MelShare("trajectory_x", 54*4);
+    mel::comm::MelShare trajectory_y_ = mel::comm::MelShare("trajectory_y", 54*4);
+    mel::comm::MelShare exp_pos = mel::comm::MelShare("exp_pos");
     std::array<int, 54> trajectory_x_data;
     std::array<int, 54> trajectory_y_data;
     std::array<int, 2> expert_position_ = { 0, 0 };
@@ -231,9 +231,9 @@ private:
     void update_trajectory_error(double joint_angle);
 
     // MEII VARIABLES
-    mel::double_vec neutral_pos_meii_ = { -10.0 * mel::DEG2RAD, 0.0 * mel::DEG2RAD, 0.11 , 0.11,  0.11 }; // robot joint positions
+    mel::double_vec neutral_pos_meii_ = { -10.0 * mel::math::DEG2RAD, 0.0 * mel::math::DEG2RAD, 0.11 , 0.11,  0.11 }; // robot joint positions
     mel::double_vec speed_meii_ = { 0.25, 0.25, 0.0125, 0.0125, 0.0125 };
-    mel::double_vec pos_tol_meii_ = { 1.0 * mel::DEG2RAD, 1.0 * mel::DEG2RAD, 0.01, 0.01, 0.01 };
+    mel::double_vec pos_tol_meii_ = { 1.0 * mel::math::DEG2RAD, 1.0 * mel::math::DEG2RAD, 0.01, 0.01, 0.01 };
 
 
     // SAVE VARIABLES
@@ -246,15 +246,15 @@ private:
     double cuff_noise_;
 
     // UNITY GAMEMANAGER
-    mel::share::MelShare unity_ = mel::share::MelShare("unity");
-    mel::share::MelShare trial_ = mel::share::MelShare("trial");
-    mel::share::MelShare timer_ = mel::share::MelShare("timer");
+    mel::comm::MelShare unity_ = mel::comm::MelShare("unity");
+    mel::comm::MelShare trial_ = mel::comm::MelShare("trial");
+    mel::comm::MelShare timer_ = mel::comm::MelShare("timer");
 
     std::array<int, 8> unity_data_ = { 1,1,1,1,1,1,1,1 };
     void update_unity(bool background, bool pendulum, bool trajectory_region, bool trajectory_center, bool expert, bool radius, bool stars, bool ui);
 
     // PERLIN NOISE MODULES
-    mel::share::MelShare scope_ = mel::share::MelShare("scope");
+    mel::comm::MelShare scope_ = mel::comm::MelShare("scope");
     noise::module::Perlin guidance_module_;
     double ow_noise_gain_ = 0.375;
     noise::module::Perlin trajectory_module_;

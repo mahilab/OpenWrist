@@ -39,11 +39,12 @@
 // Generalization (x12 - 20s ea)     | G     | 96 - 107 |
 //----------------------------------------------------------------------------
 
-class HapticGuidance : public mel::core::StateMachine {
+
+class HapticGuidance : public mel::util::StateMachine {
 
 public:
 
-    HapticGuidance(mel::core::Clock& clock, mel::core::Daq* ow_daq, mel::hdw::OpenWrist& open_wrist, mel::core::Daq* meii_daq, mel::hdw::MahiExoII& meii, Cuff& cuff, mel::util::GuiFlag& gui_flag, int input_mode,
+    HapticGuidance(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& open_wrist, mel::core::Daq* meii_daq, mel::exo::MahiExoII& meii, Cuff& cuff, mel::util::GuiFlag& gui_flag, int input_mode,
         int subject_number, int condition, std::string start_trial = "F1-1");
 
 private:
@@ -66,28 +67,28 @@ private:
     };
 
     // STATE FUNCTIONS
-    void sf_start(const mel::core::NoEventData*);
-    void sf_familiarization(const mel::core::NoEventData*);
-    void sf_evaluation(const mel::core::NoEventData*);
-    void sf_training(const mel::core::NoEventData*);
-    void sf_break(const mel::core::NoEventData*);
-    void sf_generalization(const mel::core::NoEventData*);
-    void sf_transition(const mel::core::NoEventData*);
-    void sf_stop(const mel::core::NoEventData*);
+    void sf_start(const mel::util::NoEventData*);
+    void sf_familiarization(const mel::util::NoEventData*);
+    void sf_evaluation(const mel::util::NoEventData*);
+    void sf_training(const mel::util::NoEventData*);
+    void sf_break(const mel::util::NoEventData*);
+    void sf_generalization(const mel::util::NoEventData*);
+    void sf_transition(const mel::util::NoEventData*);
+    void sf_stop(const mel::util::NoEventData*);
 
     // STATE ACTIONS
-    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_start> sa_start;
-    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_familiarization> sa_familiarization;
-    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_evaluation> sa_evaluation;
-    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_training> sa_training;
-    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_break> sa_break;
-    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_generalization> sa_generlization;
-    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_transition> sa_transition;
-    mel::core::StateAction<HapticGuidance, mel::core::NoEventData, &HapticGuidance::sf_stop> sa_stop;
+    mel::util::StateAction<HapticGuidance, mel::util::NoEventData, &HapticGuidance::sf_start> sa_start;
+    mel::util::StateAction<HapticGuidance, mel::util::NoEventData, &HapticGuidance::sf_familiarization> sa_familiarization;
+    mel::util::StateAction<HapticGuidance, mel::util::NoEventData, &HapticGuidance::sf_evaluation> sa_evaluation;
+    mel::util::StateAction<HapticGuidance, mel::util::NoEventData, &HapticGuidance::sf_training> sa_training;
+    mel::util::StateAction<HapticGuidance, mel::util::NoEventData, &HapticGuidance::sf_break> sa_break;
+    mel::util::StateAction<HapticGuidance, mel::util::NoEventData, &HapticGuidance::sf_generalization> sa_generlization;
+    mel::util::StateAction<HapticGuidance, mel::util::NoEventData, &HapticGuidance::sf_transition> sa_transition;
+    mel::util::StateAction<HapticGuidance, mel::util::NoEventData, &HapticGuidance::sf_stop> sa_stop;
     
     // STATE MAP
-    virtual const mel::core::StateMapRow* get_state_map() {
-        static const mel::core::StateMapRow STATE_MAP[] = {
+    virtual const mel::util::StateMapRow* get_state_map() {
+        static const mel::util::StateMapRow STATE_MAP[] = {
             &sa_start,
             &sa_familiarization,
             &sa_evaluation,
@@ -180,13 +181,13 @@ private:
     void log_row();
 
     // HARDWARE CLOCK
-    mel::core::Clock clock_;
+    mel::util::Clock clock_;
 
     // HARDWARE
     mel::core::Daq* ow_daq_;
-    mel::hdw::OpenWrist& open_wrist_;
+    mel::exo::OpenWrist& open_wrist_;
     mel::core::Daq* meii_daq_;
-    mel::hdw::MahiExoII& meii_;
+    mel::exo::MahiExoII& meii_;
     Cuff& cuff_;
 
     // PD CONTROLLERS

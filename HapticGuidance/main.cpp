@@ -71,14 +71,14 @@ int main(int argc, char * argv[]) {
     mel::channel_vec  do_channels = { 0, 1, 2 };
     mel::channel_vec enc_channels = { 0, 1, 2 };
 
-    mel::hdw::Q8Usb::Options options_q8;
-    options_q8.update_rate_ = mel::hdw::Q8Usb::Options::UpdateRate::Fast_8kHz;
+    mel::dev::Q8Usb::Options options_q8;
+    options_q8.update_rate_ = mel::dev::Q8Usb::Options::UpdateRate::Fast_8kHz;
     options_q8.decimation_ = 1;
-    options_q8.ao_modes_[0] = mel::hdw::Q8Usb::Options::AoMode(mel::hdw::Q8Usb::Options::AoMode::CurrentMode1, 0, -1.382, 8.030, 0, -1, 0, 1000);
-    options_q8.ao_modes_[1] = mel::hdw::Q8Usb::Options::AoMode(mel::hdw::Q8Usb::Options::AoMode::CurrentMode1, 0, -1.382, 8.030, 0, -1, 0, 1000);
-    options_q8.ao_modes_[2] = mel::hdw::Q8Usb::Options::AoMode(mel::hdw::Q8Usb::Options::AoMode::CurrentMode1, 0,  1.912, 18.43, 0, -1, 0, 1000);
+    options_q8.ao_modes_[0] = mel::dev::Q8Usb::Options::AoMode(mel::dev::Q8Usb::Options::AoMode::CurrentMode1, 0, -1.382, 8.030, 0, -1, 0, 1000);
+    options_q8.ao_modes_[1] = mel::dev::Q8Usb::Options::AoMode(mel::dev::Q8Usb::Options::AoMode::CurrentMode1, 0, -1.382, 8.030, 0, -1, 0, 1000);
+    options_q8.ao_modes_[2] = mel::dev::Q8Usb::Options::AoMode(mel::dev::Q8Usb::Options::AoMode::CurrentMode1, 0,  1.912, 18.43, 0, -1, 0, 1000);
 
-    mel::core::Daq* q8_ow = new mel::hdw::Q8Usb(id_ow, ai_channels, ao_channels, di_channels, do_channels, enc_channels, options_q8);
+    mel::core::Daq* q8_ow = new mel::dev::Q8Usb(id_ow, ai_channels, ao_channels, di_channels, do_channels, enc_channels, options_q8);
 
     /*
     // create Q8Usb MahiExo-II
@@ -98,7 +98,7 @@ int main(int argc, char * argv[]) {
     */
 
     // create and configure an OpenWrist object
-    mel::hdw::OpenWrist::Config ow_config;
+    mel::exo::OpenWrist::Config ow_config;
     for (int i = 0; i < 3; i++) {
         ow_config.enable_[i] = q8_ow->do_(i);
         ow_config.command_[i] = q8_ow->ao_(i);
@@ -107,7 +107,7 @@ int main(int argc, char * argv[]) {
         ow_config.encrate_[i] = q8_ow->encrate_(i);
         ow_config.amp_gains_[i] = 1;
     }
-    mel::hdw::OpenWrist open_wrist(ow_config);
+    mel::exo::OpenWrist open_wrist(ow_config);
     
     /*
     // create and configure a MahiExo-II object
@@ -201,7 +201,7 @@ int main(int argc, char * argv[]) {
         mel::util::print("Condition:      " + std::to_string(condition));
         mel::util::print("Start Trial:    " + start_trial);
 
-        mel::core::Clock clock(1000);
+        mel::util::Clock clock(1000);
         //HapticGuidance haptic_guidance(clock, q8_ow, open_wrist, q8_meii, meii, cuff, gui_flag, input_mode, subject, condition, start_trial);
         //haptic_guidance.execute();
         delete q8_ow;

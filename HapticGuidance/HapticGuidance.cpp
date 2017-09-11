@@ -4,14 +4,15 @@
 
 using namespace mel;
 
-HapticGuidance::HapticGuidance(util::Clock& clock, core::Daq* ow_daq, exo::OpenWrist& open_wrist, core::Daq* meii_daq, exo::MahiExoII& meii, Cuff& cuff, util::GuiFlag& gui_flag, int input_mode,
+//HapticGuidance::HapticGuidance(util::Clock& clock, core::Daq* ow_daq, exo::OpenWrist& open_wrist, core::Daq* meii_daq, exo::MahiExoII& meii, Cuff& cuff, util::GuiFlag& gui_flag, int input_mode,
+HapticGuidance::HapticGuidance(util::Clock& clock, core::Daq* ow_daq, exo::OpenWrist& open_wrist, Cuff& cuff, util::GuiFlag& gui_flag, int input_mode,
     int subject_number, int condition, std::string start_trial):
     StateMachine(8), 
     clock_(clock),
     ow_daq_(ow_daq),
     open_wrist_(open_wrist), 
-    meii_daq_(meii_daq),
-    meii_(meii),
+    //meii_daq_(meii_daq),
+    //meii_(meii),
     cuff_(cuff),
     gui_flag_(gui_flag),
     INPUT_MODE_(input_mode),
@@ -171,6 +172,7 @@ void HapticGuidance::sf_start(const util::NoEventData*) {
 
     // enable MahiExo-II DAQ
     if (CONDITION_ == 4) {
+        /*
         util::print("\nPress Enter to enable MahiExo-II Daq <" + ow_daq_->name_ + ">.");
         util::Input::wait_for_key_press(util::Input::Key::Return);
         meii_daq_->enable();
@@ -186,6 +188,7 @@ void HapticGuidance::sf_start(const util::NoEventData*) {
             event(ST_STOP);
             return;
         }
+        */
     }
     
     event(ST_TRANSITION);   
@@ -419,6 +422,7 @@ void HapticGuidance::sf_training(const util::NoEventData*) {
                 cuff_.set_motor_positions(cuff_pos_1_, cuff_pos_2_, true);
             }
             else if (CONDITION_ == 4) {
+                /*
                 meii_daq_->reload_watchdog();
                 meii_daq_->read_all();
 
@@ -444,6 +448,7 @@ void HapticGuidance::sf_training(const util::NoEventData*) {
                     }
                 }
                 meii_daq_->write_all();
+                */
             }
 
             ps_total_torque_ = ps_comp_torque_ - pendulum_.Tau[0] + ps_noise_torque_;
@@ -615,8 +620,8 @@ void HapticGuidance::sf_transition(const util::NoEventData*) {
     }
 
     if (CONDITION_ == 4) {
-        meii_.disable();
-        meii_daq_->stop_watchdog();
+        //meii_.disable();
+        //meii_daq_->stop_watchdog();
     }
 
     // save the data log from the last trial
@@ -701,8 +706,8 @@ void HapticGuidance::sf_transition(const util::NoEventData*) {
         }
 
         if (CONDITION_ == 4) {
-            meii_.enable();
-            meii_daq_->start_watchdog(0.1);
+            //meii_.enable();
+            //meii_daq_->start_watchdog(0.1);
         }
 
         // restart the clock

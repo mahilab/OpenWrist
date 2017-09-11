@@ -11,7 +11,7 @@ This repository includes all active and past software development for the OpenWr
 
 ## Dependencies
 
-- [MAHI Exoskeleton Library (MEL)](https://github.com/epezent/MEL)
+- [**MAHI Exoskeleton Library (MEL)**](https://github.com/epezent/MEL) - Note that the OpenWrist solution assumes you have the MEL repositoy and OpenWrist reposity saved at the same directory level.
 
 ## Project Directory
 

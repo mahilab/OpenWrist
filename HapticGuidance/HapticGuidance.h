@@ -44,7 +44,9 @@ class HapticGuidance : public mel::util::StateMachine {
 
 public:
 
-    HapticGuidance(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& open_wrist, mel::core::Daq* meii_daq, mel::exo::MahiExoII& meii, Cuff& cuff, mel::util::GuiFlag& gui_flag, int input_mode,
+    //HapticGuidance(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& open_wrist, mel::core::Daq* meii_daq, mel::exo::MahiExoII& meii, Cuff& cuff, mel::util::GuiFlag& gui_flag, int input_mode,
+    //    int subject_number, int condition, std::string start_trial = "F1-1");
+    HapticGuidance(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& open_wrist, Cuff& cuff, mel::util::GuiFlag& gui_flag, int input_mode,
         int subject_number, int condition, std::string start_trial = "F1-1");
 
 private:
@@ -186,8 +188,8 @@ private:
     // HARDWARE
     mel::core::Daq* ow_daq_;
     mel::exo::OpenWrist& open_wrist_;
-    mel::core::Daq* meii_daq_;
-    mel::exo::MahiExoII& meii_;
+    //mel::core::Daq* meii_daq_;
+    //mel::exo::MahiExoII& meii_;
     Cuff& cuff_;
 
     // PD CONTROLLERS

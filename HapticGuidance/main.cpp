@@ -13,6 +13,10 @@
 
 int main(int argc, char * argv[]) {
 
+    mel::util::print(mel::math::linspace(0, 3, 3));
+    mel::util::print(mel::math::linspace(0.0, 3.0, 3));
+
+
     // ignore CTRL-C signal (we can do this with Input)
     signal(SIGINT, SIG_IGN);
 
@@ -204,7 +208,7 @@ int main(int argc, char * argv[]) {
         mel::util::Clock clock(1000);
         //HapticGuidance haptic_guidance(clock, q8_ow, open_wrist, q8_meii, meii, cuff, gui_flag, input_mode, subject, condition, start_trial);
         HapticGuidance haptic_guidance(clock, q8_ow, open_wrist, cuff, gui_flag, input_mode, subject, condition, start_trial);
-        //haptic_guidance.execute();
+        haptic_guidance.execute();
         delete q8_ow;
         //delete q8_meii;
         return 0;

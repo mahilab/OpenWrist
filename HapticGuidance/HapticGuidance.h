@@ -218,26 +218,37 @@ private:
     std::vector<TrajParams> TRAJ_PARAMS_G_ = std::vector<TrajParams>(12, TrajParams(250, 0.25, 0.5));
     std::vector<TrajParams> TRAJ_PARAMS_; // random generated for all trials
 
-    double amplitude_ = 225;
-    double length_ = 450;
-    double sin_freq_ = 0.2;
-    double cos_freq_ = 0.3;
-    mel::comm::MelShare trajectory_x_ = mel::comm::MelShare("trajectory_x", 54*4);
-    mel::comm::MelShare trajectory_y_ = mel::comm::MelShare("trajectory_y", 54*4);
-    mel::comm::MelShare exp_pos = mel::comm::MelShare("exp_pos");
-    std::array<int, 54> trajectory_x_data;
-    std::array<int, 54> trajectory_y_data;
-    std::array<int, 2> expert_position_ = { 0, 0 };
+    double screen_height_ = 1080; // px
+
+    double length_px_ = 450;   // link 1 length [px]
+
+    double trajectory(double time);
+    double amplitude_px_;      // trajectory amplitude [px]
+    double sin_freq_;          // trajectory sin component frequency [Hz]
+    double cos_freq_;          // trajectory cos component frequency [Hz]
+    double screen_time_ = 1.0; // duration a point lasts on screen [sec]
+
+    int num_traj_points_ = 61;
+    int spacing_px_ = 20;      // px
+
+    std::array<float, 61> trajectory_x_px_;
+    std::array<float, 61> trajectory_y_px_;
+    std::array<float, 2> expert_position_px_;
+
+    double traj_error_ = 0;
+
     void update_trajectory(double time);
     void update_expert(double time);
-    double traj_error_ = 0;
     void update_trajectory_error(double joint_angle);
 
-    // MEII VARIABLES
+    mel::comm::MelShare trajectory_x_ = mel::comm::MelShare("trajectory_x", 61*4);
+    mel::comm::MelShare trajectory_y_ = mel::comm::MelShare("trajectory_y", 61*4);
+    mel::comm::MelShare exp_pos = mel::comm::MelShare("exp_pos");
+
+    // ME-II VARIABLES
     mel::double_vec neutral_pos_meii_ = { -10.0 * mel::math::DEG2RAD, 0.0 * mel::math::DEG2RAD, 0.11 , 0.11,  0.11 }; // robot joint positions
     mel::double_vec speed_meii_ = { 0.25, 0.25, 0.0125, 0.0125, 0.0125 };
     mel::double_vec pos_tol_meii_ = { 1.0 * mel::math::DEG2RAD, 1.0 * mel::math::DEG2RAD, 0.01, 0.01, 0.01 };
-
 
     // SAVE VARIABLES
     double ps_comp_torque_;

@@ -67,11 +67,11 @@ HapticGuidance::HapticGuidance(util::Clock& clock, core::Daq* ow_daq, exo::OpenW
 void HapticGuidance::log_row() {
     std::vector<double> row;
     row.push_back(clock_.time());
-    row.push_back(amplitude_);
+    row.push_back(amplitude_px_);
     row.push_back(sin_freq_);
     row.push_back(cos_freq_);
-    row.push_back(expert_position_[0]);
-    row.push_back(expert_position_[1]);
+    row.push_back(expert_position_px_[0]);
+    row.push_back(expert_position_px_[1]);
     row.push_back(traj_error_);
     row.push_back(open_wrist_.joints_[0]->get_position());
     row.push_back(open_wrist_.joints_[0]->get_velocity());
@@ -683,7 +683,7 @@ void HapticGuidance::sf_transition(const util::NoEventData*) {
         pendulum_.reset();
 
         // set the trajectory parameters
-        amplitude_ = TRAJ_PARAMS_[current_trial_index_].amp_;
+        amplitude_px_ = TRAJ_PARAMS_[current_trial_index_].amp_;
         sin_freq_ = TRAJ_PARAMS_[current_trial_index_].sin_;
         cos_freq_ = TRAJ_PARAMS_[current_trial_index_].cos_;
         trajectory_module_.SetFrequency(cos_freq_);
@@ -694,7 +694,7 @@ void HapticGuidance::sf_transition(const util::NoEventData*) {
         
         // print message
         util::print("STARTING TRIAL: <" + TRIALS_TAG_NAMES_[current_trial_index_] + ">." +
-            " A = " + std::to_string(amplitude_) + " S = " + std::to_string(sin_freq_) + " C = " + std::to_string(cos_freq_));
+            " A = " + std::to_string(amplitude_px_) + " S = " + std::to_string(sin_freq_) + " C = " + std::to_string(cos_freq_));
         util::print("Press ESC or CTRL+C to terminate the experiment.");
 
         trials_started_ = true;
@@ -753,47 +753,50 @@ void HapticGuidance::sf_stop(const util::NoEventData*) {
 //-----------------------------------------------------------------------------
 // TRAJECTORY FUNCTIONS
 //-----------------------------------------------------------------------------
+
+double HapticGuidance::trajectory(double time) {
+    return amplitude_px_ * -sin(2.0 * math::PI * sin_freq_ * time) * cos(2.0 * math::PI * cos_freq_ * time);
+}
+
 void HapticGuidance::update_trajectory(double time) {
     // compute trajectory
-    for (int i = 0; i < 54; i++) {
-        trajectory_y_data[i] = (540 - i * 20); // I don't think this needs to change
-        trajectory_x_data[i] = (int)(amplitude_ * -sin(2.0 * math::PI * sin_freq_ * (time - (double)i * 20.0 / 1080.0)) * cos(2.0 * math::PI * cos_freq_ * (time - (double)i * 20.0 / 1080.0))); 
-        //trajectory_x_data[i] = (int)(amplitude_ * -sin(pendulum_.natural_frequency(1) * (time - (double)i * 20.0 / 1080.0)));
-        //trajectory_x_data[i] = (int)(amplitude_ * (trajectory_module_.GetValue(time + (double)i * 20.0 / 1080.0, 0.0, 0.0) + sin(2.0 * mel::PI * sin_freq_ * (time + (double)i * 20.0 / 1080.0))));
+    for (int i = 0; i < num_traj_points_; i++) {
+        trajectory_y_px_[i] = (i* spacing_px_ - (num_traj_points_ - 1) * spacing_px_ * 0.5 ); 
+        trajectory_x_px_[i] = trajectory(trajectory_y_px_[i] * screen_time_ / screen_height_ + time);
     }
     // send trajectory to Unity
-    trajectory_x_.write(trajectory_x_data);
-    trajectory_y_.write(trajectory_y_data);
+    trajectory_x_.write(trajectory_x_px_);
+    trajectory_y_.write(trajectory_y_px_);
 }
 
 void HapticGuidance::update_expert(double time) {
-    double traj_point;
-    std::array<double,540> check_array;
-    double min = 1000;
+    double traj_point_x;
+    std::array<double, 450> check_lengths;
+    double min = 1080;
     int pos_min = 0;
-    double traj_point_min;
-    for (int i = 540 - (int)length_; i < 540; i++) {
-        traj_point = amplitude_ / 1000.0 * -sin(2.0*math::PI*sin_freq_*(time - (double)i    / 1080.0  )) *cos(2.0*math::PI*cos_freq_*(time - (double)i / 1080.0    ));
-        //traj_point = amplitude_ / 1000.0 * -sin(pendulum_.natural_frequency(1)*(time - (double)i / 1080.0));
+    double traj_point_min;  
 
-        //traj_point = (amplitude_ / 1000.0 * trajectory_module_.GetValue(time + (double)i  / 1080.0, 0.0, 0.0));
-        //traj_point = (amplitude_ / 1000.0 * (trajectory_module_.GetValue(time + (double)i / 1080.0, 0.0, 0.0) + sin(2.0*mel::PI*sin_freq_*(time + (double)i / 1080.0))));
+    for (int i = 0; i < 450; i++) {
+        //traj_point = amplitude_ / 1000.0 * -sin(2.0*math::PI*sin_freq_*(time - (double)i    / 1080.0  )) *cos(2.0*math::PI*cos_freq_*(time - (double)i / 1080.0    ));
 
-        check_array[i] = abs(length_/1000.0 - sqrt(pow(traj_point, 2) + pow(((double)i / 1000.0) - (540.0 - length_)/1000, 2)));
-        if (check_array[i] < min) {
-            min = check_array[i];
+        check_lengths[i] = abs( sqrt(pow(traj_point_x, 2) + pow(length_px_- i, 2)) );
+
+
+
+        if (check_lengths[i] < min) {
+            min = check_lengths[i];
             pos_min = i;
-            traj_point_min = traj_point;
+            traj_point_min = traj_point_x;
         }
     }
-    expert_position_[0] =  (int)(1000 * traj_point_min);
-    expert_position_[1] =  540 - pos_min;
-    exp_pos.write(expert_position_);
+    expert_position_px_[0] =  (int)traj_point_min;
+    expert_position_px_[1] =  pos_min;
+    exp_pos.write(expert_position_px_);
 }
 
 
 void HapticGuidance::update_trajectory_error(double joint_angle) {
-    double correct_angle = asin((double)expert_position_[0] / length_);
+    double correct_angle = asin((double)expert_position_px_[0] / length_px_);
     traj_error_ = (joint_angle - correct_angle);
 }
 

@@ -13,10 +13,6 @@
 
 int main(int argc, char * argv[]) {
 
-    mel::util::print(mel::math::linspace(0, 3, 3));
-    mel::util::print(mel::math::linspace(0.0, 3.0, 3));
-
-
     // ignore CTRL-C signal (we can do this with Input)
     signal(SIGINT, SIG_IGN);
 

@@ -368,7 +368,8 @@ void HapticGuidance::sf_evaluation(const util::NoEventData*) {
 void HapticGuidance::sf_training(const util::NoEventData*) {
 
     // show/hide Unity elements
-    update_unity(true, true, true, false, false, false, true, true);
+    //update_unity(true, true, true, false, false, false, true, true);
+    update_unity(true, true, true, true, true, true, true, true);
 
 
     bool move_started_ow = false;
@@ -639,9 +640,6 @@ void HapticGuidance::sf_transition(const util::NoEventData*) {
         // increment the trial;
         current_trial_index_ += 1;
 
-        // write the trial string out
-        trial_.write_message(TRIALS_TAG_NAMES_[current_trial_index_]);
-
         // delay or ask for input
         if (TRIALS_TAG_NAMES_[current_trial_index_] == "F1-1" ||
             TRIALS_TAG_NAMES_[current_trial_index_] == "E1-1" ||
@@ -649,9 +647,7 @@ void HapticGuidance::sf_transition(const util::NoEventData*) {
             TRIALS_TAG_NAMES_[current_trial_index_] == "B1-1" ||
             TRIALS_TAG_NAMES_[current_trial_index_] == "G1-1") 
         {
-            std::array<double, 2> timer = { 0, LENGTH_TRIALS_[TRIALS_BLOCK_TYPES_[current_trial_index_]] };
-            timer_.write(timer);
-
+            trial_.write_message(TRIALS_TAG_NAMES_[current_trial_index_]);
             util::print("\nNEXT TRIAL: <" + TRIALS_TAG_NAMES_[current_trial_index_] + ">. Press SPACE to begin.");
             while (!util::Input::is_key_pressed(util::Input::Space)) {
                 stop_ = check_stop();
@@ -663,18 +659,25 @@ void HapticGuidance::sf_transition(const util::NoEventData*) {
         }
         else {
             util::print("\nNEXT TRIAL: <" + TRIALS_TAG_NAMES_[current_trial_index_] + ">.");
-            clock_.start();
-            while (clock_.time() < 3.0) {
-                std::array<double, 2> timer = { clock_.time(), 3.0 };
-                timer_.write(timer);
-                stop_ = check_stop();
-                if (stop_) {
-                    event(ST_STOP);
-                    return;
-                }
-                clock_.wait();
-            }
         }
+
+        // write wait
+        trial_.write_message("HOLD");
+        clock_.start();
+        while (clock_.time() < 3.0) {
+            std::array<double, 2> timer = { clock_.time(), 3.0 };
+            timer_.write(timer);
+            stop_ = check_stop();
+            if (stop_) {
+                event(ST_STOP);
+                return;
+            }
+            clock_.wait();
+        }
+        
+
+        // write the trial string out
+        trial_.write_message(TRIALS_TAG_NAMES_[current_trial_index_]);
 
         std::array<double, 2> timer = { 0, LENGTH_TRIALS_[TRIALS_BLOCK_TYPES_[current_trial_index_]] };
         timer_.write(timer);
@@ -755,14 +758,14 @@ void HapticGuidance::sf_stop(const util::NoEventData*) {
 //-----------------------------------------------------------------------------
 
 double HapticGuidance::trajectory(double time) {
-    return amplitude_px_ * -sin(2.0 * math::PI * sin_freq_ * time) * cos(2.0 * math::PI * cos_freq_ * time);
+    return amplitude_px_ * ( -sin(2.0 * math::PI * sin_freq_ * time) * cos(2.0 * math::PI * cos_freq_ * time));
 }
 
 void HapticGuidance::update_trajectory(double time) {
     // compute trajectory
     for (int i = 0; i < num_traj_points_; i++) {
-        trajectory_y_px_[i] = (i* spacing_px_ - (num_traj_points_ - 1) * spacing_px_ * 0.5 ); 
-        trajectory_x_px_[i] = trajectory(trajectory_y_px_[i] * screen_time_ / screen_height_ + time);
+        trajectory_y_px_[i] = static_cast<float>(i* spacing_px_ - (num_traj_points_ - 1) * spacing_px_ * 0.5 ); 
+        trajectory_x_px_[i] = static_cast<float>(trajectory(trajectory_y_px_[i] * screen_time_ / screen_height_ + time));
     }
     // send trajectory to Unity
     trajectory_x_.write(trajectory_x_px_);
@@ -770,27 +773,17 @@ void HapticGuidance::update_trajectory(double time) {
 }
 
 void HapticGuidance::update_expert(double time) {
-    double traj_point_x;
-    std::array<double, 450> check_lengths;
-    double min = 1080;
-    int pos_min = 0;
-    double traj_point_min;  
-
-    for (int i = 0; i < 450; i++) {
-        //traj_point = amplitude_ / 1000.0 * -sin(2.0*math::PI*sin_freq_*(time - (double)i    / 1080.0  )) *cos(2.0*math::PI*cos_freq_*(time - (double)i / 1080.0    ));
-
-        check_lengths[i] = abs( sqrt(pow(traj_point_x, 2) + pow(length_px_- i, 2)) );
-
-
-
-        if (check_lengths[i] < min) {
-            min = check_lengths[i];
-            pos_min = i;
-            traj_point_min = traj_point_x;
+    double closest = math::INF;
+    double x_px;
+    for (double y_px = 0; y_px < length_px_; y_px++) {
+        x_px = trajectory(y_px * screen_time_ / screen_height_ + time);
+        double temp = std::abs( sqrt(pow(x_px, 2) + pow(length_px_ - y_px, 2)) - length_px_ );
+        if (temp < closest) {
+            closest = temp;
+            expert_position_px_[0] = static_cast<float>(x_px);
+            expert_position_px_[1] = static_cast<float>(y_px);
         }
     }
-    expert_position_px_[0] =  (int)traj_point_min;
-    expert_position_px_[1] =  pos_min;
     exp_pos.write(expert_position_px_);
 }
 

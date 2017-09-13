@@ -168,6 +168,15 @@ private:
     std::string DIRECTORY_;
 
     //-------------------------------------------------------------------------
+    // CONTROL LOOP UTILS
+    //-------------------------------------------------------------------------
+
+    bool move_to_started_ = false;
+    double move_to_speed_ = 60; // [deg/s]
+
+    void step_system(double external_torque = 0.0);
+
+    //-------------------------------------------------------------------------
     // EXPERIMENT COMPONENTS
     //-------------------------------------------------------------------------
 
@@ -180,14 +189,14 @@ private:
     // DATA LOG
     mel::util::DataLog log_ = mel::util::DataLog("hg_log", false);
     std::vector<double> log_data_;
-    void log_row();
+    void log_step();
 
     // HARDWARE CLOCK
     mel::util::Clock clock_;
 
     // HARDWARE
     mel::core::Daq* ow_daq_;
-    mel::exo::OpenWrist& open_wrist_;
+    mel::exo::OpenWrist& ow_;
     //mel::core::Daq* meii_daq_;
     //mel::exo::MahiExoII& meii_;
     Cuff& cuff_;
@@ -260,12 +269,14 @@ private:
     double cuff_noise_;
 
     // UNITY GAMEMANAGER
-    mel::comm::MelShare unity_ = mel::comm::MelShare("unity");
-    mel::comm::MelShare trial_ = mel::comm::MelShare("trial");
+    std::array<double, 2> timer_data_;
     mel::comm::MelShare timer_ = mel::comm::MelShare("timer");
 
-    std::array<int, 8> unity_data_ = { 1,1,1,1,1,1,1,1 };
-    void update_unity(bool background, bool pendulum, bool trajectory_region, bool trajectory_center, bool expert, bool radius, bool stars, bool ui);
+    mel::comm::MelShare unity_ = mel::comm::MelShare("unity");
+    mel::comm::MelShare trial_ = mel::comm::MelShare("trial");
+
+    std::array<int, 8> visible_data_ = { 1,1,1,1,1,1,1,1 };
+    void update_visible(bool background, bool pendulum, bool trajectory_region, bool trajectory_center, bool expert, bool radius, bool stars, bool ui);
 
     // PERLIN NOISE MODULES
     mel::comm::MelShare scope_ = mel::comm::MelShare("scope");

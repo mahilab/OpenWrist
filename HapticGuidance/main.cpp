@@ -9,12 +9,11 @@
 #include <boost/program_options.hpp>
 #include "GuiFlag.h"
 #include "HapticGuidance.h"
-#include <csignal>
+#include "Input.h"
 
 int main(int argc, char * argv[]) {
 
-    // ignore CTRL-C signal (we can do this with Input)
-    signal(SIGINT, SIG_IGN);
+    mel::util::Input::ignore_ctrl_c();
 
     // enable soft realtime
     mel::util::enable_realtime();
@@ -66,7 +65,7 @@ int main(int argc, char * argv[]) {
 
     // create Q8Usb OpenWrist
     mel::channel_vec  ai_channels = { 0, 1, 2 };
-    mel::channel_vec  ao_channels = { 0, 1, 2,3 };
+    mel::channel_vec  ao_channels = { 0, 1, 2 };
     mel::channel_vec  di_channels = { 0, 1, 2 };
     mel::channel_vec  do_channels = { 0, 1, 2 };
     mel::channel_vec enc_channels = { 0, 1, 2 };

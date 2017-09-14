@@ -126,7 +126,7 @@ void HapticGuidance::sf_start(const util::NoEventData*) {
 void HapticGuidance::sf_familiarization(const util::NoEventData*) {
 
     // show/hide Unity elements
-    update_visible(true, true, true, true, true, true, true, true);
+    update_visible(true, true, true, true, false, true, true, true);
 
     // reset move to flag
     move_to_started_ = false;  
@@ -146,7 +146,7 @@ void HapticGuidance::sf_familiarization(const util::NoEventData*) {
         // check for stop input
         stop_ = check_stop();
         // wait for the next clock cycle
-        clock_.wait();      
+        clock_.hybrid_wait();      
     }
 
     // transition to the next state
@@ -179,7 +179,7 @@ void HapticGuidance::sf_evaluation(const util::NoEventData*) {
         // check for stop input
         stop_ = check_stop();
         // wait for the next clock cycle
-        clock_.wait();
+        clock_.hybrid_wait();
     }
 
     // transition to the next state
@@ -262,7 +262,7 @@ void HapticGuidance::sf_training(const util::NoEventData*) {
         stop_ = check_stop();
 
         // wait for the next clock cycle
-        clock_.wait();
+        clock_.hybrid_wait();
     }
 
     // release CUFF
@@ -291,7 +291,7 @@ void HapticGuidance::sf_break(const util::NoEventData*) {
         // check for stop input
         stop_ = check_stop();
         // wait for the next clock cycle
-        clock_.wait();
+        clock_.hybrid_wait();
     }
 
     // transition to the next state
@@ -324,7 +324,7 @@ void HapticGuidance::sf_generalization(const util::NoEventData*) {
         // check for stop input
         stop_ = check_stop();
         // wait for the next clock cycle
-        clock_.wait();
+        clock_.hybrid_wait();
     }
 
     // transition to the next state
@@ -393,7 +393,7 @@ void HapticGuidance::sf_transition(const util::NoEventData*) {
                 event(ST_STOP);
                 return;
             }
-            clock_.wait();
+            clock_.hybrid_wait();
         }
         
 

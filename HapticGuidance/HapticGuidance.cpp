@@ -75,7 +75,7 @@ void HapticGuidance::sf_start(const util::NoEventData*) {
     // enable OpenWrist DAQ
     if (CONDITION_ >= 0) {
         util::print("\nPress Enter to enable OpenWrist Daq <" + ow_daq_->name_ + ">.");
-        util::Input::wait_for_key_press(util::Input::Key::Return);
+        util::Input::wait_for_key(util::Input::Key::Return);
         ow_daq_->enable();
         if (!ow_daq_->is_enabled()) {
             event(ST_STOP);
@@ -86,7 +86,7 @@ void HapticGuidance::sf_start(const util::NoEventData*) {
     // enable and pretension CUFF
     if (CONDITION_ == 2 || CONDITION_ == 3) {
         std::cout << "\nPress Enter to enable and pretension CUFF" << std::endl;
-        util::Input::wait_for_key_press(util::Input::Key::Return);
+        util::Input::wait_for_key(util::Input::Key::Return);
         cuff_.enable();
         if (!cuff_.is_enabled()) {
             event(ST_STOP);
@@ -126,7 +126,7 @@ void HapticGuidance::sf_start(const util::NoEventData*) {
 void HapticGuidance::sf_familiarization(const util::NoEventData*) {
 
     // show/hide Unity elements
-    update_visible(true, true, true, true, true, true, true, true);
+    update_visible(true, true, true, true, false, true, true, true);
 
     // reset move to flag
     move_to_started_ = false;  
@@ -146,7 +146,7 @@ void HapticGuidance::sf_familiarization(const util::NoEventData*) {
         // check for stop input
         stop_ = check_stop();
         // wait for the next clock cycle
-        clock_.wait();      
+        clock_.hybrid_wait();      
     }
 
     // transition to the next state
@@ -179,7 +179,7 @@ void HapticGuidance::sf_evaluation(const util::NoEventData*) {
         // check for stop input
         stop_ = check_stop();
         // wait for the next clock cycle
-        clock_.wait();
+        clock_.hybrid_wait();
     }
 
     // transition to the next state
@@ -262,7 +262,7 @@ void HapticGuidance::sf_training(const util::NoEventData*) {
         stop_ = check_stop();
 
         // wait for the next clock cycle
-        clock_.wait();
+        clock_.hybrid_wait();
     }
 
     // release CUFF
@@ -291,7 +291,7 @@ void HapticGuidance::sf_break(const util::NoEventData*) {
         // check for stop input
         stop_ = check_stop();
         // wait for the next clock cycle
-        clock_.wait();
+        clock_.hybrid_wait();
     }
 
     // transition to the next state
@@ -324,7 +324,7 @@ void HapticGuidance::sf_generalization(const util::NoEventData*) {
         // check for stop input
         stop_ = check_stop();
         // wait for the next clock cycle
-        clock_.wait();
+        clock_.hybrid_wait();
     }
 
     // transition to the next state
@@ -393,7 +393,7 @@ void HapticGuidance::sf_transition(const util::NoEventData*) {
                 event(ST_STOP);
                 return;
             }
-            clock_.wait();
+            clock_.hybrid_wait();
         }
         
 
@@ -498,7 +498,7 @@ void HapticGuidance::log_step() {
 
 void HapticGuidance::wait_for_input() {
     if (INPUT_MODE_ == 0) {
-        util::Input::wait_for_key_press(util::Input::Key::Space);
+        util::Input::wait_for_key(util::Input::Key::Space);
     }
     else if (INPUT_MODE_ = 1) {
         gui_flag_.wait_for_flag(1);

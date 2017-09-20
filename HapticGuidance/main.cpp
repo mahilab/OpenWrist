@@ -8,7 +8,7 @@
 #include "DataLog.h"
 #include <boost/program_options.hpp>
 #include "GuiFlag.h"
-#include "HapticGuidance.h"
+#include "HapticGuidanceV2.h"
 #include "Input.h"
 
 int main(int argc, char * argv[]) {
@@ -202,7 +202,7 @@ int main(int argc, char * argv[]) {
 
         mel::util::Clock clock(1000);
         //HapticGuidance haptic_guidance(clock, q8_ow, open_wrist, q8_meii, meii, cuff, gui_flag, input_mode, subject, condition, start_trial);
-        HapticGuidance haptic_guidance(clock, q8_ow, open_wrist, cuff, gui_flag, input_mode, subject, condition, start_trial);
+        HapticGuidanceV2 haptic_guidance(clock, q8_ow, open_wrist, cuff, gui_flag, input_mode, subject, condition, start_trial);
         haptic_guidance.execute();
         delete q8_ow;
         //delete q8_meii;

@@ -33,7 +33,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>$(SolutionDir)build\</IntDir>
+    <IntDir>$(ProjectDir)\build\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -58,13 +58,15 @@
     <ClInclude Include="commands.h" />
     <ClInclude Include="Cuff.h" />
     <ClInclude Include="definitions.h" />
-    <ClInclude Include="HapticGuidance.h" />
+    <ClInclude Include="HapticGuidanceV1.h" />
     <ClInclude Include="Pendulum.h" />
     <ClInclude Include="qbmove_communications.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cuff.cpp" />
-    <ClCompile Include="HapticGuidance.cpp" />
+    <ClCompile Include="HapticGuidanceV1.cpp" />
+    <ClCompile Include="HapticGuidanceV2.cpp" />
+    <ClCompile Include="HapticGuidanceV2.h" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pendulum.cpp" />
     <ClCompile Include="qbmove_communications.cpp" />

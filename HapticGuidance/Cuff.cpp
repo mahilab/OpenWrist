@@ -70,7 +70,7 @@ void Cuff::disable() {
 }
 
 int Cuff::open_port() {
-	char port[255] = { 'C','O','M','6' };
+	char port[255] = { 'C','O','M','4' };
 
 	openRS485(&comm_settings_t_, port, 2000000);
 

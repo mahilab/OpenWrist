@@ -92,7 +92,7 @@ void HapticGuidance::sf_start(const util::NoEventData*) {
             event(ST_STOP);
             return;
         }
-        cuff_.pretensioning(CUFF_NORMAL_FORCE_, offset, scaling_factor);
+        cuff_.pretension(CUFF_NORMAL_FORCE_, offset, scaling_factor);
         cuff_.set_motor_positions(-100, 100, true);
     } 
 

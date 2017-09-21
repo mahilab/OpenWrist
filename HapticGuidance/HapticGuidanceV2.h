@@ -38,7 +38,7 @@ public:
 
     //HapticGuidance(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& open_wrist, mel::core::Daq* meii_daq, mel::exo::MahiExoII& meii, Cuff& cuff, mel::util::GuiFlag& gui_flag, int input_mode,
     //    int subject_number, int condition, std::string start_trial = "F1-1");
-    HapticGuidanceV2(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& open_wrist, Cuff& cuff, mel::util::GuiFlag& gui_flag, int input_mode,
+    HapticGuidanceV2(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& open_wrist, Cuff& cuff, int input_mode,
         int subject_number, int condition, std::string start_trial = "F1-1");
 
 private:
@@ -92,9 +92,8 @@ private:
     }
 
     // USER INPUT CONTROL
-    int INPUT_MODE_;
+    const int input_mode_;
     void wait_for_input();
-    void allow_continue_input();
     bool check_stop();
     bool stop_ = false;
 
@@ -103,8 +102,8 @@ private:
     //-------------------------------------------------------------------------
 
     // SUBJECT/CONDITION
-    int SUBJECT_NUMBER_;
-    int CONDITION_;
+    const int subject_number_;
+    const int condition_;
 
     // BLOCK TYPES
     enum BlockType {
@@ -114,11 +113,11 @@ private:
         GENERALIZATION = 3
     };
 
-    std::array<std::string, 5> BLOCK_NAMES_ = { "FAMILIARIZATION", "TRAINING", "BREAK", "GENERALIZATION" };
-    std::array<std::string, 5> BLOCK_TAGS_ = { "F", "T", "B", "G" };
+    const std::array<std::string, 4> block_names_ = { "FAMILIARIZATION", "TRAINING", "BREAK", "GENERALIZATION" };
+    const std::array<std::string, 4> block_tags_ = { "F", "T", "B", "G" };
 
     // EXPERIMENT BLOCK ORDER (SET MANUALLY)
-    std::vector<BlockType> BLOCK_ORDER_ = {
+    const std::vector<BlockType> block_order_ = {
         FAMILIARIZATION,
         TRAINING,
         TRAINING,
@@ -132,23 +131,23 @@ private:
 
     // NUMBER OF BLOCKS PER BLOCK TYPE (SET DURING CONSTRUCTION)
     // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    std::array<int, 5> NUM_BLOCKS_ = { 0, 0, 0, 0 };
+    std::array<int, 4> num_blocks_ = { 0, 0, 0, 0 };
 
     // NUMBER OF TRIALS PER BLOCK TYPE PER BLOCK NUMBER (SET MANUALLY)
     // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    std::array<int, 5> NUM_TRIALS_ = { 1, 12, 1, 12 };
+    const std::array<int, 4> num_trials_ = { 1, 12, 1, 12 };
 
     // LENGTH IN SECONDS OF EACH BLOCK TYPE TRIAL (SET MANUALLY)
     // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    std::array<double, 5> LENGTH_TRIALS_ = { 1, 20, 300, 20 };
+    const std::array<double, 4> length_trials_ = { 60, 20, 300, 20 };
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();
     int current_trial_index_ = 0;
-    std::vector<BlockType> TRIALS_BLOCK_TYPES_;
-    std::vector<std::string> TRIALS_BLOCK_NAMES_;
-    std::vector<std::string> TRIALS_TAG_NAMES_;
-    int NUM_TRIALS_TOTAL_ = 0;
+    std::vector<BlockType> trials_block_types_;
+    std::vector<std::string> trials_block_names_;
+    std::vector<std::string> trials_tag_names_;
+    int num_trials_total_ = 0;
     bool trials_started_ = false;
 
     // SUBJECT DIRECTORY
@@ -168,9 +167,6 @@ private:
 
     // UNITY GAME
     mel::util::ExternalApp game = mel::util::ExternalApp("pendulum", "C:\\Users\\mep9\\Git\\SpacePendulum\\Builds\\SpacePendulum.exe");
-
-    // GUI FLAGS
-    mel::util::GuiFlag& gui_flag_;
 
     // DATA LOG
     mel::util::DataLog log_ = mel::util::DataLog("hg_log", false);
@@ -192,11 +188,14 @@ private:
     mel::core::PdController pd2_ = mel::core::PdController(40, 0.5);
 
     // CUFF PARAMETERS
-    short int CUFF_NORMAL_FORCE_ = 3;
-    short int CUFF_NOISE_GAIN_ = 8400;
-    short int CUFF_GUIDANCE_GAIN_ = 15000;
+    const short int cuff_normal_force_ = 3;
+    const short int cuff_noise_gain_ = 8400;
+    const short int cuff_ff_gain_ = 20000;
+    const short int cuff_fb_gain_ = 10000;
     short int offset[2];
     short int scaling_factor[2];
+
+    void release_cuff();
 
     // PENDULUM 
     Pendulum pendulum_;
@@ -207,15 +206,15 @@ private:
         double amp_, sin_, cos_;
     };
 
-    std::vector<TrajParams> TRAJ_PARAMS_FB_ = { TrajParams(250, 0.1, 0.1) };
-    std::vector<TrajParams> TRAJ_PARAMS_E_ = { TrajParams(250,0.2, 0.1), TrajParams(250, 0.2, 0.1), TrajParams(250, 0.2, 0.1) };
+    // 250
+    std::vector<TrajParams> TRAJ_PARAMS_FB_ = { TrajParams(45 * mel::math::DEG2RAD, 0.1, 0.1) };
+    std::vector<TrajParams> TRAJ_PARAMS_E_ = { TrajParams(45 * mel::math::DEG2RAD,0.2, 0.1), TrajParams(45 * mel::math::DEG2RAD, 0.1, 0.1), TrajParams(45 * mel::math::DEG2RAD, 0.25, 0.15) };
     std::vector<TrajParams> TRAJ_PARAMS_T_; // to be generated from TRAJ_PARAMS_E_
-    std::vector<TrajParams> TRAJ_PARAMS_G_ = std::vector<TrajParams>(12, TrajParams(250, 0.25, 0.5));
+    std::vector<TrajParams> TRAJ_PARAMS_G_ = std::vector<TrajParams>(12, TrajParams(45 * mel::math::DEG2RAD, 0.25, 0.5));
     std::vector<TrajParams> TRAJ_PARAMS_; // random generated for all trials
 
     double screen_height_ = 1080; // px
-
-    double length_px_ = 450;   // link 1 length [px]
+    double length_px_ = 450;      // link 1 length [px]
 
     double trajectory(double time);
     double amplitude_px_;      // trajectory amplitude [px]
@@ -230,9 +229,9 @@ private:
     std::array<float, 61> trajectory_y_px_;
     std::array<float, 2> expert_position_px_;
 
-
     void update_trajectory(double time);
     void update_expert(double time);
+    void update_expert2(double time);
 
     mel::comm::MelShare trajectory_x_ = mel::comm::MelShare("trajectory_x", 61 * 4);
     mel::comm::MelShare trajectory_y_ = mel::comm::MelShare("trajectory_y", 61 * 4);

@@ -133,7 +133,7 @@ int Cuff::port_selection() {
 */
 
 
-void Cuff::pretensioning(int force_newtons, short int* motpos_zero, short int* scaling_factor) {
+void Cuff::pretension(int force_newtons, short int* motpos_zero, short int* scaling_factor) {
     std::cout << "Pretensioning CUFF ... ";
     short int stepmot, act_mot_pos_0, act_mot_pos_1, act_mot_cur_0, act_mot_cur_1;
 	std::chrono::high_resolution_clock::time_point tstart, tend;

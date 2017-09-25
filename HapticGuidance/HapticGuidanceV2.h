@@ -51,6 +51,7 @@ private:
     enum States {
         ST_START,
         ST_FAMILIARIZATION,
+        ST_EVALUATION,
         ST_TRAINING,
         ST_BREAK,
         ST_GENERALIZATION,
@@ -62,6 +63,7 @@ private:
     // STATE FUNCTIONS
     void sf_start(const mel::util::NoEventData*);
     void sf_familiarization(const mel::util::NoEventData*);
+    void sf_evaluation(const mel::util::NoEventData*);
     void sf_training(const mel::util::NoEventData*);
     void sf_break(const mel::util::NoEventData*);
     void sf_generalization(const mel::util::NoEventData*);
@@ -71,6 +73,7 @@ private:
     // STATE ACTIONS
     mel::util::StateAction<HapticGuidanceV2, mel::util::NoEventData, &HapticGuidanceV2::sf_start> sa_start;
     mel::util::StateAction<HapticGuidanceV2, mel::util::NoEventData, &HapticGuidanceV2::sf_familiarization> sa_familiarization;
+    mel::util::StateAction<HapticGuidanceV2, mel::util::NoEventData, &HapticGuidanceV2::sf_evaluation> sa_evaluation;
     mel::util::StateAction<HapticGuidanceV2, mel::util::NoEventData, &HapticGuidanceV2::sf_training> sa_training;
     mel::util::StateAction<HapticGuidanceV2, mel::util::NoEventData, &HapticGuidanceV2::sf_break> sa_break;
     mel::util::StateAction<HapticGuidanceV2, mel::util::NoEventData, &HapticGuidanceV2::sf_generalization> sa_generlization;
@@ -82,6 +85,7 @@ private:
         static const mel::util::StateMapRow STATE_MAP[] = {
             &sa_start,
             &sa_familiarization,
+            &sa_evaluation,
             &sa_training,
             &sa_break,
             &sa_generlization,
@@ -108,38 +112,46 @@ private:
     // BLOCK TYPES
     enum BlockType {
         FAMILIARIZATION = 0,
-        TRAINING = 1,
-        BREAK = 2,
-        GENERALIZATION = 3
+        EVALUATION = 1,
+        TRAINING = 2,
+        BREAK = 3,
+        GENERALIZATION = 4
     };
 
-    const std::array<std::string, 4> block_names_ = { "FAMILIARIZATION", "TRAINING", "BREAK", "GENERALIZATION" };
-    const std::array<std::string, 4> block_tags_ = { "F", "T", "B", "G" };
+    const std::array<std::string, 5> block_names_ = { "FAMILIARIZATION", "EVALUATION", "TRAINING", "BREAK", "GENERALIZATION" };
+    const std::array<std::string, 5> block_tags_ = { "F", "E", "T", "B", "G" };
 
     // EXPERIMENT BLOCK ORDER (SET MANUALLY)
     const std::vector<BlockType> block_order_ = {
         FAMILIARIZATION,
+        EVALUATION,
         TRAINING,
+        EVALUATION,
         TRAINING,
+        EVALUATION,
         TRAINING,
+        EVALUATION,
         BREAK,
         TRAINING,
+        EVALUATION,
         TRAINING,
+        EVALUATION,
         TRAINING,
+        EVALUATION,
         GENERALIZATION
     };
 
     // NUMBER OF BLOCKS PER BLOCK TYPE (SET DURING CONSTRUCTION)
-    // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    std::array<int, 4> num_blocks_ = { 0, 0, 0, 0 };
+    // [ FAMILIARIZATION, EVALUATION, TRAINING, BREAK, GENERALIZATION ]
+    std::array<int, 5> num_blocks_ = { 0, 0, 0, 0, 0 };
 
     // NUMBER OF TRIALS PER BLOCK TYPE PER BLOCK NUMBER (SET MANUALLY)
-    // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<int, 4> num_trials_ = { 1, 12, 1, 12 };
+    // [ FAMILIARIZATION, EVALUATION, TRAINING, BREAK, GENERALIZATION ]
+    const std::array<int, 5> num_trials_ = { 1, 3, 12, 1, 12 };
 
     // LENGTH IN SECONDS OF EACH BLOCK TYPE TRIAL (SET MANUALLY)
-    // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<double, 4> length_trials_ = { 60, 20, 300, 20 };
+    // [ FAMILIARIZATION, EVALUATION, TRAINING, BREAK, GENERALIZATION ]
+    const std::array<double, 5> length_trials_ = { 10, 20, 20, 300, 20 };
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();

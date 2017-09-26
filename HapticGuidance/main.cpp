@@ -13,9 +13,8 @@
 
 int main(int argc, char * argv[]) {
 
-    mel::util::Input::ignore_ctrl_c();
-
     // enable soft realtime
+    mel::util::Input::ignore_ctrl_c();
     mel::util::enable_realtime();
 
     // set up program options 
@@ -28,7 +27,7 @@ int main(int argc, char * argv[]) {
         ("run", "run the haptic guidance experiment")
         ("input", boost::program_options::value<int>(), "0 = Terminal, 1 = GUI")
         ("subject", boost::program_options::value<int>(), "the subject number, 1-40")
-        ("condition", boost::program_options::value<int>(), "1 = OW w/ PN, 2 = OW+CUFF w/ PN, 3 = OW+CUFF w/ HG, 4 = OW+MEII w/ HG")
+        ("condition", boost::program_options::value<int>(), "tbd")
         ("trial", boost::program_options::value<std::string>(), "the trial to start at, e.g. F1-1, T3-5, G2-12, etc")
         ("meii", "append if MahiExo-II is present");
 
@@ -202,7 +201,7 @@ int main(int argc, char * argv[]) {
 
         mel::util::Clock clock(1000);
         //HapticGuidance haptic_guidance(clock, q8_ow, open_wrist, q8_meii, meii, cuff, gui_flag, input_mode, subject, condition, start_trial);
-        HapticGuidanceV2 haptic_guidance(clock, q8_ow, open_wrist, cuff, input_mode, subject, condition, start_trial);
+        HapticGuidanceV2 haptic_guidance(clock, q8_ow, open_wrist, cuff, subject, condition, start_trial);
         haptic_guidance.execute();
         delete q8_ow;
         //delete q8_meii;

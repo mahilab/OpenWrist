@@ -4,7 +4,6 @@
 
 using namespace mel;
 
-//HapticGuidance::HapticGuidance(util::Clock& clock, core::Daq* ow_daq, exo::OpenWrist& open_wrist, core::Daq* meii_daq, exo::MahiExoII& meii, Cuff& cuff, util::GuiFlag& gui_flag, int input_mode,
 HapticGuidance::HapticGuidance(util::Clock& clock, core::Daq* ow_daq, exo::OpenWrist& open_wrist, Cuff& cuff, util::GuiFlag& gui_flag, int input_mode,
     int subject_number, int condition, std::string start_trial):
     StateMachine(8), 

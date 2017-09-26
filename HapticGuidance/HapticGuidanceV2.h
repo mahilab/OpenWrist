@@ -166,10 +166,12 @@ private:
     // UNITY GAME
     mel::util::ExternalApp game = mel::util::ExternalApp("pendulum", "C:\\Users\\mep9\\Git\\SpacePendulum\\Builds\\SpacePendulum.exe");
 
-    // DATA LOG
-    mel::util::DataLog log_ = mel::util::DataLog("hg_log", false);
-    std::vector<double> log_data_;
+    // DATA LOGGING
+    mel::util::DataLog expmt_log_ = mel::util::DataLog("expmt_log", true);
+    mel::util::DataLog trial_log_ = mel::util::DataLog("trial_log", false);
+    void init_logs();
     void log_step();
+    void log_trial();
 
     // HARDWARE CLOCK
     mel::util::Clock clock_;
@@ -202,12 +204,12 @@ private:
     struct TrajParam {
         TrajParam() : amp_(0.0), sin_(0.0), cos_(0.0) {}
         TrajParam(double amp, double sin, double cos) : amp_(amp), sin_(sin), cos_(cos) {}
-        double amp_; // trajectory amplitude (degrees)
-        double sin_; // trajectory sin component scaling factor
-        double cos_; // trajectory cos component scaling factor
+        double amp_; // trajectory amplitude [deg]
+        double sin_; // trajectory sin component frequency [Hz]
+        double cos_; // trajectory cos component frequency [Hz]
     };
 
-    TrajParam traj_param_familiarization_ = TrajParam(30, 0.1, 0.1);
+    TrajParam traj_param_familiarization_ = TrajParam(45, 0.1, 0);
     std::vector<TrajParam> traj_params_training_ =  { TrajParam(45 ,0.2, 0.1), TrajParam(45, 0.1, 0.1), TrajParam(45, 0.25, 0.15) };
     std::vector<TrajParam> traj_params_generalization_ = std::vector<TrajParam>(12, TrajParam(45, 0.25, 0.5));
     std::vector<TrajParam> traj_params_; // random generated for all trials
@@ -233,7 +235,7 @@ private:
     mel::comm::MelShare trajectory_y_ = mel::comm::MelShare("trajectory_y", 61 * 4);
     mel::comm::MelShare exp_pos = mel::comm::MelShare("exp_pos");
     
-    double error_ = 0;
+    double error_angle_ = 0;
     double expert_angle_ = 0;
 
     std::array<double, 3> angles_data_ = { 0,0,0 };
@@ -250,10 +252,19 @@ private:
     short int cuff_pos_1_;
     short int cuff_pos_2_;
 
+    double error_window_ = 5; // +/- error window (size 
+
+    double expert_score_ = 0;
+    double player_score_ = 0;
+
+    std::array<double, 2> scores_data_ = { 0,0 };
+    mel::comm::MelShare scores_ = mel::comm::MelShare("scores");
+
     // UNITY GAMEMANAGER
     std::array<double, 2> timer_data_;
     mel::comm::MelShare timer_ = mel::comm::MelShare("timer");
     mel::comm::MelShare trial_ = mel::comm::MelShare("trial");
+
 
     std::array<int, 8> visible_data_ = { 1,1,1,1,1,1,1,1 };
     mel::comm::MelShare unity_ = mel::comm::MelShare("unity");

@@ -41,10 +41,7 @@ HapticGuidanceV2::HapticGuidanceV2(util::Clock& clock, core::Daq* ow_daq, exo::O
     }
 
     // Add columns to logger
-    log_.add_col("Time [s]").add_col("Amplitude [px]").add_col("Sin Freq. [Hz]").add_col("Cos Freq. [Hz]")
-        .add_col("Exp_x [px]").add_col("Exp_y [px]").add_col("Angular Error [rad]").add_col("OW PS Position [rad]").add_col("OW PS Velocity [rad/s]").add_col("OW PS Total Torque [Nm]")
-        .add_col("OW PS Compensation Torque [Nm]").add_col("OW PS Task Torque [Nm]")
-        .add_col("CUFF Motor Position 1").add_col("CUFF Motor Position 2");
+    init_logs();
 
     // show/hide Unity elements
     update_visible(
@@ -333,11 +330,24 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
 
     // save the data log from the last trial
     if (trials_started_) {
-        log_.save_and_clear_data(trials_tag_names_[current_trial_index_], directory_ + "\\_" + trials_block_names_[current_trial_index_], true);
+        log_trial();
     }
 
     // show/hide Unity elements
-    update_visible(true, true, false, false, false, false, true, true);
+    update_visible(
+        true,  // backround
+        true,  // pendulum
+        false, // trajectory region
+        false, // trajectory center
+        false,  // expert
+        true,  // radius
+        false, // stars
+        false   // UI
+    );
+
+    // reset scores
+    player_score_ = 0;
+    expert_score_ = 0;
 
     // start a new tiral if there is one or stop hasn't been requested
     if (current_trial_index_ < num_trials_total_ - 1 && !stop_) {
@@ -394,7 +404,7 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
         // print message
         print("STARTING TRIAL: <" + trials_tag_names_[current_trial_index_] + ">." +
             " A = " + stringify(traj_param_.amp_) + " S = " + stringify(traj_param_.sin_) + " C = " + stringify(traj_param_.cos_));
-        print("Press ESC or CTRL+C to terminate the experiment.");
+        print("Press ESC or CTRL+SPACE to terminate the experiment.");
 
         trials_started_ = true;
 
@@ -435,44 +445,89 @@ void HapticGuidanceV2::sf_stop(const util::NoEventData*) {
     else if (current_trial_index_ < num_trials_total_ - 1)
         print("\nExperiment terminated during trial " + util::namify(trials_tag_names_[current_trial_index_]) + ". Disabling hardware.");
     else
-        print("\nExperiment completed. Disabling hardware.");
+        print("\nExperiment completed. Disabling hardware and saving data log.");
 
-    if (condition_ >= 0)
+    if (condition_ > 0)
         ow_daq_->disable();
 
-    if (condition_ == 2 || condition_ == 3)
+    if (condition_ == 1 || condition_ == 2)
         cuff_.disable();
+
+    expmt_log_.save_data(directory_, directory_, true);
 }
 
 //-----------------------------------------------------------------------------
 // UTILS
 //-----------------------------------------------------------------------------
 
-void HapticGuidanceV2::log_step() {
+void HapticGuidanceV2::init_logs() {
+    expmt_log_
+        .add_col("Trial No.")
+        .add_col("Block Type")
+        .add_col("Amplitude [deg]")
+        .add_col("Sin Freq. [Hz]")
+        .add_col("Cos Freq. [Hz]")
+        .add_col("Score")
+        .add_col("Error Mean")
+        .add_col("Error Std. Dev.");
+
+    trial_log_
+        .add_col("Time [s]")
+        .add_col("Player Angle [deg]")
+        .add_col("Expert Angle [deg]")
+        .add_col("Error [deg]")
+        .add_col("OW PS Position [rad]")
+        .add_col("OW PS Velocity [rad/s]")
+        .add_col("OW PS Total Torque [Nm]")
+        .add_col("OW PS Compensation Torque [Nm]")
+        .add_col("OW PS Task Torque [Nm]")
+        .add_col("CUFF Motor Position 1")
+        .add_col("CUFF Motor Position 2");
+}
+
+void HapticGuidanceV2::log_trial() {
     std::vector<double> row;
-    row.push_back(clock_.time());
+    row.reserve(expmt_log_.get_col_count());
+
+    row.push_back(static_cast<double>(current_trial_index_));
+    row.push_back(static_cast<double>(trials_block_types_[current_trial_index_]));
     row.push_back(traj_param_.amp_);
     row.push_back(traj_param_.sin_);
     row.push_back(traj_param_.cos_);
-    row.push_back(expert_position_px_[0]);
-    row.push_back(expert_position_px_[1]);
-    row.push_back(error_);
+    row.push_back(player_score_);
+    row.push_back(math::mean(trial_log_.get_col("Error [deg]")));
+    row.push_back(math::stddev_p(trial_log_.get_col("Error [deg]")));
+
+    expmt_log_.add_row(row);
+
+    trial_log_.save_and_clear_data(stringify(current_trial_index_) + "_" + trials_tag_names_[current_trial_index_], directory_ + "\\_" + trials_block_names_[current_trial_index_], true);
+}
+
+void HapticGuidanceV2::log_step() {
+    std::vector<double> row;
+    row.reserve(trial_log_.get_col_count());
+
+    row.push_back(clock_.time());
+    row.push_back(ow_.joints_[0]->get_position() * math::RAD2DEG);
+    row.push_back(expert_angle_);
+    row.push_back(error_angle_);
     row.push_back(ow_.joints_[0]->get_position());
     row.push_back(ow_.joints_[0]->get_velocity());
     row.push_back(ps_total_torque_);
     row.push_back(ps_comp_torque_);
     row.push_back(-pendulum_.Tau[0]);
-    row.push_back((double)cuff_pos_1_);
-    row.push_back((double)cuff_pos_2_);
-    log_.add_row(row);
+    row.push_back(static_cast<double>(cuff_pos_1_));
+    row.push_back(static_cast<double>(cuff_pos_2_));
+
+    trial_log_.add_row(row);
 }
 
 void HapticGuidanceV2::wait_for_input() {
-    util::Input::wait_for_key(util::Input::Key::Space);
+    util::Input::wait_for_key(util::Input::Key::Space, false);
 }
 
 bool HapticGuidanceV2::check_stop() {
-    return util::Input::is_key_pressed(util::Input::Escape) || (util::Input::is_key_pressed(util::Input::LControl) && util::Input::is_key_pressed(util::Input::C));
+    return util::Input::is_key_pressed(util::Input::Escape) || (util::Input::is_key_pressed(util::Input::LControl) && util::Input::is_key_pressed(util::Input::Space));
 }
 
 void HapticGuidanceV2::build_experiment() {
@@ -536,8 +591,8 @@ void HapticGuidanceV2::update_trajectory(double time) {
 
 void HapticGuidanceV2::update_expert(double time) {
     expert_angle_ = trajectory(time);
-    expert_position_px_[0] = static_cast<float>(length_px_ * cos(expert_angle_ - 90.0* math::DEG2RAD));
-    expert_position_px_[1] = static_cast<float>(length_px_ + length_px_ * sin(expert_angle_ - 90.0* math::DEG2RAD));
+    expert_position_px_[0] = static_cast<float>(length_px_ * cos((expert_angle_ - 90.0) * math::DEG2RAD));
+    expert_position_px_[1] = static_cast<float>(length_px_ + length_px_ * sin((expert_angle_ - 90.0) * math::DEG2RAD));
     exp_pos.write(expert_position_px_);
 }
 
@@ -611,9 +666,16 @@ void HapticGuidanceV2::step_system(double external_torque) {
 
     // compute anglular error / write out angles
     //expert_angle_ = asin((double)expert_position_px_[0] / length_px_);
-    error_ = (ow_.joints_[0]->get_position() - expert_angle_);
-    angles_data_ = { ow_.joints_[0]->get_position() , expert_angle_ , error_ };
+    error_angle_ = (ow_.joints_[0]->get_position() * math::RAD2DEG - expert_angle_);
+    angles_data_ = { ow_.joints_[0]->get_position() , expert_angle_ , error_angle_ };
     angles_.write(angles_data_);
+
+    // compute scores
+    double max_error = max(std::abs(-86 - expert_angle_), std::abs(86 - expert_angle_));
+    player_score_ += math::saturate(error_window_ - std::abs(error_angle_), math::INF, 0.0);
+    expert_score_ += (error_window_);
+    scores_data_ = { player_score_, expert_score_ };
+    scores_.write(scores_data_);
 
     if (condition_ > 0) {
         // compute OpenWrist PS torque

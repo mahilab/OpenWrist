@@ -8,14 +8,13 @@
 #include "DataLog.h"
 #include <boost/program_options.hpp>
 #include "GuiFlag.h"
-#include "HapticGuidance.h"
+#include "HapticGuidanceV2.h"
 #include "Input.h"
 
 int main(int argc, char * argv[]) {
 
-    mel::util::Input::ignore_ctrl_c();
-
     // enable soft realtime
+    mel::util::Input::ignore_ctrl_c();
     mel::util::enable_realtime();
 
     // set up program options 
@@ -28,7 +27,7 @@ int main(int argc, char * argv[]) {
         ("run", "run the haptic guidance experiment")
         ("input", boost::program_options::value<int>(), "0 = Terminal, 1 = GUI")
         ("subject", boost::program_options::value<int>(), "the subject number, 1-40")
-        ("condition", boost::program_options::value<int>(), "1 = OW w/ PN, 2 = OW+CUFF w/ PN, 3 = OW+CUFF w/ HG, 4 = OW+MEII w/ HG")
+        ("condition", boost::program_options::value<int>(), "tbd")
         ("trial", boost::program_options::value<std::string>(), "the trial to start at, e.g. F1-1, T3-5, G2-12, etc")
         ("meii", "append if MahiExo-II is present");
 
@@ -73,9 +72,9 @@ int main(int argc, char * argv[]) {
     mel::dev::Q8Usb::Options options_q8;
     options_q8.update_rate_ = mel::dev::Q8Usb::Options::UpdateRate::Fast_8kHz;
     options_q8.decimation_ = 1;
-    options_q8.ao_modes_[0] = mel::dev::Q8Usb::Options::AoMode(mel::dev::Q8Usb::Options::AoMode::CurrentMode1, 0, -1.382, 8.030, 0, -1, 0, 1000);
-    options_q8.ao_modes_[1] = mel::dev::Q8Usb::Options::AoMode(mel::dev::Q8Usb::Options::AoMode::CurrentMode1, 0, -1.382, 8.030, 0, -1, 0, 1000);
-    options_q8.ao_modes_[2] = mel::dev::Q8Usb::Options::AoMode(mel::dev::Q8Usb::Options::AoMode::CurrentMode1, 0,  1.912, 18.43, 0, -1, 0, 1000);
+    options_q8.ao_modes_[0] = mel::dev::Q8Usb::Options::AoMode(mel::dev::Q8Usb::Options::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    options_q8.ao_modes_[1] = mel::dev::Q8Usb::Options::AoMode(mel::dev::Q8Usb::Options::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    options_q8.ao_modes_[2] = mel::dev::Q8Usb::Options::AoMode(mel::dev::Q8Usb::Options::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
 
     mel::core::Daq* q8_ow = new mel::dev::Q8Usb(id_ow, ai_channels, ao_channels, di_channels, do_channels, enc_channels, options_q8);
 
@@ -202,7 +201,7 @@ int main(int argc, char * argv[]) {
 
         mel::util::Clock clock(1000);
         //HapticGuidance haptic_guidance(clock, q8_ow, open_wrist, q8_meii, meii, cuff, gui_flag, input_mode, subject, condition, start_trial);
-        HapticGuidance haptic_guidance(clock, q8_ow, open_wrist, cuff, gui_flag, input_mode, subject, condition, start_trial);
+        HapticGuidanceV2 haptic_guidance(clock, q8_ow, open_wrist, cuff, subject, condition, start_trial);
         haptic_guidance.execute();
         delete q8_ow;
         //delete q8_meii;

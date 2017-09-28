@@ -17,9 +17,6 @@
     <ClInclude Include="Cuff.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="HapticGuidance.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Pendulum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -32,12 +29,12 @@
     <ClInclude Include="definitions.h">
       <Filter>qbrobotics</Filter>
     </ClInclude>
+    <ClInclude Include="HapticGuidanceV1.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cuff.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HapticGuidance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Pendulum.cpp">
@@ -48,6 +45,15 @@
     </ClCompile>
     <ClCompile Include="qbmove_communications.cpp">
       <Filter>qbrobotics</Filter>
+    </ClCompile>
+    <ClCompile Include="HapticGuidanceV1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HapticGuidanceV2.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="HapticGuidanceV2.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

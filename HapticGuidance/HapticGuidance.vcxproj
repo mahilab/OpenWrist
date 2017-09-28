@@ -33,7 +33,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <OutDir>$(SolutionDir)bin\</OutDir>
-    <IntDir>$(SolutionDir)build\</IntDir>
+    <IntDir>$(ProjectDir)\build\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -51,19 +51,26 @@
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>C:\dev\boost_1_64_0\lib64-msvc-14.1;C:\dev\libnoise\bin;</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;libnoise.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <UACExecutionLevel>AsInvoker</UACExecutionLevel>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="commands.h" />
     <ClInclude Include="Cuff.h" />
     <ClInclude Include="definitions.h" />
-    <ClInclude Include="HapticGuidance.h" />
+    <ClInclude Include="HapticGuidanceV1.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Pendulum.h" />
     <ClInclude Include="qbmove_communications.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Cuff.cpp" />
-    <ClCompile Include="HapticGuidance.cpp" />
+    <ClCompile Include="HapticGuidanceV1.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="HapticGuidanceV2.cpp" />
+    <ClCompile Include="HapticGuidanceV2.h" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Pendulum.cpp" />
     <ClCompile Include="qbmove_communications.cpp" />

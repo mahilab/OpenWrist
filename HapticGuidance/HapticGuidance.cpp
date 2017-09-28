@@ -73,7 +73,7 @@ void HapticGuidance::sf_start(const util::NoEventData*) {
     game.launch();
     
     // enable OpenWrist DAQ
-    if (CONDITION_ >= 0) {
+    if (CONDITION_ >= 0 && CONDITION_ != 5) {
         util::print("\nPress Enter to enable OpenWrist Daq <" + ow_daq_->name_ + ">.");
         util::Input::wait_for_key_press(util::Input::Key::Return);
         ow_daq_->enable();
@@ -617,8 +617,10 @@ void HapticGuidance::update_visible(bool background, bool pendulum, bool traject
 void HapticGuidance::step_system(double external_torque) {
 
     // read and reload DAQ
-    ow_daq_->reload_watchdog();
-    ow_daq_->read_all();
+    if (CONDITION_ < 5) {
+        ow_daq_->reload_watchdog();
+        ow_daq_->read_all();
+    }
 
     // update trajectory
     update_trajectory(clock_.time());
@@ -670,5 +672,6 @@ void HapticGuidance::step_system(double external_torque) {
     ow_.update_state_map();
 
     // write the DAQ
-    ow_daq_->write_all();
+    if (CONDITION_ < 5)
+        ow_daq_->write_all();
 }

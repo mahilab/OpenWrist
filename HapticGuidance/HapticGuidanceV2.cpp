@@ -51,7 +51,7 @@ HapticGuidanceV2::HapticGuidanceV2(util::Clock& clock, core::Daq* ow_daq, exo::O
         false, // trajectory center
         false,  // expert
         true,  // radius
-        false, // stars
+        true, // stars
         false   // UI
     );
 }
@@ -123,7 +123,7 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         false, // trajectory center
         true,  // expert
         true,  // radius
-        false, // stars
+        true, // stars
         true   // UI
     );
 
@@ -132,7 +132,7 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
 
     // start the control loop
     clock_.start();
-    while (clock_.time() < length_trials_[FAMILIARIZATION] && !stop_) {
+    while (clock_.time() < length_trials_[FAMILIARIZATION] && !manual_stop_ && !auto_stop_) {
         // update countdown timer
         timer_data_ = { clock_.time(), length_trials_[FAMILIARIZATION] };
         timer_.write(timer_data_);
@@ -141,7 +141,7 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         // log data
         log_step();
         // check for stop input
-        stop_ = check_stop();
+        manual_stop_ = check_stop();
         // wait for the next clock cycle
         clock_.hybrid_wait();
     }
@@ -163,7 +163,7 @@ void HapticGuidanceV2::sf_training(const util::NoEventData*) {
         false, // trajectory center
         false,  // expert
         true,  // radius
-        false, // stars
+        true, // stars
         true   // UI
     );
 
@@ -172,7 +172,7 @@ void HapticGuidanceV2::sf_training(const util::NoEventData*) {
 
     // start the control loop
     clock_.start();
-    while (clock_.time() < length_trials_[TRAINING] && !stop_) {
+    while (clock_.time() < length_trials_[TRAINING] && !manual_stop_ && !auto_stop_) {
 
         // update countdown timer
         timer_data_ = { clock_.time(), length_trials_[TRAINING] };
@@ -221,7 +221,7 @@ void HapticGuidanceV2::sf_training(const util::NoEventData*) {
         log_step();
 
         // check for stop input
-        stop_ = check_stop();
+        manual_stop_ = check_stop();
 
         // wait for the next clock cycle
         clock_.hybrid_wait();
@@ -249,18 +249,18 @@ void HapticGuidanceV2::sf_break(const util::NoEventData*) {
         false, // trajectory center
         false,  // expert
         true,  // radius
-        false, // stars
+        true, // stars
         true   // UI
     );
 
     // start the control loop
     clock_.start();
-    while (clock_.time() < length_trials_[BREAK] && !stop_) {
+    while (clock_.time() < length_trials_[BREAK] && !manual_stop_ && !auto_stop_) {
         // update countdown timer
         timer_data_ = { clock_.time(), length_trials_[BREAK] };
         timer_.write(timer_data_);
         // check for stop input
-        stop_ = check_stop();
+        manual_stop_ = check_stop();
         // wait for the next clock cycle
         clock_.hybrid_wait();
     }
@@ -282,7 +282,7 @@ void HapticGuidanceV2::sf_generalization(const util::NoEventData*) {
         false, // trajectory center
         false,  // expert
         true,  // radius
-        false, // stars
+        true, // stars
         true   // UI
     );
 
@@ -291,7 +291,7 @@ void HapticGuidanceV2::sf_generalization(const util::NoEventData*) {
 
     // start the control loop
     clock_.start();
-    while (clock_.time() < length_trials_[GENERALIZATION] && !stop_) {
+    while (clock_.time() < length_trials_[GENERALIZATION] && !manual_stop_ && !auto_stop_) {
         // update countdown timer
         timer_data_ = { clock_.time(), length_trials_[GENERALIZATION] };
         timer_.write(timer_data_);
@@ -302,7 +302,7 @@ void HapticGuidanceV2::sf_generalization(const util::NoEventData*) {
         // log data
         log_step();
         // check for stop input
-        stop_ = check_stop();
+        manual_stop_ = check_stop();
         // wait for the next clock cycle
         clock_.hybrid_wait();
     }
@@ -341,7 +341,7 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
         false, // trajectory center
         false,  // expert
         true,  // radius
-        false, // stars
+        true, // stars
         false   // UI
     );
 
@@ -350,7 +350,7 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
     expert_score_ = 0;
 
     // start a new tiral if there is one or stop hasn't been requested
-    if (current_trial_index_ < num_trials_total_ - 1 && !stop_) {
+    if (current_trial_index_ < num_trials_total_ - 1 && !manual_stop_ && !auto_stop_) {
 
         // increment the trial;
         current_trial_index_ += 1;
@@ -363,8 +363,8 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
             trial_.write_message(trials_tag_names_[current_trial_index_]);
             print("\nNEXT TRIAL: <" + trials_tag_names_[current_trial_index_] + ">. Press SPACE to begin.");
             while (!util::Input::is_key_pressed(util::Input::Space)) {
-                stop_ = check_stop();
-                if (stop_) {
+                manual_stop_ = check_stop();
+                if (manual_stop_) {
                     event(ST_STOP);
                     return;
                 }
@@ -403,7 +403,7 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
 
         // print message
         print("STARTING TRIAL: <" + trials_tag_names_[current_trial_index_] + ">." +
-            " A = " + stringify(traj_param_.amp_) + " S = " + stringify(traj_param_.sin_) + " C = " + stringify(traj_param_.cos_));
+            " Amp. = " + stringify(traj_param_.amp_) + " a = " + stringify(traj_param_.a_) + " b = " + stringify(traj_param_.b_) + " c = " + stringify(traj_param_.c_));
         print("Press ESC or CTRL+SPACE to terminate the experiment.");
 
         trials_started_ = true;
@@ -492,11 +492,11 @@ void HapticGuidanceV2::log_trial() {
     row.push_back(static_cast<double>(current_trial_index_));
     row.push_back(static_cast<double>(trials_block_types_[current_trial_index_]));
     row.push_back(traj_param_.amp_);
-    row.push_back(traj_param_.sin_);
-    row.push_back(traj_param_.cos_);
+    row.push_back(traj_param_.a_);
+    row.push_back(traj_param_.b_);
     row.push_back(player_score_);
     row.push_back(math::mean(trial_log_.get_col("Error [deg]")));
-    row.push_back(math::stddev_p(trial_log_.get_col("Error [deg]")));
+    row.push_back(math::stddev_s(trial_log_.get_col("Error [deg]")));
 
     expmt_log_.add_row(row);
 
@@ -575,7 +575,7 @@ void HapticGuidanceV2::build_experiment() {
 //-----------------------------------------------------------------------------
 
 double HapticGuidanceV2::trajectory(double time) {
-    return traj_param_.amp_ * (std::sin(2.0 * math::PI * traj_param_.sin_ * time) * std::cos(2.0 * math::PI * traj_param_.cos_ * time));
+    return traj_param_.amp_ * (std::sin(2.0 * math::PI * traj_param_.a_ * time) * std::cos(2.0 * math::PI * traj_param_.b_ * time) * std::cos(2.0 * math::PI * traj_param_.c_ * time));
 }
 
 void HapticGuidanceV2::update_trajectory(double time) {
@@ -671,7 +671,7 @@ void HapticGuidanceV2::step_system(double external_torque) {
     angles_.write(angles_data_);
 
     // compute scores
-    double max_error = max(std::abs(-86 - expert_angle_), std::abs(86 - expert_angle_));
+    // double max_error = max(std::abs(-86 - expert_angle_), std::abs(86 - expert_angle_));
     player_score_ += math::saturate(error_window_ - std::abs(error_angle_), math::INF, 0.0);
     expert_score_ += (error_window_);
     scores_data_ = { player_score_, expert_score_ };
@@ -709,7 +709,8 @@ void HapticGuidanceV2::step_system(double external_torque) {
 
     // check joint limits
     if (ow_.check_all_joint_limits()) {
-        stop_ = true;
+        util::print("exceeed");
+        auto_stop_ = true;
     }
 
     // update OpenWrist state

@@ -93,7 +93,11 @@ private:
     // USER INPUT CONTROL
     void wait_for_input();
     bool check_stop();
-    bool stop_ = false;
+
+
+    bool manual_stop_ = false;
+    bool auto_stop_ = false;
+
 
     //-------------------------------------------------------------------------
     // EXPERIMENT SETUP
@@ -189,8 +193,8 @@ private:
 
     // CUFF
     const short int cuff_normal_force_ = 3;
-    const short int cuff_ff_gain_ = 20000;
-    const short int cuff_fb_gain_ = 10000;
+    const short int cuff_ff_gain_ = 150;
+    const short int cuff_fb_gain_ = 175;
     short int offset[2];
     short int scaling_factor[2];
 
@@ -202,16 +206,17 @@ private:
 
     // TRAJECTORY VARIABLES
     struct TrajParam {
-        TrajParam() : amp_(0.0), sin_(0.0), cos_(0.0) {}
-        TrajParam(double amp, double sin, double cos) : amp_(amp), sin_(sin), cos_(cos) {}
+        TrajParam() : amp_(0.0), a_(0.0), b_(0.0) {}
+        TrajParam(double amp, double a, double b, double c) : amp_(amp), a_(a), b_(b), c_(c) {}
         double amp_; // trajectory amplitude [deg]
-        double sin_; // trajectory sin component frequency [Hz]
-        double cos_; // trajectory cos component frequency [Hz]
+        double a_; // trajectory sin component frequency [Hz]
+        double b_; // trajectory cos component frequency [Hz]
+        double c_; // trajectory cos component frequency [Hz]
     };
 
-    TrajParam traj_param_familiarization_ = TrajParam(45, 0.1, 0);
-    std::vector<TrajParam> traj_params_training_ =  { TrajParam(45 ,0.2, 0.1), TrajParam(45, 0.1, 0.1), TrajParam(45, 0.25, 0.15) };
-    std::vector<TrajParam> traj_params_generalization_ = std::vector<TrajParam>(12, TrajParam(45, 0.25, 0.5));
+    TrajParam traj_param_familiarization_ = TrajParam(30, 0.1, 0, 0);
+    std::vector<TrajParam> traj_params_training_ =  { TrajParam(30 ,0.2, 0.0, 0.0), TrajParam(38.9711431843, 0.2, 0.0, 0.1), TrajParam(45.5423309271, 0.2, 0.15, 0.1) };
+    std::vector<TrajParam> traj_params_generalization_ = std::vector<TrajParam>(12, TrajParam(30, 0.1, 0.2, 0.4));
     std::vector<TrajParam> traj_params_; // random generated for all trials
     TrajParam traj_param_; // current trajectory parameters
 
@@ -252,7 +257,7 @@ private:
     short int cuff_pos_1_;
     short int cuff_pos_2_;
 
-    double error_window_ = 5; // +/- error window (size 
+    double error_window_ = 10; // +/- error window (size 
 
     double expert_score_ = 0;
     double player_score_ = 0;

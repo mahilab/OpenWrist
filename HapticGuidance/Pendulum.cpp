@@ -1,7 +1,7 @@
 #include "Pendulum.h"
 
 Pendulum::Pendulum() {
-    props_data = { M[0],M[1],L[0],L[1],B[0],B[1],Fk[0],Fk[1],K_player,B_player };
+    props_data = { g, M[0], M[1], L[0], L[1], B[0], B[1], Fk[0], Fk[1] ,K_player, B_player };
     state_data = { Qdd[0], Qdd[1], Qd[0], Qd[1], Q[0], Q[1], Tau[0], Tau[1] };
     props.write(props_data);
     state.write(state_data);
@@ -11,16 +11,17 @@ void Pendulum::step_simulation(double time, double position_ref, double velocity
 
     // read and unpack pendulum_props MELShare
     props.read(props_data);
-    M[0] = props_data[0];
-    M[1] = props_data[1];
-    L[0] = props_data[2];
-    L[1] = props_data[3];
-    B[0] = props_data[4];
-    B[1] = props_data[5];
-    Fk[0] = props_data[6];
-    Fk[1] = props_data[7];
-    K_player = props_data[8];
-    B_player = props_data[9];    
+    g = props_data[0];
+    M[0] = props_data[1];
+    M[1] = props_data[2];
+    L[0] = props_data[3];
+    L[1] = props_data[4];
+    B[0] = props_data[5];
+    B[1] = props_data[6];
+    Fk[0] = props_data[7];
+    Fk[1] = props_data[8];
+    K_player = props_data[9];
+    B_player = props_data[10];    
 
     // compute torque of first joint given reference position and velocity
     Tau[0] = K_player * (position_ref - mel::math::PI / 2 - Q[0]) + B_player * (velocity_ref - Qd[0]);

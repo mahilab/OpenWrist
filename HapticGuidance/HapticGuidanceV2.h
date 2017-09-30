@@ -4,8 +4,6 @@
 #include "MahiExoII.h"
 #include "Cuff.h"
 #include "Pendulum.h"
-#include "GuiFlag.h"
-#include <noise/noise.h>
 #include "ExternalApp.h"
 #include "PdController.h"
 
@@ -37,8 +35,7 @@ class HapticGuidanceV2 : public mel::util::StateMachine {
 
 public:
 
-    HapticGuidanceV2(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& open_wrist, Cuff& cuff, 
-        int subject_number, int condition, std::string start_trial = "F1-1");
+    HapticGuidanceV2(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& open_wrist, Cuff& cuff, int subject_number, int condition, std::string start_trial = "F1-1");
 
 private:
 
@@ -141,7 +138,7 @@ private:
 
     // LENGTH IN SECONDS OF EACH BLOCK TYPE TRIAL (SET MANUALLY)
     // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<double, 4> length_trials_ = { 60, 20, 300, 20 };
+    const std::array<double, 4> length_trials_ = { 180, 20, 300, 20 };
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();
@@ -193,7 +190,7 @@ private:
 
     // CUFF
     const short int cuff_normal_force_ = 3;
-    const short int cuff_ff_gain_ = 150;
+    const short int cuff_ff_gain_ = 250;
     const short int cuff_fb_gain_ = 175;
     short int offset[2];
     short int scaling_factor[2];
@@ -215,7 +212,8 @@ private:
     };
 
     TrajParam traj_param_familiarization_ = TrajParam(30, 0.1, 0, 0);
-    std::vector<TrajParam> traj_params_training_ =  { TrajParam(30 ,0.2, 0.0, 0.0), TrajParam(38.9711431843, 0.2, 0.0, 0.1), TrajParam(45.5423309271, 0.2, 0.15, 0.1) };
+    //std::vector<TrajParam> traj_params_training_ =  { TrajParam(30 ,0.2, 0.0, 0.0), TrajParam(38.9711431843, 0.2, 0.0, 0.1), TrajParam(45.5423309271, 0.2, 0.15, 0.1) };
+    std::vector<TrajParam> traj_params_training_ =  { TrajParam(30 ,0.2, 0.0, 0.0), TrajParam(30 ,0.2, 0.0, 0.0), TrajParam(30 ,0.2, 0.0, 0.0) };
     std::vector<TrajParam> traj_params_generalization_ = std::vector<TrajParam>(12, TrajParam(30, 0.1, 0.2, 0.4));
     std::vector<TrajParam> traj_params_; // random generated for all trials
     TrajParam traj_param_; // current trajectory parameters

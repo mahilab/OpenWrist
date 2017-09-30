@@ -138,6 +138,10 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         timer_.write(timer_data_);
         // step system
         step_system();
+        // step CUFF guidance
+        if (condition_ == 1 || condition_ == 2) {
+            step_cuff();
+        }
         // log data
         log_step();
         // check for stop input

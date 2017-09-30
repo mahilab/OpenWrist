@@ -16,7 +16,7 @@ public:
     void reset();
 
     // PENDULUM PARAMETERS
-    double g = 9.81;
+    double g = 2;
     std::array<double, 2> M = { 0.01, 0.1 };   // [kg]
     std::array<double, 2> L = { 0.45, 0.3 };   // [m]
     std::array<double, 2> B = { 0.0025,0.0025 };  // [N-s/m]
@@ -43,7 +43,7 @@ private:
     mel::comm::MelShare state = mel::comm::MelShare("pendulum_state");
 
     // MELSHARE DATA
-    std::array<double, 10> props_data;
+    std::array<double, 11> props_data;
     std::array<double, 8>  state_data; 
 
 };

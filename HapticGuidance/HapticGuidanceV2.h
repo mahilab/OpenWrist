@@ -203,6 +203,7 @@ private:
 
     // TRAJECTORY CLASS
     struct Trajectory {
+        
         Trajectory(std::string name,
             double A, double B, double C,
             double a, double b, double c,
@@ -210,7 +211,8 @@ private:
             name_(name),
             A_(A), B_(B), C_(C),
             a_(a), b_(b), c_(c),
-            amp_(amp), norm_(norm) {}     
+            amp_(amp), norm_(norm) {}    
+        Trajectory() : Trajectory("name", 0, 0, 0, 0, 0, 0, 0, 0) {}
 
         std::string name_;
         

@@ -392,22 +392,20 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
         //    clock_.hybrid_wait();
         //}
 
-
-        // write the trial string out
-        trial_.write_message(trials_tag_names_[current_trial_index_]);
-
-        std::array<double, 2> timer = { 0, length_trials_[trials_block_types_[current_trial_index_]] };
-        timer_.write(timer);
-
         // reset the pendlum
         pendulum_.reset();
 
-        // set the trajectory parameters
+        // set the current trajectory
         traj_ = all_trajs_[current_trial_index_];
 
+        // write out UI information
+        trial_.write_message(trials_tag_names_[current_trial_index_]);
+        traj_name_.write_message(traj_.name_);
+        std::array<double, 2> timer = { 0, length_trials_[trials_block_types_[current_trial_index_]] };
+        timer_.write(timer);
+
         // print message
-        print("STARTING TRIAL: <" + trials_tag_names_[current_trial_index_] + ">." +
-            " Amp. = " + stringify(traj_.amp_) + " a = " + stringify(traj_.a_) + " b = " + stringify(traj_.b_) + " c = " + stringify(traj_.c_));
+        print("STARTING TRIAL: <" + trials_tag_names_[current_trial_index_] + ">. Trajectory: " + traj_.name_);
         print("Press ESC or CTRL+SPACE to terminate the experiment.");
 
         trials_started_ = true;
@@ -581,6 +579,9 @@ void HapticGuidanceV2::build_experiment() {
     }
 
     // print results of build
+    for (int i = 0; i < num_trials_total_; ++i) {
+        util::print(trials_tag_names_[i] + " " + all_trajs_[i].name_); 
+    }
 
 }
 
@@ -589,7 +590,7 @@ void HapticGuidanceV2::build_experiment() {
 //-----------------------------------------------------------------------------
 
 void HapticGuidanceV2::update_expert(double time) {
-    expert_angle_ = trajectory(time);
+    expert_angle_ = traj_.eval(time);
     expert_position_px_[0] = static_cast<float>(length_px_ * cos((expert_angle_ - 90.0) * math::DEG2RAD));
     expert_position_px_[1] = static_cast<float>(length_px_ + length_px_ * sin((expert_angle_ - 90.0) * math::DEG2RAD));
     exp_pos.write(expert_position_px_);

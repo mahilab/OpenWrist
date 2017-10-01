@@ -201,27 +201,61 @@ private:
     // PENDULUM 
     Pendulum pendulum_;
 
-    // TRAJECTORY VARIABLES
-    struct TrajParam {
-        TrajParam() : amp_(0.0), a_(0.0), b_(0.0) {}
-        TrajParam(double amp, double a, double b, double c) : amp_(amp), a_(a), b_(b), c_(c) {}
-        double amp_; // trajectory amplitude [deg]
-        double a_; // trajectory sin component frequency [Hz]
-        double b_; // trajectory cos component frequency [Hz]
-        double c_; // trajectory cos component frequency [Hz]
+    // TRAJECTORY CLASS
+    struct Trajectory {
+        Trajectory(std::string name,
+            double A, double B, double C,
+            double a, double b, double c,
+            double amp, double norm) :
+            name_(name),
+            A_(A), B_(B), C_(C),
+            a_(a), b_(b), c_(c),
+            amp_(amp), norm_(norm) {}     
+
+        std::string name_;
+        
+        double amp_;
+        
+        double A_;
+        double B_;
+        double C_;
+        
+        double a_; 
+        double b_; 
+        double c_; 
+
+        double norm_;
+
+        double eval(double time) {
+            return amp_ / norm_ * (
+                A_ * std::sin(2 * mel::math::PI * a_ * time) +
+                B_ * std::sin(2 * mel::math::PI * b_ * time) +
+                C_ * std::sin(2 * mel::math::PI * c_ * time)
+                );
+        }
     };
 
-    TrajParam traj_param_familiarization_ = TrajParam(30, 0.1, 0, 0);
-    //std::vector<TrajParam> traj_params_training_ =  { TrajParam(30 ,0.2, 0.0, 0.0), TrajParam(38.9711431843, 0.2, 0.0, 0.1), TrajParam(45.5423309271, 0.2, 0.15, 0.1) };
-    std::vector<TrajParam> traj_params_training_ =  { TrajParam(30 ,0.2, 0.0, 0.0), TrajParam(30 ,0.2, 0.0, 0.0), TrajParam(30 ,0.2, 0.0, 0.0) };
-    std::vector<TrajParam> traj_params_generalization_ = std::vector<TrajParam>(12, TrajParam(30, 0.1, 0.2, 0.4));
-    std::vector<TrajParam> traj_params_; // random generated for all trials
-    TrajParam traj_param_; // current trajectory parameters
+    // TRAJECTORIES
+    Trajectory traj_familiarization_ = Trajectory("FAM", 1.0, 0.0, 0.0, 0.1, 0.0, 0.0, 30.0, 1.0);
+    
+    std::vector<Trajectory> trajs_training_ =  { 
+        Trajectory("EASY", 1.0, 0.0, 0.0, 0.20, 0.0, 0.0, 30.0, 1.0),
+        Trajectory("MEDIUM", -1.0, -0.5, 0.0, 0.25, 0.1, 0.0, 30.0, 1.4773031358), 
+        Trajectory("HARD", 0.75, 0.25, -1.0, 0.2, 0.2, 0.3, 30.0, 1.90596107948)
+    };
+
+    std::vector<Trajectory> trajs_generalization_ = {
+        Trajectory("EASY+", 1.0, 0.0, 0.0, 0.20, 0.0, 0.0, 30.0, 1.0),
+        Trajectory("MEDIUM+", -1.0, -0.5, 0.0, 0.25, 0.1, 0.0, 30.0, 1.4773031358),
+        Trajectory("HARD+", 0.75, 0.25, -1.0, 0.2, 0.2, 0.3, 30.0, 1.90596107948)
+    };
+
+    std::vector<Trajectory> all_trajs_; // random generated for all trials
+    Trajectory traj_; // current trajectory 
 
     double screen_height_ = 1080; // px
     double length_px_ = 450;      // link 1 length [px]
 
-    double trajectory(double time); // the trajectory function
     double screen_time_ = 1.0; // duration a point lasts on screen [sec]
 
     int num_traj_points_ = 61;
@@ -231,7 +265,6 @@ private:
     std::array<float, 61> trajectory_y_px_;
     std::array<float, 2> expert_position_px_;
 
-    void update_trajectory(double time);
     void update_expert(double time);
 
     mel::comm::MelShare trajectory_x_ = mel::comm::MelShare("trajectory_x", 61 * 4);
@@ -267,7 +300,7 @@ private:
     std::array<double, 2> timer_data_;
     mel::comm::MelShare timer_ = mel::comm::MelShare("timer");
     mel::comm::MelShare trial_ = mel::comm::MelShare("trial");
-
+    mel::comm::MelShare traj_name_ = mel::comm::MelShare("traj_name");
 
     std::array<int, 8> visible_data_ = { 1,1,1,1,1,1,1,1 };
     mel::comm::MelShare unity_ = mel::comm::MelShare("unity");

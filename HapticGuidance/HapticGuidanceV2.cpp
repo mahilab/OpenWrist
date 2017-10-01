@@ -403,11 +403,11 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
         pendulum_.reset();
 
         // set the trajectory parameters
-        traj_param_ = traj_params_[current_trial_index_];
+        traj_ = all_trajs_[current_trial_index_];
 
         // print message
         print("STARTING TRIAL: <" + trials_tag_names_[current_trial_index_] + ">." +
-            " Amp. = " + stringify(traj_param_.amp_) + " a = " + stringify(traj_param_.a_) + " b = " + stringify(traj_param_.b_) + " c = " + stringify(traj_param_.c_));
+            " Amp. = " + stringify(traj_.amp_) + " a = " + stringify(traj_.a_) + " b = " + stringify(traj_.b_) + " c = " + stringify(traj_.c_));
         print("Press ESC or CTRL+SPACE to terminate the experiment.");
 
         trials_started_ = true;
@@ -495,9 +495,9 @@ void HapticGuidanceV2::log_trial() {
 
     row.push_back(static_cast<double>(current_trial_index_));
     row.push_back(static_cast<double>(trials_block_types_[current_trial_index_]));
-    row.push_back(traj_param_.amp_);
-    row.push_back(traj_param_.a_);
-    row.push_back(traj_param_.b_);
+    row.push_back(traj_.amp_);
+    row.push_back(traj_.a_);
+    row.push_back(traj_.b_);
     row.push_back(player_score_);
     row.push_back(math::mean(trial_log_.get_col("Error [deg]")));
     row.push_back(math::stddev_s(trial_log_.get_col("Error [deg]")));
@@ -535,14 +535,20 @@ bool HapticGuidanceV2::check_stop() {
 }
 
 void HapticGuidanceV2::build_experiment() {
-
     
-    std::vector<TrajParam> traj_params_training_full;
-    traj_params_training_full.reserve(12);
-    traj_params_training_full.insert(traj_params_training_full.end(), traj_params_training_.begin(), traj_params_training_.end());
-    traj_params_training_full.insert(traj_params_training_full.end(), traj_params_training_.begin(), traj_params_training_.end());
-    traj_params_training_full.insert(traj_params_training_full.end(), traj_params_training_.begin(), traj_params_training_.end());
-    traj_params_training_full.insert(traj_params_training_full.end(), traj_params_training_.begin(), traj_params_training_.end());
+    std::vector<Trajectory> trajs_training_full;
+    trajs_training_full.reserve(12);
+    trajs_training_full.insert(trajs_training_full.end(), trajs_training_.begin(), trajs_training_.end());
+    trajs_training_full.insert(trajs_training_full.end(), trajs_training_.begin(), trajs_training_.end());
+    trajs_training_full.insert(trajs_training_full.end(), trajs_training_.begin(), trajs_training_.end());
+    trajs_training_full.insert(trajs_training_full.end(), trajs_training_.begin(), trajs_training_.end());
+
+    std::vector<Trajectory> trajs_generalization_full;
+    trajs_generalization_full.reserve(12);
+    trajs_generalization_full.insert(trajs_generalization_full.end(), trajs_generalization_.begin(), trajs_generalization_.end());
+    trajs_generalization_full.insert(trajs_generalization_full.end(), trajs_generalization_.begin(), trajs_generalization_.end());
+    trajs_generalization_full.insert(trajs_generalization_full.end(), trajs_generalization_.begin(), trajs_generalization_.end());
+    trajs_generalization_full.insert(trajs_generalization_full.end(), trajs_generalization_.begin(), trajs_generalization_.end());
 
     // for every block
     for (auto it = block_order_.begin(); it != block_order_.end(); ++it) {
@@ -550,15 +556,15 @@ void HapticGuidanceV2::build_experiment() {
         num_blocks_[*it] += 1;
 
         // generate a set of temporary traj params equal to num trails in the block
-        std::vector<TrajParam> traj_params_temp;
+        std::vector<Trajectory> traj_params_temp;
         if (*it == FAMILIARIZATION)
-            traj_params_temp.push_back(traj_param_familiarization_);
+            traj_params_temp.push_back(traj_familiarization_);
         else if (*it == BREAK)
-            traj_params_temp.push_back(TrajParam());
+            traj_params_temp.push_back(traj_familiarization_);
         else if (*it == TRAINING)
-            traj_params_temp = traj_params_training_full;
+            traj_params_temp = trajs_training_full;
         else if (*it == GENERALIZATION)
-            traj_params_temp = traj_params_generalization_;
+            traj_params_temp = trajs_generalization_full;
 
         // shuffle the temp traj params
         std::random_shuffle(traj_params_temp.begin(), traj_params_temp.end());
@@ -569,29 +575,18 @@ void HapticGuidanceV2::build_experiment() {
             trials_block_names_.push_back(block_names_[*it]);
             trials_tag_names_.push_back(block_tags_[*it] + std::to_string(num_blocks_[*it]) + "-" + std::to_string(i + 1));
             num_trials_total_ += 1;
-            traj_params_.push_back(traj_params_temp[i]);
-        }
+            all_trajs_.push_back(traj_params_temp[i]);
+        }       
+
     }
+
+    // print results of build
+
 }
 
 //-----------------------------------------------------------------------------
 // TRAJECTORY UTILS
 //-----------------------------------------------------------------------------
-
-double HapticGuidanceV2::trajectory(double time) {
-    return traj_param_.amp_ * (std::sin(2.0 * math::PI * traj_param_.a_ * time) * std::cos(2.0 * math::PI * traj_param_.b_ * time) * std::cos(2.0 * math::PI * traj_param_.c_ * time));
-}
-
-void HapticGuidanceV2::update_trajectory(double time) {
-    // compute trajectory
-    for (int i = 0; i < num_traj_points_; i++) {
-        trajectory_y_px_[i] = static_cast<float>(i* spacing_px_ - (num_traj_points_ - 1) * spacing_px_ * 0.5);
-        trajectory_x_px_[i] = static_cast<float>(trajectory(trajectory_y_px_[i] * screen_time_ / screen_height_ + time));
-    }
-    // send trajectory to Unity
-    trajectory_x_.write(trajectory_x_px_);
-    trajectory_y_.write(trajectory_y_px_);
-}
 
 void HapticGuidanceV2::update_expert(double time) {
     expert_angle_ = trajectory(time);

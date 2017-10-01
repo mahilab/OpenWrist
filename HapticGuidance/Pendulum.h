@@ -16,15 +16,15 @@ public:
     void reset();
 
     // PENDULUM PARAMETERS
-    double g = 2;
-    std::array<double, 2> M = { 0.01, 0.1 };   // [kg]
-    std::array<double, 2> L = { 0.45, 0.3 };   // [m]
-    std::array<double, 2> B = { 0.0025,0.0025 };  // [N-s/m]
-    std::array<double, 2> Fk = { 0.001,0.001 }; // [Nm]
+    double g = 9.81;
+    std::array<double, 2> M = { 0.01, 0.15 };      // [kg]
+    std::array<double, 2> L = { 0.45, 0.3 };      // [m]
+    std::array<double, 2> B = { 0.001,0.001 };    // [N-s/m]
+    std::array<double, 2> Fk = { 0.001,0.001 };   // [Nm]
 
     // PENDULUM COUPLING FORCES
-    double K_player = 12;
-    double B_player = 0.6;
+    double K_player = 15;
+    double B_player = 1;
 
     // STATE VARIABLES
     std::array<double, 2> Qdd = { 0,0 };

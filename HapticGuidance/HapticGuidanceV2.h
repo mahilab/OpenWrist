@@ -87,15 +87,6 @@ private:
         return &STATE_MAP[0];
     }
 
-    // USER INPUT CONTROL
-    void wait_for_input();
-    bool check_stop();
-
-
-    bool manual_stop_ = false;
-    bool auto_stop_ = false;
-
-
     //-------------------------------------------------------------------------
     // EXPERIMENT SETUP
     //-------------------------------------------------------------------------
@@ -159,8 +150,8 @@ private:
 
     bool move_to_started_ = false;
     double move_to_speed_ = 60; // [deg/s]
-    void step_system(double external_torque = 0.0);
-    void step_transition();
+    void step_system();
+    void step_system_transition();
 
     //-------------------------------------------------------------------------
     // EXPERIMENT COMPONENTS
@@ -169,21 +160,12 @@ private:
     // UNITY GAME
     mel::util::ExternalApp game = mel::util::ExternalApp("pendulum", "C:\\Users\\mep9\\Git\\SpacePendulum\\Builds\\SpacePendulum.exe");
 
-    // DATA LOGGING
-    mel::util::DataLog expmt_log_ = mel::util::DataLog("expmt_log", true);
-    mel::util::DataLog trial_log_ = mel::util::DataLog("trial_log", false);
-    void init_logs();
-    void log_step();
-    void log_trial();
-
     // HARDWARE CLOCK
     mel::util::Clock clock_;
 
     // HARDWARE
     mel::core::Daq* ow_daq_;
     mel::exo::OpenWrist& ow_;
-    //mel::core::Daq* meii_daq_;
-    //mel::exo::MahiExoII& meii_;
     Cuff& cuff_;
 
     // PD CONTROLLERS
@@ -197,9 +179,9 @@ private:
     short int offset[2];
     short int scaling_factor[2];
 
-    void step_cuff();
     void release_cuff();
     void cinch_cuff();
+    void step_cuff();
 
     // PENDULUM 
     Pendulum pendulum_;
@@ -241,7 +223,7 @@ private:
     };
 
     // TRAJECTORIES
-    Trajectory traj_familiarization_ = Trajectory("FAM", 1.0, 0.0, 0.0, 0.1, 0.0, 0.0, 30.0, 1.0);
+    Trajectory traj_familiarization_ = Trajectory("VERY EASY", 1.0, 0.0, 0.0, 0.1, 0.0, 0.0, 30.0, 1.0);
     
     std::vector<Trajectory> trajs_training_ =  { 
         Trajectory("EASY", 1.0, 0.0, 0.0, 0.20, 0.0, 0.0, 30.0, 1.0),
@@ -255,72 +237,60 @@ private:
         Trajectory("HARD+", 0.75, 0.25, -1.0, 0.2, 0.2, 0.3, 30.0, 1.90596107948)
     };
 
-    // USER CONFIRMATION
-    bool confirmed_ = false;
-    double confirm_angle_window_ = 5;
-    double reset_angle_window_ = 30;
-    bool reset_triggered_ = false;
-    double confirm_length_ = 1.0;
-    double confirmation_percent_ = 0.0;
-
     std::vector<Trajectory> all_trajs_; // random generated for all trials
     Trajectory traj_; // current trajectory 
 
-    double screen_height_ = 1080; // px
-    double length_px_ = 450;      // link 1 length [px]
-
-    double screen_time_ = 1.0; // duration a point lasts on screen [sec]
-
-    int num_traj_points_ = 61;
-    int spacing_px_ = 20;      // px
-
-    std::array<float, 61> trajectory_x_px_;
-    std::array<float, 61> trajectory_y_px_;
-    std::array<float, 2> expert_position_px_;
-
-    void update_expert();
-
-    mel::comm::MelShare trajectory_x_ = mel::comm::MelShare("trajectory_x", 61 * 4);
-    mel::comm::MelShare trajectory_y_ = mel::comm::MelShare("trajectory_y", 61 * 4);
-    mel::comm::MelShare exp_pos = mel::comm::MelShare("exp_pos");
-    
-    double player_angle_ = 0;
-    double error_angle_ = 0;
-    double expert_angle_ = 0;
-
-    std::array<double, 3> angles_data_ = { 0,0,0 };
-    mel::comm::MelShare angles_ = mel::comm::MelShare("angles");
-
-    // ME-II VARIABLES
-    mel::double_vec neutral_pos_meii_ = { -10.0 * mel::math::DEG2RAD, 0.0 * mel::math::DEG2RAD, 0.11 , 0.11,  0.11 }; // robot joint positions
-    mel::double_vec speed_meii_ = { 0.25, 0.25, 0.0125, 0.0125, 0.0125 };
-    mel::double_vec pos_tol_meii_ = { 1.0 * mel::math::DEG2RAD, 1.0 * mel::math::DEG2RAD, 0.01, 0.01, 0.01 };
-
-    // SAVE VARIABLES
+    // TRACKED VARIABLES
     double ps_comp_torque_;
     double ps_total_torque_;
     short int cuff_pos_1_;
     short int cuff_pos_2_;
+    double player_angle_ = 0;
+    double error_angle_ = 0;
+    double expert_angle_ = 0;
 
-    double error_window_ = 10; // +/- error window (size 
-
+    // SCORING VARIABLES    
+    double error_window_ = 10; // +/- error window (size)
     double expert_score_ = 0;
     double player_score_ = 0;
 
-    std::array<double, 2> scores_data_ = { 0,0 };
-    mel::comm::MelShare scores_ = mel::comm::MelShare("scores");
+    // SUBJECT USER INPUT
+    bool confirmed_ = false;
+    double confirm_angle_window_ = 5;
+    double reset_angle_window_ = 30;
+    bool reset_triggered_ = false;
+    double confirm_length_ = 3.0;
+    double confirmation_percent_ = 0.0;
 
-    // UNITY GAMEMANAGER
-    std::array<double, 2> timer_data_;
+    // CONDUCTOR USER INPUT
+    void wait_for_input();
+    bool check_stop();
+    bool manual_stop_ = false;
+    bool auto_stop_ = false;
+
+    // DATA LOGGING
+    mel::util::DataLog main_log_ = mel::util::DataLog("main_log", true);
+    mel::util::DataLog trial_log_ = mel::util::DataLog("trial_log", false);
+    void init_logs();
+    void log_step();
+    void log_trial();
+
+    // MELSHARE (DATA)
     mel::comm::MelShare timer_ = mel::comm::MelShare("timer");
-    mel::comm::MelShare trial_ = mel::comm::MelShare("trial");
-    mel::comm::MelShare traj_name_ = mel::comm::MelShare("traj_name");
+    std::array<double, 2> timer_data_;
 
-    mel::comm::MelShare ui_msg = mel::comm::MelShare("ui_msg");
+    mel::comm::MelShare angles_ = mel::comm::MelShare("angles");
+    std::array<double, 3> angles_data_ = { 0,0,0 };
+
+    mel::comm::MelShare scores_ = mel::comm::MelShare("scores");
+    std::array<double, 2> scores_data_ = { 0,0 };
+
     mel::comm::MelShare confirmer = mel::comm::MelShare("confirmer");
 
-    std::array<int, 8> visible_data_ = { 1,1,1,1,1,1,1,1 };
-    mel::comm::MelShare unity_ = mel::comm::MelShare("unity");
-    void update_visible(bool background, bool pendulum, bool trajectory_region, bool trajectory_center, bool expert, bool radius, bool stars, bool ui);
+    // MELSHARE (MESSAGES)
+    mel::comm::MelShare reset_timer_ = mel::comm::MelShare("reset_timer");
+    mel::comm::MelShare trial_ = mel::comm::MelShare("trial");
+    mel::comm::MelShare traj_name_ = mel::comm::MelShare("traj_name");
+    mel::comm::MelShare ui_msg = mel::comm::MelShare("ui_msg");
     
 };

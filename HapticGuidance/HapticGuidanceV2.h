@@ -129,7 +129,7 @@ private:
 
     // LENGTH IN SECONDS OF EACH BLOCK TYPE TRIAL (SET MANUALLY)
     // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<double, 4> length_trials_ = { 180, 20, 300, 20 };
+    const std::array<double, 4> length_trials_ = { 120, 20, 5, 20 };
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();
@@ -243,8 +243,12 @@ private:
     // TRACKED VARIABLES
     double ps_comp_torque_;
     double ps_total_torque_;
-    short int cuff_pos_1_;
-    short int cuff_pos_2_;
+    short int cuff_ref_pos_1_;
+    short int cuff_ref_pos_2_;
+    short int cuff_act_pos_1_;
+    short int cuff_act_pos_2_;
+    short int cuff_act_current_1_;
+    short int cuff_act_current_2_;
     double player_angle_ = 0;
     double error_angle_ = 0;
     double expert_angle_ = 0;
@@ -256,10 +260,10 @@ private:
 
     // SUBJECT USER INPUT
     bool confirmed_ = false;
-    double confirm_angle_window_ = 5;
+    double confirm_angle_window_ = 3;
     double reset_angle_window_ = 30;
     bool reset_triggered_ = false;
-    double confirm_length_ = 3.0;
+    double confirm_length_ = 2.0;
     double confirmation_percent_ = 0.0;
 
     // CONDUCTOR USER INPUT
@@ -269,8 +273,8 @@ private:
     bool auto_stop_ = false;
 
     // DATA LOGGING
-    mel::util::DataLog main_log_ = mel::util::DataLog("main_log", true);
-    mel::util::DataLog trial_log_ = mel::util::DataLog("trial_log", false);
+    mel::util::DataLog main_log_ = mel::util::DataLog("main_log", true, 100);
+    mel::util::DataLog trial_log_ = mel::util::DataLog("trial_log", false, 180000);
     void init_logs();
     void log_step();
     void log_trial();

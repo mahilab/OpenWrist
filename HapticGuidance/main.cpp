@@ -120,7 +120,7 @@ int main(int argc, char * argv[]) {
     */
 
     // create and configure CUFF object
-    Cuff cuff("cuff_forearm");    
+    Cuff cuff("cuff", 4);    
 
     // perform calibration commands if requested by user
     if (var_map.count("calibrate-ow")) {

@@ -144,8 +144,9 @@ private:
     void build_experiment();
     int current_trial_index_ = 0;
     std::vector<BlockType> trials_block_types_;
-    std::vector<std::string> trials_block_names_;
-    std::vector<std::string> trials_tag_names_;
+    std::vector<std::string> all_trial_blocks_;
+    std::vector<std::string> all_trial_tags_;
+    std::vector<std::string> all_trial_names_;
     int num_trials_total_ = 0;
     bool trials_started_ = false;
 
@@ -159,6 +160,7 @@ private:
     bool move_to_started_ = false;
     double move_to_speed_ = 60; // [deg/s]
     void step_system(double external_torque = 0.0);
+    void step_transition();
 
     //-------------------------------------------------------------------------
     // EXPERIMENT COMPONENTS
@@ -197,6 +199,7 @@ private:
 
     void step_cuff();
     void release_cuff();
+    void cinch_cuff();
 
     // PENDULUM 
     Pendulum pendulum_;
@@ -252,6 +255,14 @@ private:
         Trajectory("HARD+", 0.75, 0.25, -1.0, 0.2, 0.2, 0.3, 30.0, 1.90596107948)
     };
 
+    // USER CONFIRMATION
+    bool confirmed_ = false;
+    double confirm_angle_window_ = 5;
+    double reset_angle_window_ = 30;
+    bool reset_triggered_ = false;
+    double confirm_length_ = 1.0;
+    double confirmation_percent_ = 0.0;
+
     std::vector<Trajectory> all_trajs_; // random generated for all trials
     Trajectory traj_; // current trajectory 
 
@@ -267,12 +278,13 @@ private:
     std::array<float, 61> trajectory_y_px_;
     std::array<float, 2> expert_position_px_;
 
-    void update_expert(double time);
+    void update_expert();
 
     mel::comm::MelShare trajectory_x_ = mel::comm::MelShare("trajectory_x", 61 * 4);
     mel::comm::MelShare trajectory_y_ = mel::comm::MelShare("trajectory_y", 61 * 4);
     mel::comm::MelShare exp_pos = mel::comm::MelShare("exp_pos");
     
+    double player_angle_ = 0;
     double error_angle_ = 0;
     double expert_angle_ = 0;
 
@@ -303,6 +315,9 @@ private:
     mel::comm::MelShare timer_ = mel::comm::MelShare("timer");
     mel::comm::MelShare trial_ = mel::comm::MelShare("trial");
     mel::comm::MelShare traj_name_ = mel::comm::MelShare("traj_name");
+
+    mel::comm::MelShare ui_msg = mel::comm::MelShare("ui_msg");
+    mel::comm::MelShare confirmer = mel::comm::MelShare("confirmer");
 
     std::array<int, 8> visible_data_ = { 1,1,1,1,1,1,1,1 };
     mel::comm::MelShare unity_ = mel::comm::MelShare("unity");

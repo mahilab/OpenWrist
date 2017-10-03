@@ -6,6 +6,7 @@
 #include "Pendulum.h"
 #include "ExternalApp.h"
 #include "PdController.h"
+#include <map>
 
 //----------------------------------------------------------------------------
 // Hatpic guidance experiements with OpenWrist, CUFF, and MahiExo-II 
@@ -129,7 +130,7 @@ private:
 
     // LENGTH IN SECONDS OF EACH BLOCK TYPE TRIAL (SET MANUALLY)
     // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<double, 4> length_trials_ = { 120, 20, 5, 20 };
+    const std::array<double, 4> length_trials_ = { 1, 1, 1, 1 };
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();
@@ -151,7 +152,7 @@ private:
     bool move_to_started_ = false;
     double move_to_speed_ = 60; // [deg/s]
     void step_system();
-    void step_system_transition();
+    void step_system_idle();
 
     //-------------------------------------------------------------------------
     // EXPERIMENT COMPONENTS
@@ -228,7 +229,7 @@ private:
     std::vector<Trajectory> trajs_training_ =  { 
         Trajectory("EASY", 1.0, 0.0, 0.0, 0.20, 0.0, 0.0, 30.0, 1.0),
         Trajectory("MEDIUM", -1.0, -0.5, 0.0, 0.25, 0.1, 0.0, 30.0, 1.4773031358), 
-        Trajectory("HARD", 0.75, 0.25, -1.0, 0.2, 0.2, 0.3, 30.0, 1.90596107948)
+        Trajectory("HARD", 0.5, -0.5, -1.0, 0.2, 0.1, 0.4, 30.0, 1.82293041893)
     };
 
     std::vector<Trajectory> trajs_generalization_ = {
@@ -253,10 +254,16 @@ private:
     double error_angle_ = 0;
     double expert_angle_ = 0;
 
-    // SCORING VARIABLES    
+    // SCORING    
     double error_window_ = 10; // +/- error window (size)
     double expert_score_ = 0;
     double player_score_ = 0;
+    double high_score_ = 0;
+    double max_score_ = 0;
+
+    std::map<std::string, double> high_score_records_;
+
+    void update_scores();
 
     // SUBJECT USER INPUT
     bool confirmed_ = false;
@@ -287,7 +294,7 @@ private:
     std::array<double, 3> angles_data_ = { 0,0,0 };
 
     mel::comm::MelShare scores_ = mel::comm::MelShare("scores");
-    std::array<double, 2> scores_data_ = { 0,0 };
+    std::array<double, 4> scores_data_ = { 0, 0 }; // current score, expert score, high score, max score
 
     mel::comm::MelShare confirmer = mel::comm::MelShare("confirmer");
 
@@ -296,5 +303,5 @@ private:
     mel::comm::MelShare trial_ = mel::comm::MelShare("trial");
     mel::comm::MelShare traj_name_ = mel::comm::MelShare("traj_name");
     mel::comm::MelShare ui_msg = mel::comm::MelShare("ui_msg");
-    
+    mel::comm::MelShare score_msg = mel::comm::MelShare("score_msg");
 };

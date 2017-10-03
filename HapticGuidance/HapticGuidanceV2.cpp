@@ -52,9 +52,40 @@ void HapticGuidanceV2::sf_start(const util::NoEventData*) {
 
     move_to_started_ = false;
 
+    // enable OpenWrist DAQ
+    util::print("");
+    if (condition_ > 0) {
+        //util::Input::acknowledge("\nPress Enter to enable OpenWrist DAQ <" + ow_daq_->name_ + ">.", util::Input::Key::Enter);
+        ow_daq_->enable();
+        if (!ow_daq_->is_enabled()) {
+            event(ST_STOP);
+            return;
+        }
+    }
+
+    // wait for UI
+    if (condition_ > 0 && current_trial_index_ == -1) {
+        trial_.write_message("INITIALIZATION");
+        util::print("\nWaiting for subject to enable haptic device");
+        while (true) {
+            if (ui_msg.read_message() == "enable") {
+                break;
+            }
+            ow_daq_->read_all();
+            ow_.get_joint_positions();
+            ow_.update_state_map();
+            if (ow_.check_all_joint_limits() || check_stop()) {
+                event(ST_STOP);
+                return;
+            }
+        }
+    }
+    else {
+        util::Input::acknowledge("\nPress Enter to enable haptic device.", util::Input::Key::Enter);
+    }
+
     // enable and pretension CUFF
     if (condition_ == 1 || condition_ == 2) {
-        util::Input::acknowledge("\nPress Enter to enable and pretension CUFF" + ow_daq_->name_ + ">.", util::Input::Key::Enter);
         cuff_.enable();
         if (!cuff_.is_enabled()) {
             event(ST_STOP);
@@ -64,22 +95,31 @@ void HapticGuidanceV2::sf_start(const util::NoEventData*) {
         cinch_cuff();
     }
 
-    // enable OpenWrist DAQ
-    if (condition_ > 0) {
-        util::Input::acknowledge("\nPress Enter to enable OpenWrist DAQ <" + ow_daq_->name_ + ">.", util::Input::Key::Enter);
-        ow_daq_->enable();
-        if (!ow_daq_->is_enabled()) {
-            event(ST_STOP);
-            return;
-        }
-    }
-
     // enable MahiExo-II DAQ
     if (condition_ == 3) {
 
     }
 
-    util::Input::acknowledge("\nPress Space to start the experiment.", util::Input::Key::Space);
+    // wait for UI
+    if (condition_ > 0 && current_trial_index_ == -1) {
+        util::print("\nWaiting for subject to start experiment");
+        while (true) {
+            if (ui_msg.read_message() == "start") {
+                break;
+            }
+            ow_daq_->read_all();
+            ow_.get_joint_positions();
+            ow_.update_state_map();
+            if (ow_.check_all_joint_limits() || check_stop()) {
+                event(ST_STOP);
+                return;
+            }
+        }
+    }
+    else {
+        util::Input::acknowledge("\nPress Space to start the experiement.", util::Input::Key::Space);
+    }
+
     pendulum_.reset();
     clock_.start();
     if (condition_ > 0) {
@@ -242,11 +282,14 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
         player_score_ = 0;
         expert_score_ = 0;
 
+        // reset expert
+        expert_angle_ = 0.0;
+
         // set the current trajectory
         traj_ = all_trajs_[current_trial_index_];
 
         // write out UI information
-        trial_.write_message(all_trial_tags_[current_trial_index_]);
+        trial_.write_message(all_trial_names_[current_trial_index_]);
         traj_name_.write_message(traj_.name_);
         std::array<double, 2> timer = { 0, length_trials_[trials_block_types_[current_trial_index_]] };
         timer_.write(timer);
@@ -256,7 +299,46 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
         // wait for user to confirm the trial while rendering pendulum
         print("\nNEXT TRIAL: <" + all_trial_tags_[current_trial_index_] + ">. Waiting for subject to confirm trial.");
         while (!confirmed_ && !manual_stop_ && !auto_stop_) {
-            step_system_transition();
+
+            // step system 
+            step_system_idle();
+
+            // check  if resetters triggered
+            if (((std::abs(player_angle_) > reset_angle_window_) && !reset_triggered_) || util::Input::is_key_pressed(util::Input::R, false)) {
+                reset_triggered_ = true;
+                ui_msg.write_message("show_confirm");
+                // reset scores
+                max_score_ = length_trials_[trials_block_types_[current_trial_index_]] * clock_.frequency_ * error_window_;
+                player_score_ = 0;
+                expert_score_ = 0;
+                high_score_ = high_score_records_[traj_.name_];
+                scores_data_ = { player_score_, expert_score_, high_score_, max_score_ };
+                scores_.write(scores_data_);
+                score_msg.write_message("reset_score");
+            }
+
+            // if reset triggered, check if player is confirming
+            double confirm_speed = 1.0 / confirm_length_;
+            if (reset_triggered_ && (std::abs(player_angle_) < confirm_angle_window_)) {
+                confirmation_percent_ += confirm_speed * clock_.delta_time_;
+            }
+            else if (reset_triggered_) {
+                confirmation_percent_ -= confirm_speed * clock_.delta_time_;
+            }
+            confirmation_percent_ = math::saturate(confirmation_percent_, 1.0, 0.0);
+            error_angle_ = (1.0 - confirmation_percent_) * error_window_; // charging effect
+            confirmer.write(confirmation_percent_);
+
+            if (confirmation_percent_ == 1.0) {
+                reset_triggered_ = false;
+                confirmation_percent_ = 0.0;
+                confirmed_ = true;
+            }
+
+            // update angles
+            angles_data_ = { player_angle_ , expert_angle_ , error_angle_ };
+            angles_.write(angles_data_);
+
             // wait for the next clock cycle
             clock_.hybrid_wait();
         }
@@ -443,27 +525,28 @@ void HapticGuidanceV2::build_experiment() {
         num_blocks_[*it] += 1;
 
         // generate a set of temporary traj params equal to num trails in the block
-        std::vector<Trajectory> traj_params_temp;
+        std::vector<Trajectory> trajs_temp;
         if (*it == FAMILIARIZATION)
-            traj_params_temp.push_back(traj_familiarization_);
+            trajs_temp.push_back(traj_familiarization_);
         else if (*it == BREAK)
-            traj_params_temp.push_back(traj_familiarization_);
+            trajs_temp.push_back(traj_familiarization_);
         else if (*it == TRAINING)
-            traj_params_temp = trajs_training_full;
+            trajs_temp = trajs_training_full;
         else if (*it == GENERALIZATION)
-            traj_params_temp = trajs_generalization_full;
+            trajs_temp = trajs_generalization_full;
 
         // shuffle the temp traj params
-        std::random_shuffle(traj_params_temp.begin(), traj_params_temp.end());
+        std::random_shuffle(trajs_temp.begin(), trajs_temp.end());
 
         // for each trial in this block type
         for (int i = 0; i < num_trials_[*it]; i++) {
             trials_block_types_.push_back(*it);
             all_trial_blocks_.push_back(block_names_[*it]);
             all_trial_tags_.push_back(block_tags_[*it] + std::to_string(num_blocks_[*it]) + "-" + std::to_string(i + 1));
-            all_trial_names_.push_back(block_names_[*it] + std::to_string(num_blocks_[*it]) + "-" + std::to_string(i + 1));
+            all_trial_names_.push_back(block_names_[*it] + " " + std::to_string(num_blocks_[*it]) + "-" + std::to_string(i + 1));
             num_trials_total_ += 1;
-            all_trajs_.push_back(traj_params_temp[i]);
+            all_trajs_.push_back(trajs_temp[i]);
+            high_score_records_[trajs_temp[i].name_] = 0.0; // init high scores
         }       
 
     }
@@ -487,9 +570,6 @@ void HapticGuidanceV2::release_cuff() {
     cuff_.set_motor_positions(offset[0] + 1000, offset[1] - 1000, true);
 }
 
-//-----------------------------------------------------------------------------
-// CONTROL LOOP UTILS
-//-----------------------------------------------------------------------------
 
 void HapticGuidanceV2::step_cuff() {
 
@@ -512,6 +592,30 @@ void HapticGuidanceV2::step_cuff() {
     cuff_.get_motor_positions(cuff_act_pos_1_, cuff_act_pos_2_, true);
     cuff_.get_motor_currents(cuff_act_current_1_, cuff_act_current_2_, true);
 }
+
+
+void HapticGuidanceV2::update_scores() {
+
+    // calculate max score
+    max_score_ = length_trials_[trials_block_types_[current_trial_index_]] * clock_.frequency_ * error_window_;
+
+    // update current scores
+    player_score_ += math::saturate(error_window_ - std::abs(error_angle_), error_window_, 0.0);
+    expert_score_ += (error_window_);
+
+    // update high scores
+    if (player_score_ > high_score_records_[traj_.name_])
+        high_score_records_[traj_.name_] = player_score_;
+
+    high_score_ = high_score_records_[traj_.name_];
+
+    scores_data_ = { player_score_, expert_score_, high_score_, max_score_ };
+    scores_.write(scores_data_);
+}
+
+//-----------------------------------------------------------------------------
+// CONTROL LOOP UTILS
+//-----------------------------------------------------------------------------
 
 void HapticGuidanceV2::step_system() {
 
@@ -536,11 +640,7 @@ void HapticGuidanceV2::step_system() {
     angles_.write(angles_data_);
 
     // compute scores
-    // double max_error = max(std::abs(-86 - expert_angle_), std::abs(86 - expert_angle_));
-    player_score_ += math::saturate(error_window_ - std::abs(error_angle_), math::INF, 0.0);
-    expert_score_ += (error_window_);
-    scores_data_ = { player_score_, expert_score_ };
-    scores_.write(scores_data_);
+    update_scores();
 
     if (condition_ > 0) {
         // compute OpenWrist PS torque
@@ -587,7 +687,7 @@ void HapticGuidanceV2::step_system() {
     manual_stop_ = check_stop();
 }
 
-void HapticGuidanceV2::step_system_transition() {
+void HapticGuidanceV2::step_system_idle() {
 
     // read and reload DAQ
     if (condition_ > 0) {
@@ -600,37 +700,6 @@ void HapticGuidanceV2::step_system_transition() {
 
     // update player angle
     player_angle_ = ow_.joints_[0]->get_position() * math::RAD2DEG;
-
-    // update expert angle
-    expert_angle_ = 0.0;
-
-    // compute anglular error / write out angles
-    error_angle_ = player_angle_ - expert_angle_;
-    angles_data_ = { player_angle_ , expert_angle_ , error_angle_ };
-    angles_.write(angles_data_);
-
-    // check  if resetters triggered
-    if (((std::abs(player_angle_) > reset_angle_window_) && !reset_triggered_) || util::Input::is_key_pressed(util::Input::R, false) ) {
-        reset_triggered_ = true;
-        ui_msg.write_message("show_confirm");
-    }
-
-    // if reset triggered, check if player is confirming
-    double confirm_speed = 1.0 / confirm_length_;
-    if (reset_triggered_ && (std::abs(player_angle_) < confirm_angle_window_)) {
-        confirmation_percent_ += confirm_speed * clock_.delta_time_;
-    }
-    else if (reset_triggered_) {
-        confirmation_percent_ -= confirm_speed * clock_.delta_time_;
-    }
-    confirmation_percent_ = math::saturate(confirmation_percent_, 1.0, 0.0);
-    confirmer.write(confirmation_percent_);
-
-    if (confirmation_percent_ == 1.0) {
-        reset_triggered_ = false;
-        confirmation_percent_ = 0.0;
-        confirmed_ = true;        
-    }
 
     if (condition_ > 0) {
         // compute OpenWrist PS torque

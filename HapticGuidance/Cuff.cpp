@@ -38,28 +38,33 @@ void Cuff::enable() {
                 std::cout << "Done" << std::endl;
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 enabled_ = true;
+                return;
             }
             else {
                 std::cout << "Failed. Could not activate communications." << std::endl;
                 enabled_ = false;
+                return;
             }
         }
         else {
             std::cout << "Failed. Could not open port." << std::endl;
             enabled_ = false;
+            return;
         }
     }
 }
 
 void Cuff::disable() {
-    std::cout << "Disabling CUFF ... ";
-    set_motor_positions(0, 0, false);
-    commActivate(&comm_settings_t_, CUFF_ID, 0);
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    poll_io_ = false;
-    io_thread_.join();
-    std::cout << "Done" << std::endl;
-    enabled_ = false;
+    if (enabled_) {
+        std::cout << "Disabling CUFF ... ";
+        set_motor_positions(0, 0, false);
+        commActivate(&comm_settings_t_, CUFF_ID, 0);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        poll_io_ = false;
+        io_thread_.join();
+        std::cout << "Done" << std::endl;
+        enabled_ = false;
+    }
 }
 
 void Cuff::open_port() {

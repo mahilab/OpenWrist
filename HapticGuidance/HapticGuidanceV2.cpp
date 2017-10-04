@@ -264,12 +264,18 @@ void HapticGuidanceV2::sf_generalization(const util::NoEventData*) {
     clock_.start();
     while (clock_.time() < length_trials_[GENERALIZATION] && !manual_stop_ && !auto_stop_) {
         // update countdown timer
+
         timer_data_ = { clock_.time(), length_trials_[GENERALIZATION] };
         timer_.write(timer_data_);
-        // step system and devices
-        if (condition_ >= 0) {
-            step_system_play();
+        
+        // step OpenWrist and Pendulum
+        step_system_play();
+
+        // step CUFF guidance
+        if (condition_ == 1 || condition_ == 2) {
+            step_cuff();
         }
+
         // log data
         log_step();
         // check for stop input

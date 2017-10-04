@@ -130,7 +130,7 @@ private:
 
     // LENGTH IN SECONDS OF EACH BLOCK TYPE TRIAL (SET MANUALLY)
     // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<double, 4> length_trials_ = { 10, 1, 10, 1 };
+    const std::array<double, 4> length_trials_ = { 120, 20, 300, 20 };
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();
@@ -236,9 +236,9 @@ private:
     };
 
     std::vector<Trajectory> trajs_generalization_ = {
-        Trajectory("EASY+", 1.0, 0.0, 0.0, 0.20, 0.0, 0.0, 30.0, 1.0),
-        Trajectory("MEDIUM+", -1.0, -0.5, 0.0, 0.25, 0.1, 0.0, 30.0, 1.4773031358),
-        Trajectory("HARD+", 0.75, 0.25, -1.0, 0.2, 0.2, 0.3, 30.0, 1.90596107948)
+        Trajectory("EASY+", -1.0, 0.0, 0.0, 0.30, 0.0, 0.0, 35.0, 1.0),
+        Trajectory("MEDIUM+", -1.0, -0.5, 0.0, 0.25, 0.1, 0.0, 35.0, 1.69999991826),
+        Trajectory("HARD+", 0.75, 0.4, -1.0, 0.3, 0.5, 0.3, 35.0, 0.649999962214)
     };
 
     std::vector<Trajectory> all_trajs_; // random generated for all trials

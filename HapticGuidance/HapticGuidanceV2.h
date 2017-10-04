@@ -130,7 +130,7 @@ private:
 
     // LENGTH IN SECONDS OF EACH BLOCK TYPE TRIAL (SET MANUALLY)
     // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<double, 4> length_trials_ = { 1, 1, 1, 1 };
+    const std::array<double, 4> length_trials_ = { 10, 1, 10, 1 };
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();
@@ -151,7 +151,9 @@ private:
 
     bool move_to_started_ = false;
     double move_to_speed_ = 60; // [deg/s]
-    void step_system();
+
+    void step_system_ui();
+    void step_system_play();
     void step_system_idle();
 
     //-------------------------------------------------------------------------
@@ -224,7 +226,8 @@ private:
     };
 
     // TRAJECTORIES
-    Trajectory traj_familiarization_ = Trajectory("VERY EASY", 1.0, 0.0, 0.0, 0.1, 0.0, 0.0, 30.0, 1.0);
+    Trajectory traj_familiarization_ = Trajectory("FAMILIARIZATION", 1.0, 0.0, 0.0, 0.1, 0.0, 0.0, 30.0, 1.0);
+    Trajectory traj_break_ = Trajectory("BREAK", 0, 0, 0, 0, 0, 0, 0, 0);
     
     std::vector<Trajectory> trajs_training_ =  { 
         Trajectory("EASY", 1.0, 0.0, 0.0, 0.20, 0.0, 0.0, 30.0, 1.0),
@@ -304,4 +307,5 @@ private:
     mel::comm::MelShare traj_name_ = mel::comm::MelShare("traj_name");
     mel::comm::MelShare ui_msg = mel::comm::MelShare("ui_msg");
     mel::comm::MelShare score_msg = mel::comm::MelShare("score_msg");
+    mel::comm::MelShare menu_msg = mel::comm::MelShare("menu_msg");
 };

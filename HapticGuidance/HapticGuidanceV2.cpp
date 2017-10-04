@@ -55,7 +55,6 @@ void HapticGuidanceV2::sf_start(const util::NoEventData*) {
     // enable OpenWrist DAQ
     util::print("");
     if (condition_ > 0) {
-        //util::Input::acknowledge("\nPress Enter to enable OpenWrist DAQ <" + ow_daq_->name_ + ">.", util::Input::Key::Enter);
         ow_daq_->enable();
         if (!ow_daq_->is_enabled()) {
             event(ST_STOP);
@@ -63,29 +62,29 @@ void HapticGuidanceV2::sf_start(const util::NoEventData*) {
         }
     }
 
-    // wait for UI
-    if (condition_ > 0 && current_trial_index_ == -1) {
-        trial_.write_message("INITIALIZATION");
-        util::print("\nWaiting for subject to enable haptic device");
-        while (true) {
-            if (ui_msg.read_message() == "enable") {
-                break;
-            }
-            ow_daq_->read_all();
-            ow_.get_joint_positions();
-            ow_.update_state_map();
-            if (ow_.check_all_joint_limits() || check_stop()) {
-                event(ST_STOP);
-                return;
-            }
-        }
+    // update Unity UI
+    if (current_trial_index_ == -1) {
+        menu_msg.write_message("begin");
     }
     else {
-        util::Input::acknowledge("\nPress Enter to enable haptic device.", util::Input::Key::Enter);
+        menu_msg.write_message("resume");
     }
 
-    // enable and pretension CUFF
+    // wait for UI response 
+    util::print("\nWaiting for subject to enable haptic device.");
+    while (menu_msg.read_message() != "enable_go" && !auto_stop_ && !manual_stop_) {
+        if (condition_ > 0)
+            step_system_ui();
+        manual_stop_ = check_stop();
+        if (auto_stop_ || manual_stop_) {
+            event(ST_STOP);
+            return;
+        }
+    }
+    
+    // enable haptic device
     if (condition_ == 1 || condition_ == 2) {
+        // enable and pretension CUFF
         cuff_.enable();
         if (!cuff_.is_enabled()) {
             event(ST_STOP);
@@ -93,33 +92,26 @@ void HapticGuidanceV2::sf_start(const util::NoEventData*) {
         }
         cuff_.pretension(cuff_normal_force_, offset, scaling_factor);
         cinch_cuff();
+    }    
+    else if (condition_ == 3) {
+        // enable MahiExo-II DAQ
     }
 
-    // enable MahiExo-II DAQ
-    if (condition_ == 3) {
+    menu_msg.write_message("enable_done");
 
-    }
-
-    // wait for UI
-    if (condition_ > 0 && current_trial_index_ == -1) {
-        util::print("\nWaiting for subject to start experiment");
-        while (true) {
-            if (ui_msg.read_message() == "start") {
-                break;
-            }
-            ow_daq_->read_all();
-            ow_.get_joint_positions();
-            ow_.update_state_map();
-            if (ow_.check_all_joint_limits() || check_stop()) {
-                event(ST_STOP);
-                return;
-            }
+    // wait for UI response
+    util::print("\nWaiting for subject to start experiment");
+    while (menu_msg.read_message() != "start" && !auto_stop_ && !manual_stop_) {
+        if (condition_ > 0)
+            step_system_ui();
+        manual_stop_ = check_stop();
+        if (auto_stop_ || manual_stop_) {
+            event(ST_STOP);
+            return;
         }
     }
-    else {
-        util::Input::acknowledge("\nPress Space to start the experiement.", util::Input::Key::Space);
-    }
 
+    // start the simulation and clock
     pendulum_.reset();
     clock_.start();
     if (condition_ > 0) {
@@ -142,7 +134,7 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         timer_data_ = { clock_.time(), length_trials_[FAMILIARIZATION] };
         timer_.write(timer_data_);
         // step system
-        step_system();
+        step_system_play();
         // step CUFF guidance
         if (condition_ == 1 || condition_ == 2) {
             step_cuff();
@@ -152,6 +144,30 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         // wait for the next clock cycle
         clock_.hybrid_wait();
     }
+
+    // show the UI
+    menu_msg.write_message("fam_done");
+
+    // disable openwrist
+    if (condition_ > 0) {
+        ow_.disable();
+        ow_daq_->stop_watchdog();
+    }
+
+    // wait for UI response
+    util::print("\nWaiting for subject to start training.");
+    while (menu_msg.read_message() != "train" && !auto_stop_ && !manual_stop_) {
+        if (condition_ > 0)
+            step_system_ui();
+        manual_stop_ = check_stop();
+    }
+
+    // renable openwrist
+    if (condition_ > 0) {
+        ow_.enable();
+        ow_daq_->start_watchdog(0.1);
+    }
+    move_to_started_ = false;
 
     // transition to the next state
     event(ST_TRANSITION);
@@ -171,7 +187,7 @@ void HapticGuidanceV2::sf_training(const util::NoEventData*) {
         timer_.write(timer_data_);
 
         // step OpenWrist and Pendulum
-        step_system();
+        step_system_play();
 
         // step CUFF guidance
         if (condition_ == 1 || condition_ == 2) {
@@ -215,9 +231,15 @@ void HapticGuidanceV2::sf_break(const util::NoEventData*) {
         // disable ME-II
     }
 
+    // display UI
+    menu_msg.write_message("break_begin");
+
     // start the control loop
     clock_.start();
     while (clock_.time() < length_trials_[BREAK] && !manual_stop_ && !auto_stop_) {
+        if (condition_ > 0) {
+            step_system_ui();
+        }
         // update countdown timer
         timer_data_ = { clock_.time(), length_trials_[BREAK] };
         timer_.write(timer_data_);
@@ -226,6 +248,8 @@ void HapticGuidanceV2::sf_break(const util::NoEventData*) {
         // wait for the next clock cycle
         clock_.hybrid_wait();
     }
+
+    menu_msg.write_message("break_end");
 
     // transition to the next state
     event(ST_START);
@@ -244,7 +268,7 @@ void HapticGuidanceV2::sf_generalization(const util::NoEventData*) {
         timer_.write(timer_data_);
         // step system and devices
         if (condition_ >= 0) {
-            step_system();
+            step_system_play();
         }
         // log data
         log_step();
@@ -287,6 +311,31 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
 
         // set the current trajectory
         traj_ = all_trajs_[current_trial_index_];
+
+        // special case for G1-1 (gross code, fix later)
+        if (all_trial_tags_[current_trial_index_] == "G1-1") {
+            if (condition_ > 0) {
+                ow_.disable();
+                ow_daq_->stop_watchdog();
+            }
+
+            // display UI
+            menu_msg.write_message("gen_begin");
+
+            util::print("\nWaiting for subject to start generalization");
+            while (menu_msg.read_message() != "gen" && !auto_stop_ && !manual_stop_) {
+                if (condition_ > 0)
+                    step_system_ui();
+                manual_stop_ = check_stop();
+            }
+
+            // renable openwrist
+            if (condition_ > 0) {
+                ow_.enable();
+                ow_daq_->start_watchdog(0.1);
+            }
+            move_to_started_ = false;
+        }
 
         // write out UI information
         trial_.write_message(all_trial_names_[current_trial_index_]);
@@ -385,6 +434,8 @@ void HapticGuidanceV2::sf_stop(const util::NoEventData*) {
         print("\nExperiment terminated during trial " + util::namify(all_trial_tags_[current_trial_index_]) + ". Disabling hardware.");
     else
         print("\nExperiment completed. Disabling hardware and saving data log.");
+
+    menu_msg.write_message("complete");
 
     if (condition_ > 0)
     {
@@ -529,7 +580,7 @@ void HapticGuidanceV2::build_experiment() {
         if (*it == FAMILIARIZATION)
             trajs_temp.push_back(traj_familiarization_);
         else if (*it == BREAK)
-            trajs_temp.push_back(traj_familiarization_);
+            trajs_temp.push_back(traj_break_);
         else if (*it == TRAINING)
             trajs_temp = trajs_training_full;
         else if (*it == GENERALIZATION)
@@ -617,7 +668,18 @@ void HapticGuidanceV2::update_scores() {
 // CONTROL LOOP UTILS
 //-----------------------------------------------------------------------------
 
-void HapticGuidanceV2::step_system() {
+void HapticGuidanceV2::step_system_ui() {
+
+    ow_daq_->read_all();
+    ow_.get_joint_positions();
+    ow_.update_state_map();
+
+    if (ow_.check_all_joint_limits()) {
+        auto_stop_ = true;
+    }
+}
+
+void HapticGuidanceV2::step_system_play() {
 
     // read and reload DAQ
     if (condition_ > 0) {

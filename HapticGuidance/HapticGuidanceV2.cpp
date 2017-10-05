@@ -245,6 +245,9 @@ void HapticGuidanceV2::sf_break(const util::NoEventData*) {
         timer_.write(timer_data_);
         // check for stop input
         manual_stop_ = check_stop();
+        // check for subject break end
+        if (menu_msg.read_message() == "break_end")
+            break;
         // wait for the next clock cycle
         clock_.hybrid_wait();
     }
@@ -252,7 +255,10 @@ void HapticGuidanceV2::sf_break(const util::NoEventData*) {
     menu_msg.write_message("break_end");
 
     // transition to the next state
-    event(ST_START);
+    if (manual_stop_ || auto_stop_)
+        event(ST_STOP);
+    else
+        event(ST_START);
 }
 
 //-----------------------------------------------------------------------------
@@ -348,58 +354,63 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
         traj_name_.write_message(traj_.name_);
         std::array<double, 2> timer = { 0, length_trials_[trials_block_types_[current_trial_index_]] };
         timer_.write(timer);
-        ui_msg.write_message("show_reset");
-        reset_timer_.write_message("reset");
+
+
+
         
         // wait for user to confirm the trial while rendering pendulum
-        print("\nNEXT TRIAL: <" + all_trial_tags_[current_trial_index_] + ">. Waiting for subject to confirm trial.");
-        while (!confirmed_ && !manual_stop_ && !auto_stop_) {
+        ui_msg.write_message("show_reset");
+        reset_timer_.write_message("reset");
+        if (all_trial_tags_[current_trial_index_] != "B1-1") {
+            print("\nNEXT TRIAL: <" + all_trial_tags_[current_trial_index_] + ">. TRAJECTORY: " + traj_.name_ + ". Waiting for subject to confirm trial.");
+            while (!confirmed_ && !manual_stop_ && !auto_stop_) {
 
-            // step system 
-            step_system_idle();
+                // step system 
+                step_system_idle();
 
-            // check  if resetters triggered
-            if (((std::abs(player_angle_) > reset_angle_window_) && !reset_triggered_) || util::Input::is_key_pressed(util::Input::R, false)) {
-                reset_triggered_ = true;
-                ui_msg.write_message("show_confirm");
-                // reset scores
-                max_score_ = length_trials_[trials_block_types_[current_trial_index_]] * clock_.frequency_ * error_window_;
-                player_score_ = 0;
-                expert_score_ = 0;
-                high_score_ = high_score_records_[traj_.name_];
-                scores_data_ = { player_score_, expert_score_, high_score_, max_score_ };
-                scores_.write(scores_data_);
-                score_msg.write_message("reset_score");
+                // check  if resetters triggered
+                if (((std::abs(player_angle_) > reset_angle_window_) && !reset_triggered_) || util::Input::is_key_pressed(util::Input::R, false)) {
+                    reset_triggered_ = true;
+                    ui_msg.write_message("show_confirm");
+                    // reset scores
+                    max_score_ = length_trials_[trials_block_types_[current_trial_index_]] * clock_.frequency_ * error_window_;
+                    player_score_ = 0;
+                    expert_score_ = 0;
+                    high_score_ = high_score_records_[traj_.name_];
+                    scores_data_ = { player_score_, expert_score_, high_score_, max_score_ };
+                    scores_.write(scores_data_);
+                    score_msg.write_message("reset_score");
+                }
+
+                // if reset triggered, check if player is confirming
+                double confirm_speed = 1.0 / confirm_length_;
+                if (reset_triggered_ && (std::abs(player_angle_) < confirm_angle_window_)) {
+                    confirmation_percent_ += confirm_speed * clock_.delta_time_;
+                }
+                else if (reset_triggered_) {
+                    confirmation_percent_ -= confirm_speed * clock_.delta_time_;
+                }
+                confirmation_percent_ = math::saturate(confirmation_percent_, 1.0, 0.0);
+                error_angle_ = (1.0 - confirmation_percent_) * error_window_; // charging effect
+                confirmer.write(confirmation_percent_);
+
+                if (confirmation_percent_ == 1.0) {
+                    reset_triggered_ = false;
+                    confirmation_percent_ = 0.0;
+                    confirmed_ = true;
+                }
+
+                // update angles
+                angles_data_ = { player_angle_ , expert_angle_ , error_angle_ };
+                angles_.write(angles_data_);
+
+                // wait for the next clock cycle
+                clock_.hybrid_wait();
             }
-
-            // if reset triggered, check if player is confirming
-            double confirm_speed = 1.0 / confirm_length_;
-            if (reset_triggered_ && (std::abs(player_angle_) < confirm_angle_window_)) {
-                confirmation_percent_ += confirm_speed * clock_.delta_time_;
+            if (manual_stop_ || auto_stop_) {
+                event(ST_STOP);
+                return;
             }
-            else if (reset_triggered_) {
-                confirmation_percent_ -= confirm_speed * clock_.delta_time_;
-            }
-            confirmation_percent_ = math::saturate(confirmation_percent_, 1.0, 0.0);
-            error_angle_ = (1.0 - confirmation_percent_) * error_window_; // charging effect
-            confirmer.write(confirmation_percent_);
-
-            if (confirmation_percent_ == 1.0) {
-                reset_triggered_ = false;
-                confirmation_percent_ = 0.0;
-                confirmed_ = true;
-            }
-
-            // update angles
-            angles_data_ = { player_angle_ , expert_angle_ , error_angle_ };
-            angles_.write(angles_data_);
-
-            // wait for the next clock cycle
-            clock_.hybrid_wait();
-        }
-        if (manual_stop_ || auto_stop_) {
-            event(ST_STOP);
-            return;
         }
 
         // print console message for conductor
@@ -434,14 +445,20 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
 // STOP STATE FUNCTION
 //-----------------------------------------------------------------------------
 void HapticGuidanceV2::sf_stop(const util::NoEventData*) {
-    if (current_trial_index_ < 0)
+    
+    if (current_trial_index_ < 0) {
         print("\nExperiment terminated during startup. Disabling hardware.");
-    else if (current_trial_index_ < num_trials_total_ - 1)
-        print("\nExperiment terminated during trial " + util::namify(all_trial_tags_[current_trial_index_]) + ". Disabling hardware.");
-    else
+        menu_msg.write_message("abort");
+    }
+    else if (current_trial_index_ < num_trials_total_ - 1) {
+        print("\nExperiment aborted during trial " + util::namify(all_trial_tags_[current_trial_index_]) + ". Disabling hardware.");
+        menu_msg.write_message("abort");
+    }
+    else {
         print("\nExperiment completed. Disabling hardware and saving data log.");
+        menu_msg.write_message("complete");
+    }
 
-    menu_msg.write_message("complete");
 
     if (condition_ > 0)
     {

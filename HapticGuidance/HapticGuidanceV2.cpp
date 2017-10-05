@@ -83,7 +83,7 @@ void HapticGuidanceV2::sf_start(const util::NoEventData*) {
     }
     
     // enable haptic device
-    if (condition_ == 1 || condition_ == 2) {
+    if (condition_ == 1 || condition_ == 2 || condition_ == 3) {
         // enable and pretension CUFF
         cuff_.enable();
         if (!cuff_.is_enabled()) {
@@ -93,7 +93,7 @@ void HapticGuidanceV2::sf_start(const util::NoEventData*) {
         cuff_.pretension(cuff_normal_force_, offset, scaling_factor);
         cinch_cuff();
     }    
-    else if (condition_ == 3) {
+    else if (condition_ == 4) {
         // enable MahiExo-II DAQ
     }
 
@@ -136,7 +136,7 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         // step system
         step_system_play();
         // step CUFF guidance
-        if (condition_ == 1 || condition_ == 2) {
+        if (condition_ == 1 || condition_ == 2 || condition_ == 3) {
             step_cuff();
         }
         // log data
@@ -190,12 +190,12 @@ void HapticGuidanceV2::sf_training(const util::NoEventData*) {
         step_system_play();
 
         // step CUFF guidance
-        if (condition_ == 1 || condition_ == 2) {
+        if (condition_ == 1 || condition_ == 2 || condition_ == 3) {
             step_cuff();
         }
 
         // step ME-II guidance
-        if (condition_ == 3) {
+        if (condition_ == 4) {
 
         }        
 
@@ -224,10 +224,10 @@ void HapticGuidanceV2::sf_break(const util::NoEventData*) {
         ow_daq_->stop_watchdog();
     }
 
-    if (condition_ == 1 || condition_ == 2)
+    if (condition_ == 1 || condition_ == 2 || condition_ == 3)
         cuff_.disable();
 
-    if (condition_ == 3) {
+    if (condition_ == 4) {
         // disable ME-II
     }
 
@@ -278,7 +278,7 @@ void HapticGuidanceV2::sf_generalization(const util::NoEventData*) {
         step_system_play();
 
         // step CUFF guidance
-        if (condition_ == 1 || condition_ == 2) {
+        if (condition_ == 1 || condition_ == 2 || condition_ == 3) {
             step_cuff();
         }
 
@@ -467,11 +467,11 @@ void HapticGuidanceV2::sf_stop(const util::NoEventData*) {
         ow_daq_->disable();
     }
 
-    if (condition_ == 1 || condition_ == 2) {
+    if (condition_ == 1 || condition_ == 2 || condition_ == 3) {
         cuff_.disable();
     }
 
-    if (condition_ == 3) {
+    if (condition_ == 4) {
 
     }
 
@@ -652,12 +652,16 @@ void HapticGuidanceV2::step_cuff() {
     cuff_ref_pos_2_ = offset[1];
 
     // feedforward mechanism
-    cuff_ref_pos_1_ += (short int)((expert_angle_)* cuff_ff_gain_);
-    cuff_ref_pos_2_ += (short int)((expert_angle_)* cuff_ff_gain_);
-
-    // feedback mechanism
-    //cuff_pos_1_ -= (short int)((std::abs(error_))* cuff_fb_gain_); // squeeze right side
-    //cuff_pos_2_ += (short int)((std::abs(error_))* cuff_fb_gain_); // squeeze left side
+    if (condition_ == 1 || condition_ == 3) {
+        // feedforward mechanism
+        cuff_ref_pos_1_ += (short int)((expert_angle_)* cuff_ff_gain_);
+        cuff_ref_pos_2_ += (short int)((expert_angle_)* cuff_ff_gain_);
+    }
+    else if (condition_ == 2) {
+        // feedback mechanism
+        cuff_ref_pos_1_ -= (short int)((error_angle_)* cuff_ff_gain_);
+        cuff_ref_pos_2_ -= (short int)((error_angle_)* cuff_ff_gain_);
+    }
 
     // set motor positions
     cuff_.set_motor_positions(cuff_ref_pos_1_, cuff_ref_pos_2_, true);
@@ -697,7 +701,7 @@ void HapticGuidanceV2::step_system_ui() {
     ow_.get_joint_positions();
     ow_.update_state_map();
 
-    if (ow_.check_all_joint_limits()) {
+    if (ow_.check_all_joint_limits() || ow_daq_->is_watchdog_expired()) {
         auto_stop_ = true;
     }
 }
@@ -757,7 +761,7 @@ void HapticGuidanceV2::step_system_play() {
     }
 
     // check joint limits
-    if (ow_.check_all_joint_limits()) {
+    if (ow_.check_all_joint_limits() || ow_daq_->is_watchdog_expired()) {
         auto_stop_ = true;
     }
 
@@ -816,7 +820,7 @@ void HapticGuidanceV2::step_system_idle() {
     }
 
     // check joint limits
-    if (ow_.check_all_joint_limits()) {
+    if (ow_.check_all_joint_limits() || ow_daq_->is_watchdog_expired()) {
         auto_stop_ = true;
     }
 

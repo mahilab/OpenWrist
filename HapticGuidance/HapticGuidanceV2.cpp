@@ -658,6 +658,11 @@ void HapticGuidanceV2::step_cuff() {
         cuff_ref_pos_2_ += (short int)((expert_angle_)* cuff_ff_gain_);
     }
     else if (condition_ == 2) {
+        // feedforward mechanism (reversed b/c CUFF flipped)
+        cuff_ref_pos_1_ -= (short int)((expert_angle_)* cuff_ff_gain_);
+        cuff_ref_pos_2_ -= (short int)((expert_angle_)* cuff_ff_gain_);
+    }
+    else if (condition_ == 3) {
         // feedback mechanism
         cuff_ref_pos_1_ -= (short int)((error_angle_)* cuff_ff_gain_);
         cuff_ref_pos_2_ -= (short int)((error_angle_)* cuff_ff_gain_);

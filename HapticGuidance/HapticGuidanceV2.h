@@ -4,7 +4,6 @@
 #include "MahiExoII.h"
 #include "Cuff.h"
 #include "Pendulum.h"
-#include "ExternalApp.h"
 #include "PdController.h"
 #include <map>
 
@@ -36,7 +35,8 @@ class HapticGuidanceV2 : public mel::util::StateMachine {
 
 public:
 
-    HapticGuidanceV2(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& open_wrist, Cuff& cuff, int subject_number, int condition, std::string start_trial = "F1-1");
+    HapticGuidanceV2(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& ow, mel::core::Daq* meii_daq, mel::exo::MahiExoII& meii,
+        Cuff& cuff, int subject_number, int condition, std::string start_trial = "F1-1");
 
 private:
 
@@ -149,7 +149,8 @@ private:
     // CONTROL LOOP UTILS
     //-------------------------------------------------------------------------
 
-    bool move_to_started_ = false;
+    bool move_to_started_ow_ = false;
+    bool move_to_started_meii = false;
     double move_to_speed_ = 60; // [deg/s]
 
     void step_system_ui();
@@ -160,20 +161,23 @@ private:
     // EXPERIMENT COMPONENTS
     //-------------------------------------------------------------------------
 
-    // UNITY GAME
-    mel::util::ExternalApp game = mel::util::ExternalApp("pendulum", "C:\\Users\\mep9\\Git\\SpacePendulum\\Builds\\SpacePendulum.exe");
-
     // HARDWARE CLOCK
     mel::util::Clock clock_;
 
     // HARDWARE
     mel::core::Daq* ow_daq_;
     mel::exo::OpenWrist& ow_;
+    mel::core::Daq* meii_daq_;
+    mel::exo::MahiExoII& meii_;
+
     Cuff& cuff_;
 
     // PD CONTROLLERS
     mel::core::PdController pd1_ = mel::core::PdController(60, 1);   // OpenWrist Joint 1 (FE)
     mel::core::PdController pd2_ = mel::core::PdController(40, 0.5); // OpenWrist Joint 2 (RU)
+
+    // MAHI-EXO II
+    void step_meii();
 
     // CUFF
     const short int cuff_normal_force_ = 3;
@@ -300,6 +304,9 @@ private:
     std::array<double, 4> scores_data_ = { 0, 0 }; // current score, expert score, high score, max score
 
     mel::comm::MelShare confirmer = mel::comm::MelShare("confirmer");
+
+    mel::comm::MelShare meii_state_ = mel::comm::MelShare("meii_state");
+    std::vector<double> meii_data_ = { 0, 0, 0, 0, 0 };
 
     // MELSHARE (MESSAGES)
     mel::comm::MelShare reset_timer_ = mel::comm::MelShare("reset_timer");

@@ -10,12 +10,14 @@ using mel::util::stringify;
 // CONSTRUCTOR
 //-----------------------------------------------------------------------------
 
-HapticGuidanceV2::HapticGuidanceV2(util::Clock& clock, core::Daq* ow_daq, exo::OpenWrist& open_wrist, Cuff& cuff,
-    int subject_number, int condition, std::string start_trial) :
+HapticGuidanceV2::HapticGuidanceV2(mel::util::Clock& clock, mel::core::Daq* ow_daq, mel::exo::OpenWrist& ow, mel::core::Daq* meii_daq, mel::exo::MahiExoII& meii,
+    Cuff& cuff, int subject_number, int condition, std::string start_trial) :
     StateMachine(8),
     clock_(clock),
     ow_daq_(ow_daq),
-    ow_(open_wrist),
+    ow_(ow),
+    meii_daq_(meii_daq),
+    meii_(meii),
     cuff_(cuff),
     subject_number_(subject_number),
     condition_(condition)
@@ -41,8 +43,10 @@ HapticGuidanceV2::HapticGuidanceV2(util::Clock& clock, core::Daq* ow_daq, exo::O
     // Add columns to logger
     init_logs();
 
-    // launch game
-    //game.launch();
+    // print start message to console
+    util::print("\nSubject Number: " + std::to_string(subject_number_));
+    util::print("Condition:      " + std::to_string(condition_));
+    util::print("Start Trial:    " + all_trial_tags_[current_trial_index_+1]);
 }
 
 //-----------------------------------------------------------------------------
@@ -50,7 +54,8 @@ HapticGuidanceV2::HapticGuidanceV2(util::Clock& clock, core::Daq* ow_daq, exo::O
 //-----------------------------------------------------------------------------
 void HapticGuidanceV2::sf_start(const util::NoEventData*) {
 
-    move_to_started_ = false;
+    move_to_started_ow_ = false;
+    move_to_started_meii = false;
 
     // enable OpenWrist DAQ
     util::print("");
@@ -94,7 +99,11 @@ void HapticGuidanceV2::sf_start(const util::NoEventData*) {
         cinch_cuff();
     }    
     else if (condition_ == 4) {
-        // enable MahiExo-II DAQ
+        meii_daq_->enable();
+        if (!meii_daq_->is_enabled()) {
+            event(ST_STOP);
+            return;
+        }
     }
 
     menu_msg.write_message("enable_done");
@@ -117,6 +126,10 @@ void HapticGuidanceV2::sf_start(const util::NoEventData*) {
     if (condition_ > 0) {
         ow_.enable();
         ow_daq_->start_watchdog(0.1);
+    } 
+    if (condition_ == 4) {
+        meii_.enable();
+        meii_daq_->start_watchdog(0.1);
     }
 
     event(ST_TRANSITION);
@@ -135,9 +148,12 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         timer_.write(timer_data_);
         // step system
         step_system_play();
-        // step CUFF guidance
+        // step guidance
         if (condition_ == 1 || condition_ == 2 || condition_ == 3) {
             step_cuff();
+        }
+        else if (condition_ == 4) {
+            step_meii();
         }
         // log data
         log_step();
@@ -154,6 +170,12 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         ow_daq_->stop_watchdog();
     }
 
+    // disable mahi exo ii
+    if (condition_ == 4) {
+        meii_.disable();
+        meii_daq_->stop_watchdog();
+    }
+
     // wait for UI response
     util::print("\nWaiting for subject to start training.");
     while (menu_msg.read_message() != "train" && !auto_stop_ && !manual_stop_) {
@@ -167,7 +189,14 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         ow_.enable();
         ow_daq_->start_watchdog(0.1);
     }
-    move_to_started_ = false;
+    move_to_started_ow_ = false;
+    move_to_started_meii = false;
+
+    // renable mahi exo ii
+    if (condition_ == 4) {
+        meii_.enable();
+        meii_daq_->start_watchdog(0.1);
+    }
 
     // transition to the next state
     event(ST_TRANSITION);
@@ -196,7 +225,7 @@ void HapticGuidanceV2::sf_training(const util::NoEventData*) {
 
         // step ME-II guidance
         if (condition_ == 4) {
-
+            step_meii();
         }        
 
         // log data
@@ -228,7 +257,8 @@ void HapticGuidanceV2::sf_break(const util::NoEventData*) {
         cuff_.disable();
 
     if (condition_ == 4) {
-        // disable ME-II
+        meii_.disable();
+        meii_daq_->disable();
     }
 
     // display UI
@@ -281,6 +311,9 @@ void HapticGuidanceV2::sf_generalization(const util::NoEventData*) {
         if (condition_ == 1 || condition_ == 2 || condition_ == 3) {
             step_cuff();
         }
+        else if (condition_ == 4) {
+            step_meii();
+        }
 
         // log data
         log_step();
@@ -330,6 +363,10 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
                 ow_.disable();
                 ow_daq_->stop_watchdog();
             }
+            if (condition_ == 4) {
+                meii_.disable();
+                meii_daq_->stop_watchdog();
+            }
 
             // display UI
             menu_msg.write_message("gen_begin");
@@ -346,7 +383,14 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
                 ow_.enable();
                 ow_daq_->start_watchdog(0.1);
             }
-            move_to_started_ = false;
+            if (condition_ == 4) {
+                meii_.enable();
+                meii_daq_->start_watchdog(0.1);
+            }
+            move_to_started_ow_ = false;
+            move_to_started_meii = false;
+
+
         }
 
         // write out UI information
@@ -355,9 +399,6 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
         std::array<double, 2> timer = { 0, length_trials_[trials_block_types_[current_trial_index_]] };
         timer_.write(timer);
 
-
-
-        
         // wait for user to confirm the trial while rendering pendulum
         ui_msg.write_message("show_reset");
         reset_timer_.write_message("reset");
@@ -367,6 +408,10 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
 
                 // step system 
                 step_system_idle();
+
+                // step meii
+                if (condition_ == 4)
+                    step_meii();
 
                 // check  if resetters triggered
                 if (((std::abs(player_angle_) > reset_angle_window_) && !reset_triggered_) || util::Input::is_key_pressed(util::Input::R, false)) {
@@ -472,7 +517,9 @@ void HapticGuidanceV2::sf_stop(const util::NoEventData*) {
     }
 
     if (condition_ == 4) {
-
+        meii_.disable();
+        meii_daq_->stop_watchdog();
+        meii_daq_->disable();
     }
 
     main_log_.save_data(directory_, directory_, true);
@@ -676,6 +723,35 @@ void HapticGuidanceV2::step_cuff() {
     cuff_.get_motor_currents(cuff_act_current_1_, cuff_act_current_2_, true);
 }
 
+void HapticGuidanceV2::step_meii() {
+    meii_daq_->reload_watchdog();
+    if (meii_daq_->is_watchdog_expired()) {
+        util::print("ME-II Watchdog tripped!");
+        auto_stop_ = true;
+    }
+    
+    meii_daq_->read_all();
+
+    if (!move_to_started_meii) {
+        meii_.joints_[0]->set_torque(meii_.robot_joint_pd_controllers_[0].move_to_hold(-10*math::DEG2RAD, meii_.joints_[0]->get_position(), 0.25, meii_.joints_[0]->get_velocity(), clock_.delta_time_, math::DEG2RAD, true));
+        move_to_started_meii = true;
+    }
+    else {
+        meii_.joints_[0]->set_torque(meii_.robot_joint_pd_controllers_[0].move_to_hold(-10 * math::DEG2RAD, meii_.joints_[0]->get_position(), 0.25, meii_.joints_[0]->get_velocity(), clock_.delta_time_, math::DEG2RAD, false));
+    }
+
+    meii_.joints_[1]->set_torque(0.0);
+    meii_.joints_[2]->set_torque(0.0);
+    meii_.joints_[3]->set_torque(0.0);
+    meii_.joints_[4]->set_torque(0.0);
+
+    if (meii_.check_all_joint_limits()) {
+        auto_stop_ = true;
+    }
+
+    meii_daq_->write_all();
+}
+
 
 void HapticGuidanceV2::update_scores() {
 
@@ -743,7 +819,7 @@ void HapticGuidanceV2::step_system_play() {
         ow_.joints_[0]->set_torque(ps_total_torque_);
 
         // compute OpenWrist FE and RU torque
-        if (!move_to_started_) {
+        if (!move_to_started_ow_) {
             ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
                 move_to_speed_ * math::DEG2RAD, ow_.joints_[1]->get_velocity(),
                 clock_.delta_time_, math::DEG2RAD, true));
@@ -752,7 +828,7 @@ void HapticGuidanceV2::step_system_play() {
                 move_to_speed_ * math::DEG2RAD, ow_.joints_[2]->get_velocity(),
                 clock_.delta_time_, math::DEG2RAD, true));
 
-            move_to_started_ = true;
+            move_to_started_ow_ = true;
         }
         else {
             ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
@@ -802,7 +878,7 @@ void HapticGuidanceV2::step_system_idle() {
         ow_.joints_[0]->set_torque(ps_total_torque_);
 
         // compute OpenWrist FE and RU torque
-        if (!move_to_started_) {
+        if (!move_to_started_ow_) {
             ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
                 move_to_speed_ * math::DEG2RAD, ow_.joints_[1]->get_velocity(),
                 clock_.delta_time_, math::DEG2RAD, true));
@@ -811,7 +887,7 @@ void HapticGuidanceV2::step_system_idle() {
                 move_to_speed_ * math::DEG2RAD, ow_.joints_[2]->get_velocity(),
                 clock_.delta_time_, math::DEG2RAD, true));
 
-            move_to_started_ = true;
+            move_to_started_ow_ = true;
         }
         else {
             ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),

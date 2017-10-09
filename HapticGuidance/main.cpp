@@ -20,7 +20,8 @@ int main(int argc, char * argv[]) {
         ("condition", boost::program_options::value<int>(), "tbd")
         ("trial", boost::program_options::value<std::string>(), "the trial to start at, e.g. F1-1, T3-5, G2-12, etc")
         ("calibrate-ow", "calibrates OpenWrist")
-        ("calibrate-meii", "calibrates MAHI-Exo II");
+        ("calibrate-meii", "calibrates MAHI-Exo II")
+        ("calibrate-cuff", "calibrates CUFF");
 
     boost::program_options::variables_map var_map;
     boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).allow_unregistered().run(), var_map);
@@ -89,7 +90,7 @@ int main(int argc, char * argv[]) {
     }
     else {
         util::print("No Q8 USBs were detected. Aborting program.");
-        return -1;
+        //return -1;
     }
 
     util::print(""); // blank line
@@ -112,7 +113,7 @@ int main(int argc, char * argv[]) {
     // create OpenWrist
     mel::exo::OpenWrist::Config ow_config;
     mel::core::Daq* q8_ow;
-    if (ow_connected) {
+    //if (ow_connected) {
         channel_vec  ai_channels = { 0, 1, 2, 3 };
         channel_vec  ao_channels = { 0, 1, 2, 3 };
         channel_vec  di_channels = { 0, 1, 2, 3 };
@@ -136,7 +137,7 @@ int main(int argc, char * argv[]) {
             ow_config.encrate_[i] = q8_ow->encrate_(i);
             ow_config.amp_gains_[i] = 1;
         }
-    }
+    //}
     mel::exo::OpenWrist ow(ow_config);
 
     // create MAHI-EXO II
@@ -168,7 +169,7 @@ int main(int argc, char * argv[]) {
     mel::exo::MahiExoII meii(meii_config);
 
     // create CUFF
-    Cuff cuff("cuff", 4);    
+    Cuff cuff("cuff", 6);    
 
     // create Clock
     mel::util::Clock clock(1000);
@@ -186,6 +187,22 @@ int main(int argc, char * argv[]) {
     if (meii_connected && var_map.count("calibrate-meii"))
     {
         meii.zero_encoders(q8_meii);
+        return 0;
+    }
+
+    if (var_map.count("calibrate-cuff")) {
+        util::print("Calibrating CUFF");
+        const short int cuff_normal_force_ = 3;
+        short int offset[2];
+        short int scaling_factor[2];
+
+        cuff.enable();
+        if (!cuff.is_enabled()) {
+            util::print("cuff not enabled");
+            return -1;
+        }
+        cuff.pretension(cuff_normal_force_, offset, scaling_factor);
+        cuff.disable();
         return 0;
     }
 

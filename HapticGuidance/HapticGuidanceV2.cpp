@@ -54,8 +54,14 @@ HapticGuidanceV2::HapticGuidanceV2(mel::util::Clock& clock, mel::core::Daq* ow_d
 //-----------------------------------------------------------------------------
 void HapticGuidanceV2::sf_start(const util::NoEventData*) {
 
-    move_to_started_ow_ = false;
-    move_to_started_meii = false;
+    pd1_.reset_move_to_hold();
+    pd2_.reset_move_to_hold();
+
+    meii_.robot_joint_pd_controllers_[0].reset_move_to_hold();
+    meii_.robot_joint_pd_controllers_[1].reset_move_to_hold();
+    meii_.robot_joint_pd_controllers_[2].reset_move_to_hold();
+    meii_.robot_joint_pd_controllers_[3].reset_move_to_hold();
+    meii_.robot_joint_pd_controllers_[4].reset_move_to_hold();
 
     // enable OpenWrist DAQ
     util::print("");
@@ -158,7 +164,7 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         // log data
         log_step();
         // wait for the next clock cycle
-        clock_.hybrid_wait();
+        clock_.wait();
     }
 
     // show the UI
@@ -189,8 +195,15 @@ void HapticGuidanceV2::sf_familiarization(const util::NoEventData*) {
         ow_.enable();
         ow_daq_->start_watchdog(0.1);
     }
-    move_to_started_ow_ = false;
-    move_to_started_meii = false;
+
+    pd1_.reset_move_to_hold();
+    pd2_.reset_move_to_hold();
+
+    meii_.robot_joint_pd_controllers_[0].reset_move_to_hold();
+    meii_.robot_joint_pd_controllers_[1].reset_move_to_hold();
+    meii_.robot_joint_pd_controllers_[2].reset_move_to_hold();
+    meii_.robot_joint_pd_controllers_[3].reset_move_to_hold();
+    meii_.robot_joint_pd_controllers_[4].reset_move_to_hold();
 
     // renable mahi exo ii
     if (condition_ == 4) {
@@ -235,7 +248,7 @@ void HapticGuidanceV2::sf_training(const util::NoEventData*) {
         manual_stop_ = check_stop();
 
         // wait for the next clock cycle
-        clock_.hybrid_wait();
+        clock_.wait();
     }
 
     // transition to the next state
@@ -279,7 +292,7 @@ void HapticGuidanceV2::sf_break(const util::NoEventData*) {
         if (menu_msg.read_message() == "break_end")
             break;
         // wait for the next clock cycle
-        clock_.hybrid_wait();
+        clock_.wait();
     }
 
     menu_msg.write_message("break_end");
@@ -320,7 +333,7 @@ void HapticGuidanceV2::sf_generalization(const util::NoEventData*) {
         // check for stop input
         manual_stop_ = check_stop();
         // wait for the next clock cycle
-        clock_.hybrid_wait();
+        clock_.wait();
     }
 
     // transition to the next state
@@ -387,8 +400,15 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
                 meii_.enable();
                 meii_daq_->start_watchdog(0.1);
             }
-            move_to_started_ow_ = false;
-            move_to_started_meii = false;
+
+            pd1_.reset_move_to_hold();
+            pd2_.reset_move_to_hold();
+
+            meii_.robot_joint_pd_controllers_[0].reset_move_to_hold();
+            meii_.robot_joint_pd_controllers_[1].reset_move_to_hold();
+            meii_.robot_joint_pd_controllers_[2].reset_move_to_hold();
+            meii_.robot_joint_pd_controllers_[3].reset_move_to_hold();
+            meii_.robot_joint_pd_controllers_[4].reset_move_to_hold();
 
 
         }
@@ -450,7 +470,7 @@ void HapticGuidanceV2::sf_transition(const util::NoEventData*) {
                 angles_.write(angles_data_);
 
                 // wait for the next clock cycle
-                clock_.hybrid_wait();
+                clock_.wait();
             }
             if (manual_stop_ || auto_stop_) {
                 event(ST_STOP);
@@ -732,18 +752,13 @@ void HapticGuidanceV2::step_meii() {
     
     meii_daq_->read_all();
 
-    if (!move_to_started_meii) {
-        meii_.joints_[0]->set_torque(meii_.robot_joint_pd_controllers_[0].move_to_hold(-10*math::DEG2RAD, meii_.joints_[0]->get_position(), 0.25, meii_.joints_[0]->get_velocity(), clock_.delta_time_, math::DEG2RAD, true));
-        move_to_started_meii = true;
-    }
-    else {
-        meii_.joints_[0]->set_torque(meii_.robot_joint_pd_controllers_[0].move_to_hold(-10 * math::DEG2RAD, meii_.joints_[0]->get_position(), 0.25, meii_.joints_[0]->get_velocity(), clock_.delta_time_, math::DEG2RAD, false));
-    }
+    meii_.joints_[0]->set_torque(meii_.robot_joint_pd_controllers_[0].move_to_hold(-20 * math::DEG2RAD, meii_.joints_[0]->get_position(), 0.25, meii_.joints_[0]->get_velocity(), clock_.delta_time_, math::DEG2RAD, 10 * math::DEG2RAD));
+    meii_.joints_[1]->set_torque(pd1_meii_.move_to_hold(math::DEG2RAD * expert_angle_, meii_.joints_[1]->get_position(), 0.25, meii_.joints_[1]->get_velocity(), clock_.delta_time_, math::DEG2RAD, 30 * math::DEG2RAD));
 
-    meii_.joints_[1]->set_torque(0.0);
     meii_.joints_[2]->set_torque(0.0);
     meii_.joints_[3]->set_torque(0.0);
     meii_.joints_[4]->set_torque(0.0);
+
 
     if (meii_.check_all_joint_limits()) {
         auto_stop_ = true;
@@ -818,27 +833,14 @@ void HapticGuidanceV2::step_system_play() {
         ps_total_torque_ = ps_comp_torque_ - pendulum_.Tau[0];        
         ow_.joints_[0]->set_torque(ps_total_torque_);
 
-        // compute OpenWrist FE and RU torque
-        if (!move_to_started_ow_) {
-            ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
-                move_to_speed_ * math::DEG2RAD, ow_.joints_[1]->get_velocity(),
-                clock_.delta_time_, math::DEG2RAD, true));
+        ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
+            move_to_speed_ * math::DEG2RAD, ow_.joints_[1]->get_velocity(),
+            clock_.delta_time_, math::DEG2RAD, 10*math::DEG2RAD));
 
-            ow_.joints_[2]->set_torque(pd2_.move_to_hold(math::DEG2RAD * 0, ow_.joints_[2]->get_position(),
-                move_to_speed_ * math::DEG2RAD, ow_.joints_[2]->get_velocity(),
-                clock_.delta_time_, math::DEG2RAD, true));
+        ow_.joints_[2]->set_torque(pd2_.move_to_hold(math::DEG2RAD * 0, ow_.joints_[2]->get_position(),
+            move_to_speed_ * math::DEG2RAD, ow_.joints_[2]->get_velocity(),
+            clock_.delta_time_, math::DEG2RAD, 10 * math::DEG2RAD));
 
-            move_to_started_ow_ = true;
-        }
-        else {
-            ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
-                move_to_speed_ * math::DEG2RAD, ow_.joints_[1]->get_velocity(),
-                clock_.delta_time_, math::DEG2RAD, false));
-
-            ow_.joints_[2]->set_torque(pd2_.move_to_hold(math::DEG2RAD * 0, ow_.joints_[2]->get_position(),
-                move_to_speed_ * math::DEG2RAD, ow_.joints_[2]->get_velocity(),
-                clock_.delta_time_, math::DEG2RAD, false));
-        }
     }
 
     // check joint limits
@@ -877,27 +879,14 @@ void HapticGuidanceV2::step_system_idle() {
         ps_total_torque_ = ps_comp_torque_ - pendulum_.Tau[0];
         ow_.joints_[0]->set_torque(ps_total_torque_);
 
-        // compute OpenWrist FE and RU torque
-        if (!move_to_started_ow_) {
-            ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
-                move_to_speed_ * math::DEG2RAD, ow_.joints_[1]->get_velocity(),
-                clock_.delta_time_, math::DEG2RAD, true));
+        ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
+            move_to_speed_ * math::DEG2RAD, ow_.joints_[1]->get_velocity(),
+            clock_.delta_time_, math::DEG2RAD, 10* math::DEG2RAD));
 
-            ow_.joints_[2]->set_torque(pd2_.move_to_hold(math::DEG2RAD * 0, ow_.joints_[2]->get_position(),
-                move_to_speed_ * math::DEG2RAD, ow_.joints_[2]->get_velocity(),
-                clock_.delta_time_, math::DEG2RAD, true));
+        ow_.joints_[2]->set_torque(pd2_.move_to_hold(math::DEG2RAD * 0, ow_.joints_[2]->get_position(),
+            move_to_speed_ * math::DEG2RAD, ow_.joints_[2]->get_velocity(),
+            clock_.delta_time_, math::DEG2RAD, 10* math::DEG2RAD));
 
-            move_to_started_ow_ = true;
-        }
-        else {
-            ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
-                move_to_speed_ * math::DEG2RAD, ow_.joints_[1]->get_velocity(),
-                clock_.delta_time_, math::DEG2RAD, false));
-
-            ow_.joints_[2]->set_torque(pd2_.move_to_hold(math::DEG2RAD * 0, ow_.joints_[2]->get_position(),
-                move_to_speed_ * math::DEG2RAD, ow_.joints_[2]->get_velocity(),
-                clock_.delta_time_, math::DEG2RAD, false));
-        }
     }
 
     // check joint limits

@@ -15,7 +15,8 @@ int main(int argc, char * argv[]) {
     desc.add_options()
         ("help",        "produces help message")
         ("calibrate",   "calibrate OpenWrist zero position")
-        ("transparent", "puts the OpenWrist in transparency mode indefinitely");
+        ("transparent", "puts the OpenWrist in transparency mode indefinitely")
+        ("testing", "runs code in testing environment");
 
     boost::program_options::variables_map var_map;
     boost::program_options::store(boost::program_options::command_line_parser(argc, argv).options(desc).allow_unregistered().run(), var_map);
@@ -72,19 +73,70 @@ int main(int argc, char * argv[]) {
         ow_config.encrate_[i] = q8->encrate_(i);
         ow_config.amp_gains_[i] = 1;
     }
-    exo::OpenWrist open_wrist(ow_config);
+    exo::OpenWrist ow(ow_config);
+
+    //-------------------------------------------------------------------------
+    // OPENWRIST SETUP
+    //-------------------------------------------------------------------------
 
     // perform calibration commands if requested by user
     if (var_map.count("calibrate")) {
-        open_wrist.calibrate();
+        ow.calibrate();
         delete q8;
         return 0;
     }
 
     // put the OpenWrist in transparency mode if requested by user
     if (var_map.count("transparent")) {
-        open_wrist.transparency_mode();
+        ow.transparency_mode();
         delete q8;
         return 0;
+    }
+
+    // TESTIGN ENVIRONMENT
+    if (var_map.count("testing")) {
+
+        // create a 1000 Hz Clock to run our controller on
+        util::Clock clock(1000);
+
+        // enable hardware
+        q8->enable();
+        q8->start_watchdog(0.1);
+        ow.enable();
+
+        // start the control loop
+        clock.start();
+        while (true) {
+
+            // read and reload Q8
+            q8->read_all();
+            q8->reload_watchdog();
+
+            double torque = ow.pd_controllers[1].move_to_hold(0, ow.joints_[1]->get_position(), 60 * math::DEG2RAD, ow.joints_[1]->get_velocity(), clock.delta_time_, math::DEG2RAD, 20 * math::DEG2RAD);
+            ow.joints_[1]->set_torque(torque);
+
+            // update the OpenWrist's internal MELShare map so we can use MELScope
+            ow.update_state_map();
+
+            // check joint limits and react if necessary
+            if (ow.check_all_joint_velocity_limits() || ow.check_all_joint_torque_limits())
+                break;
+
+            // check for user request to stop
+            if (util::Input::is_key_pressed(util::Input::Escape))
+                break;
+
+            // write Q8
+            q8->write_all();
+
+            // wait for the next clock tick
+            clock.hybrid_wait();
+        }
+
+        // disable hardware and cleanup
+        ow.disable();
+        q8->disable();
+        util::disable_realtime();
+        delete q8;
     }
 }

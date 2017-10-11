@@ -127,7 +127,7 @@ int main(int argc, char * argv[]) {
         options_q8.ao_modes_[1] = dev::Q8Usb::Options::AoMode(dev::Q8Usb::Options::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
         options_q8.ao_modes_[2] = dev::Q8Usb::Options::AoMode(dev::Q8Usb::Options::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
 
-        q8_ow = new mel::dev::Q8Usb(id_ow, ai_channels, ao_channels, di_channels, do_channels, enc_channels, options_q8);
+        q8_ow = new mel::dev::Q8Usb(id_ow, ai_channels, ao_channels, di_channels, do_channels, enc_channels, options_q8, true);
 
         for (int i = 0; i < 3; i++) {
             ow_config.enable_[i] = q8_ow->do_(i);
@@ -156,7 +156,7 @@ int main(int argc, char * argv[]) {
             options.do_expire_signals_[i] = 1;
         }
 
-        q8_meii = new dev::Q8Usb(id_meii, ai_channels, ao_channels, di_channels, do_channels, enc_channels, options);
+        q8_meii = new dev::Q8Usb(id_meii, ai_channels, ao_channels, di_channels, do_channels, enc_channels, options, true);
 
         for (int i = 0; i < 5; ++i) {
             meii_config.enable_[i] = q8_meii->do_(i + 1);
@@ -169,7 +169,7 @@ int main(int argc, char * argv[]) {
     mel::exo::MahiExoII meii(meii_config);
 
     // create CUFF
-    Cuff cuff("cuff", 6);    
+    Cuff cuff("cuff", 4);    
 
     // create Clock
     mel::util::Clock clock(1000);

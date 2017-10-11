@@ -130,7 +130,7 @@ private:
 
     // LENGTH IN SECONDS OF EACH BLOCK TYPE TRIAL (SET MANUALLY)
     // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<double, 4> length_trials_ = { 120, 20, 300, 20 };
+    const std::array<double, 4> length_trials_ = { 10, 20, 300, 20 };
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();
@@ -149,8 +149,6 @@ private:
     // CONTROL LOOP UTILS
     //-------------------------------------------------------------------------
 
-    bool move_to_started_ow_ = false;
-    bool move_to_started_meii = false;
     double move_to_speed_ = 60; // [deg/s]
 
     void step_system_ui();
@@ -178,6 +176,8 @@ private:
 
     // MAHI-EXO II
     void step_meii();
+    double meii_move_to_speed = 15;
+    mel::core::PdController pd1_meii_ = mel::core::PdController(5, 0.05); // half of Craig's default PD Controller
 
     // CUFF
     const short int cuff_normal_force_ = 3;

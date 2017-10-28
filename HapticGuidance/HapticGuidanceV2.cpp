@@ -576,12 +576,15 @@ void HapticGuidanceV2::init_logs() {
         .add_col("OW PS Total Torque [Nm]")
         .add_col("OW PS Compensation Torque [Nm]")
         .add_col("OW PS Task Torque [Nm]")
-        .add_col("CUFF Ref. Motor Position 1")
-        .add_col("CUFF Ref. Motor Position 2")
-        .add_col("CUFF Act. Motor Position 1")
-        .add_col("CUFF Act. Motor Position 2")
-        .add_col("CUFF Act. Motor Current 1")
-        .add_col("CUFF ACt. Motor Current 2");
+        .add_col("MEII PS Position [rad]")
+        .add_col("MEII PS Velocity [rad/s]")
+        .add_col("MEII PS Torque [Nm]");
+        //.add_col("CUFF Ref. Motor Position 1")
+        //.add_col("CUFF Ref. Motor Position 2")
+        //.add_col("CUFF Act. Motor Position 1")
+        //.add_col("CUFF Act. Motor Position 2")
+        //.add_col("CUFF Act. Motor Current 1")
+        //.add_col("CUFF ACt. Motor Current 2");
 }
 
 void HapticGuidanceV2::log_trial() {
@@ -626,12 +629,15 @@ void HapticGuidanceV2::log_step() {
     row.push_back(ps_total_torque_);
     row.push_back(ps_comp_torque_);
     row.push_back(-pendulum_.Tau[0]);
-    row.push_back(static_cast<double>(cuff_ref_pos_1_));
-    row.push_back(static_cast<double>(cuff_ref_pos_2_));
-    row.push_back(static_cast<double>(cuff_act_pos_1_));
-    row.push_back(static_cast<double>(cuff_act_pos_2_));
-    row.push_back(static_cast<double>(cuff_act_current_1_));
-    row.push_back(static_cast<double>(cuff_act_current_2_));
+    row.push_back(meii_.joints_[1]->get_position());
+    row.push_back(meii_.joints_[1]->get_velocity());
+    row.push_back(meii_.joints_[1]->get_torque());
+    //row.push_back(static_cast<double>(cuff_ref_pos_1_));
+    //row.push_back(static_cast<double>(cuff_ref_pos_2_));
+    //row.push_back(static_cast<double>(cuff_act_pos_1_));
+    //row.push_back(static_cast<double>(cuff_act_pos_2_));
+    //row.push_back(static_cast<double>(cuff_act_current_1_));
+    //row.push_back(static_cast<double>(cuff_act_current_2_));
 
     trial_log_.add_row(row);
 }
@@ -752,9 +758,9 @@ void HapticGuidanceV2::step_meii() {
     
     meii_daq_->read_all();
 
-    meii_.joints_[0]->set_torque(meii_.robot_joint_pd_controllers_[0].move_to_hold(-20 * math::DEG2RAD, meii_.joints_[0]->get_position(), 0.25, meii_.joints_[0]->get_velocity(), clock_.delta_time_, math::DEG2RAD, 10 * math::DEG2RAD));
-    meii_.joints_[1]->set_torque(pd1_meii_.move_to_hold(math::DEG2RAD * expert_angle_, meii_.joints_[1]->get_position(), 0.25, meii_.joints_[1]->get_velocity(), clock_.delta_time_, math::DEG2RAD, 30 * math::DEG2RAD));
-
+    meii_.joints_[0]->set_torque(meii_.robot_joint_pd_controllers_[0].move_to_hold(-10 * math::DEG2RAD, meii_.joints_[0]->get_position(), 0.25, meii_.joints_[0]->get_velocity(), clock_.delta_time_, math::DEG2RAD, 10 * math::DEG2RAD));
+    meii_.joints_[1]->set_torque(pd1_meii_.move_to_hold(math::DEG2RAD * (meii_offset + expert_angle_), meii_.joints_[1]->get_position(), 0.25, meii_.joints_[1]->get_velocity(), clock_.delta_time_, math::DEG2RAD, 30 * math::DEG2RAD));
+        
     meii_.joints_[2]->set_torque(0.0);
     meii_.joints_[3]->set_torque(0.0);
     meii_.joints_[4]->set_torque(0.0);

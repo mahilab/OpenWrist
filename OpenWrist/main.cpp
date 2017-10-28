@@ -59,7 +59,7 @@ int main(int argc, char * argv[]) {
     options_q8.ao_modes_[1] = dev::Q8Usb::Options::AoMode(dev::Q8Usb::Options::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     options_q8.ao_modes_[2] = dev::Q8Usb::Options::AoMode(dev::Q8Usb::Options::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
 
-    core::Daq* q8 = new dev::Q8Usb(id, ai_channels, ao_channels, di_channels, do_channels, enc_channels, options_q8);
+    core::Daq* q8 = new dev::Q8Usb(id, ai_channels, ao_channels, di_channels, do_channels, enc_channels, options_q8, true);
 
     //-------------------------------------------------------------------------
     // OPENWRIST SETUP
@@ -76,7 +76,7 @@ int main(int argc, char * argv[]) {
     exo::OpenWrist ow(ow_config);
 
     //-------------------------------------------------------------------------
-    // OPENWRIST SETUP
+    // EXECUTIONS
     //-------------------------------------------------------------------------
 
     // perform calibration commands if requested by user
@@ -112,7 +112,7 @@ int main(int argc, char * argv[]) {
             q8->read_all();
             q8->reload_watchdog();
 
-            double torque = ow.pd_controllers[1].move_to_hold(0, ow.joints_[1]->get_position(), 60 * math::DEG2RAD, ow.joints_[1]->get_velocity(), clock.delta_time_, math::DEG2RAD, 20 * math::DEG2RAD);
+            double torque = ow.pd_controllers_[1].move_to_hold(0, ow.joints_[1]->get_position(), 60 * math::DEG2RAD, ow.joints_[1]->get_velocity(), clock.delta_time_, math::DEG2RAD, 20 * math::DEG2RAD);
             ow.joints_[1]->set_torque(torque);
 
             // update the OpenWrist's internal MELShare map so we can use MELScope

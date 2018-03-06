@@ -56,8 +56,7 @@ void Jedi::sf_play(const NoEventData*) {
             ow_state_.send_data(state_);
         // check for stop conditions
         if (stop_flag_ ||
-            ow_.check_all_joint_torque_limits() ||
-            ow_.check_all_joint_velocity_limits()) {
+            ow_.check_all_joint_torque_limits()) {
             event(ST_STOP);
             return;
         }

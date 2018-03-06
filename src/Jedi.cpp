@@ -1,15 +1,15 @@
 #include "Jedi.hpp"
 #include <MEL/Utility/System.hpp>
 
-Jedi::Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, bool& stop_flag) :
+Jedi::Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, std::atomic<bool>& stop_flag) :
     StateMachine(4),
     timer_(timer),
     ow_daq_(ow_daq),
     ow_(ow),
     stop_flag_(stop_flag),
     state_({ 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }),
-    ow_state_(55002, 55001, "10.66.64.67", false),
-    impulse_(55004, 55003, "10.66.64.67", false)
+    ow_state_(55002, 55001, "127.0.0.1", false),
+    impulse_(55004, 55003, "127.0.0.1", false)
     //impulse_("impulse")
 {
     sleep(seconds(0.1));
@@ -44,7 +44,7 @@ void Jedi::sf_play(const NoEventData*) {
         if (impulse_.receive_message() == "pulse")
             pulse_clock_.restart();
         if (pulse_clock_.get_elapsed_time() < seconds(0.05))
-            ow_[2].add_torque(0.5);
+            ow_[2].add_torque(0.75);
         // update positions/velocities
         state_[0] = ow_[0].get_position();
         state_[1] = ow_[1].get_position();
@@ -56,8 +56,7 @@ void Jedi::sf_play(const NoEventData*) {
             ow_state_.send_data(state_);
         // check for stop conditions
         if (stop_flag_ ||
-            ow_.check_all_joint_torque_limits() ||
-            ow_.check_all_joint_velocity_limits()) {
+            ow_.check_all_joint_torque_limits()) {
             event(ST_STOP);
             return;
         }

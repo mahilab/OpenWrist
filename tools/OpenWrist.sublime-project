@@ -102,10 +102,15 @@
 			"working_dir": "$project_path/../tools"
 		},
 		{
+			"name": "Visual Studio",
+			"shell_cmd": "start OpenWrist.sln",
+			"working_dir": "$project_path/../build/windows_msvc"
+		},
+		{
 			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",
 			"name": "MELScope",
 			"shell_cmd": "python MelScope.pyw",
-			"working_dir": "$project_path/../python"
+			"working_dir": "$project_path/../../MEL/python"
 		},
 		{
 			"file_regex": "^[ ]*File \"(...*?)\", line ([0-9]*)",

@@ -12,7 +12,7 @@ class Jedi : public StateMachine {
 
 public:
 
-    Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, bool& stop_flag);
+    Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, std::atomic<bool>& stop_flag);
 
 private:
 
@@ -60,7 +60,7 @@ private:
     OpenWrist& ow_;
 
     // STOP FLAG
-    bool& stop_flag_;
+    std::atomic<bool>& stop_flag_;
 
     std::vector<double> state_;
 

@@ -5,10 +5,11 @@
 #include <MEL/Utility/System.hpp>
 #include <MEL/Utility/Timer.hpp>
 #include <MEL/Devices/VoltPaqX4.hpp>
+#include "Pendulum.hpp"
 #include "Jedi.hpp"
 #include <atomic>
 
-static bool stop = false;
+std::atomic<bool> stop = false;
 static void handler(int var) {
     stop = true;
 }
@@ -27,8 +28,8 @@ int main(int argc, char* argv[]) {
         ("t,transparency", "Puts the OpenWrist in transparency mode")
         ("s,setpoint", "Runs OpenWrist MelScope set-point demo")
         ("j,jedi", "Runs A Jedi's Last Stand demo")
-        ("h,help", "Prints this help message")
-        ("x","x");
+        ("p,pendulum", "Runs OpenWrist Pendulum demo")
+        ("h,help", "Prints this help message");
 
     auto result = options.parse(argc, argv);
     if (result.count("help") > 0) {
@@ -81,10 +82,55 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    if (result.count("x") > 0) {
-        MelNet x(55001, 55002, "10.66.64.67");
-        std::string message = x.receive_message();
-        print(message);
+    if (result.count("pendulum") > 0) {
+        MelNet melnet(55002, 55001, "127.0.0.1", false);
+        Pendulum pendulum;
+        mel::PdController pd1(60, 1);   // OpenWrist Joint 1 (FE)
+        mel::PdController pd2(40, 0.5); // OpenWrist Joint 2 (RU)
+        std::vector<double> state_data(8);
+        q8.enable();
+        ow.enable();
+        q8.watchdog.start();
+        Timer timer(milliseconds(1));
+        while (!stop) {
+            q8.watchdog.kick();
+            q8.update_input();
+
+            pendulum.step_simulation(timer.get_elapsed_time(), ow[0].get_position(), ow[0].get_velocity());
+
+            if (melnet.receive_message() == "send_data") {
+                state_data[0] = pendulum.Qdd[0];
+                state_data[1] = pendulum.Qdd[1];
+                state_data[2] = pendulum.Qd[0];
+                state_data[3] = pendulum.Qd[1];
+                state_data[4] = pendulum.Q[0];
+                state_data[5] = pendulum.Q[1];
+                state_data[6] = pendulum.Tau[0];
+                state_data[7] = pendulum.Tau[1];
+                melnet.send_data(state_data);
+            }
+
+            double ps_comp_torque_ = ow.compute_gravity_compensation(0) + 0.75 * ow.compute_friction_compensation(0);
+            double ps_total_torque_ = ps_comp_torque_ - pendulum.Tau[0];
+            ow[0].set_torque(ps_total_torque_);
+
+            ow[1].set_torque(pd1.move_to_hold(0, ow[1].get_position(),
+                60 * mel::DEG2RAD, ow[1].get_velocity(),
+                0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
+
+            ow[2].set_torque(pd2.move_to_hold(mel::DEG2RAD * 0, ow[2].get_position(),
+                60 * mel::DEG2RAD, ow[2].get_velocity(),
+                0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
+
+            if (ow.check_all_joint_limits())
+                stop == true;
+
+            q8.update_output();
+            timer.wait();
+        }
+
+        return 0;
+
     }
 
     // disable Windows realtime

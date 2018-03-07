@@ -5,6 +5,7 @@
 #include <MEL/Exoskeletons/OpenWrist/OpenWrist.hpp>
 #include <MEL/Communications/MelNet.hpp>
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
+#include <MEL/Utility/Console.hpp>
 
 using namespace mel;
 
@@ -12,7 +13,7 @@ class Jedi : public StateMachine {
 
 public:
 
-    Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, bool& stop_flag);
+    Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, ctrl_bool& stop_flag);
 
 private:
 
@@ -60,7 +61,7 @@ private:
     OpenWrist& ow_;
 
     // STOP FLAG
-    bool& stop_flag_;
+   ctrl_bool stop_flag_;
 
     std::vector<double> state_;
 

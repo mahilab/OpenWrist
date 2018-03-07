@@ -21,16 +21,13 @@ if(WIN32)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_WINSOCK_DEPRECATED_NO_WARNINGS)
 endif()
 
-# add configurations
-set(CMAKE_CONFIGURATION_TYPES release)
-
 # include directories (your includes and MEL's)
 include_directories("include" "../MEL/include")
 
 # link MEL and other libs
 set(LINK_LIBS "")
 if(WIN32)
-    link_directories("${MEL_ROOT}/lib/windows/release")
+    link_directories("${MEL_ROOT}/lib/windows/Release")
     if (CMAKE_SIZEOF_VOID_P EQUAL 8) # 64-bit
         link_directories("${QUANSER_ROOT}/QUARC/lib/win64")
     else()
@@ -51,6 +48,6 @@ if(WIN32)
 endif()
 
 # create application(s)
-add_executable(demos src/demos.cpp src/Jedi.cpp include/Jedi.hpp)
+add_executable(demos src/demos.cpp src/Jedi.cpp include/Jedi.hpp src/Pendulum.cpp include/Pendulum.hpp src/BallAndBeam.cpp include/BallAndBeam.hpp)
 target_link_libraries(demos ${LINK_LIBS})
 

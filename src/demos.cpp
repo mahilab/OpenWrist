@@ -5,21 +5,30 @@
 #include <MEL/Utility/System.hpp>
 #include <MEL/Utility/Timer.hpp>
 #include <MEL/Devices/VoltPaqX4.hpp>
+#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Math/Functions.hpp>
 #include "Pendulum.hpp"
 #include "Jedi.hpp"
 #include <atomic>
+#include <MEL/Logging/Log.hpp>
+#include "BallAndBeam.hpp"
 
-std::atomic<bool> stop = false;
-static void handler(int var) {
+ctrl_bool stop(false);
+bool handler(CtrlEvent event) {
+    print("Ctrl+C Pressed");
     stop = true;
+    return true;
 }
 
 using namespace mel;
 
 int main(int argc, char* argv[]) {
 
+    // initialize MEL logger
+    init_logger();
+
     // register ctrl-c handler
-    register_ctrl_c_handler(handler);
+    register_ctrl_handler(handler);
 
     // make options
     Options options("openwrist_q8usb.exe", "OpenWrist Q8 USB Demo");
@@ -29,6 +38,7 @@ int main(int argc, char* argv[]) {
         ("s,setpoint", "Runs OpenWrist MelScope set-point demo")
         ("j,jedi", "Runs A Jedi's Last Stand demo")
         ("p,pendulum", "Runs OpenWrist Pendulum demo")
+        ("b,ballbeam", "Runs OpenWrist Ball and Beam demo")
         ("h,help", "Prints this help message");
 
     auto result = options.parse(argc, argv);
@@ -76,14 +86,15 @@ int main(int argc, char* argv[]) {
 
     // enter Jedi demo
     if (result.count("jedi") > 0) {
-        Jedi game(Timer(milliseconds(1), Timer::Hybrid), q8, ow, stop);
+        Jedi game(Timer(hertz(1000), Timer::Hybrid), q8, ow, stop);
         game.execute();
         disable_realtime();
         return 0;
     }
 
+    // enter Pendulum demo
     if (result.count("pendulum") > 0) {
-        MelNet melnet(55002, 55001, "127.0.0.1", false);
+        MelShare ms("pendulum");
         Pendulum pendulum;
         mel::PdController pd1(60, 1);   // OpenWrist Joint 1 (FE)
         mel::PdController pd2(40, 0.5); // OpenWrist Joint 2 (RU)
@@ -98,17 +109,9 @@ int main(int argc, char* argv[]) {
 
             pendulum.step_simulation(timer.get_elapsed_time(), ow[0].get_position(), ow[0].get_velocity());
 
-            if (melnet.receive_message() == "send_data") {
-                state_data[0] = pendulum.Qdd[0];
-                state_data[1] = pendulum.Qdd[1];
-                state_data[2] = pendulum.Qd[0];
-                state_data[3] = pendulum.Qd[1];
-                state_data[4] = pendulum.Q[0];
-                state_data[5] = pendulum.Q[1];
-                state_data[6] = pendulum.Tau[0];
-                state_data[7] = pendulum.Tau[1];
-                melnet.send_data(state_data);
-            }
+            state_data[0] = pendulum.Q[0];
+            state_data[1] = pendulum.Q[1];
+            ms.write_data(state_data);
 
             double ps_comp_torque_ = ow.compute_gravity_compensation(0) + 0.75 * ow.compute_friction_compensation(0);
             double ps_total_torque_ = ps_comp_torque_ - pendulum.Tau[0];
@@ -122,15 +125,101 @@ int main(int argc, char* argv[]) {
                 60 * mel::DEG2RAD, ow[2].get_velocity(),
                 0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
 
-            if (ow.check_all_joint_limits())
+            if (ow.any_limit_exceeded())
                 stop == true;
 
             q8.update_output();
             timer.wait();
         }
-
         return 0;
+    }
 
+    // enter Ball and Beam demo
+    if (result.count("ballbeam") > 0) {
+        MelShare ms("ballbeam");
+        BallAndBeam bb;
+        mel::PdController pd1(60, 1);   // OpenWrist Joint 1 (FE)
+        mel::PdController pd2(40, 0.5); // OpenWrist Joint 2 (RU)
+        std::vector<double> state_data(3);
+        q8.enable();
+        ow.enable();
+        q8.watchdog.start();
+        Timer timer(hertz(1000), Timer::Hybrid);
+        while (!stop) {
+            q8.watchdog.kick();
+            q8.update_input();
+
+            bb.step_simulation(timer.get_elapsed_time(), ow[0].get_position(), ow[0].get_velocity());
+
+            state_data[0] = bb.r;
+            state_data[1] = bb.q;
+            state_data[2] = bb.tau;
+            ms.write_data(state_data);
+
+            double ps_comp_torque_ = ow.compute_gravity_compensation(0) + 0.75 * ow.compute_friction_compensation(0);
+            double ps_total_torque_ = ps_comp_torque_ - bb.tau / 2.0;
+            ow[0].set_torque(ps_total_torque_);
+
+            ow[1].set_torque(pd1.move_to_hold(0, ow[1].get_position(),
+                60 * mel::DEG2RAD, ow[1].get_velocity(),
+                0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
+
+            ow[2].set_torque(pd2.move_to_hold(mel::DEG2RAD * 0, ow[2].get_position(),
+                60 * mel::DEG2RAD, ow[2].get_velocity(),
+                0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
+
+            if (ow.any_limit_exceeded())
+                stop == true;
+
+            q8.update_output();
+            timer.wait();
+        }
+        return 0;
+    }
+
+    // setpoint control with MelScope
+    if (result.count("setpoint") > 0) {
+        MelShare ms("ow_setpoint");
+        MelShare state("ow_state");
+        std::vector<double> state_data(12, 0.0);
+        std::vector<double> positions(3, 0.0);
+        std::vector<double> torques(3, 0.0);
+        ms.write_data(positions);
+        q8.enable();
+        ow.enable();
+        q8.watchdog.start();
+        Timer timer(milliseconds(1), Timer::Hybrid);
+        while (!stop) {
+            q8.update_input();
+            positions = ms.read_data();
+            positions[0] = saturate(positions[0], 80);
+            positions[1] = saturate(positions[1], 60);
+            positions[2] = saturate(positions[2], 30);
+            torques[0] = ow.pd_controllers_[0].move_to_hold(positions[0] * DEG2RAD, ow[0].get_position(), 30 * DEG2RAD, ow[0].get_velocity(), 0.001, DEG2RAD, 10 * DEG2RAD);
+            torques[1] = ow.pd_controllers_[1].move_to_hold(positions[1] * DEG2RAD, ow[1].get_position(), 30 * DEG2RAD, ow[1].get_velocity(), 0.001, DEG2RAD, 10 * DEG2RAD);
+            torques[2] = ow.pd_controllers_[2].move_to_hold(positions[2] * DEG2RAD, ow[2].get_position(), 30 * DEG2RAD, ow[2].get_velocity(), 0.001, DEG2RAD, 10 * DEG2RAD);
+
+            state_data[0] = ow[0].get_position();
+            state_data[1] = ow[1].get_position();
+            state_data[2] = ow[2].get_position();
+            state_data[3] = positions[0];
+            state_data[4] = positions[1];
+            state_data[5] = positions[2];
+            state_data[6] = ow.motors_[0].get_torque_sense();
+            state_data[7] = ow.motors_[1].get_torque_sense();
+            state_data[8] = ow.motors_[2].get_torque_sense();
+            state_data[9] = torques[0];
+            state_data[10] = torques[1];
+            state_data[11] = torques[2];
+
+            state.write_data(state_data);
+
+            ow.set_joint_torques(torques);
+            if (!q8.watchdog.kick() || ow.any_limit_exceeded())
+                stop = true;
+            q8.update_output();
+            timer.wait();
+        }
     }
 
     // disable Windows realtime

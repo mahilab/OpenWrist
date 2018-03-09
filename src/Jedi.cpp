@@ -1,7 +1,7 @@
 #include "Jedi.hpp"
 #include <MEL/Utility/System.hpp>
 
-Jedi::Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, std::atomic<bool>& stop_flag) :
+Jedi::Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, ctrl_bool& stop_flag) :
     StateMachine(4),
     timer_(timer),
     ow_daq_(ow_daq),
@@ -56,7 +56,7 @@ void Jedi::sf_play(const NoEventData*) {
             ow_state_.send_data(state_);
         // check for stop conditions
         if (stop_flag_ ||
-            ow_.check_all_joint_torque_limits()) {
+            ow_.any_torque_limit_exceeded()) {
             event(ST_STOP);
             return;
         }

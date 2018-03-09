@@ -17,12 +17,13 @@ public:
 
 public:
 
-    double K_player = 15;  ///< stiffness between user and beam [N/m]
-    double B_player =1;    ///< damping between user and beam   [N-s/m]
+    double K_player = 30;  ///< stiffness between user and beam [N/m]
+    double B_player = 1;    ///< damping between user and beam   [N-s/m]
     double g = 9.81;       ///< accerlation due to gravity      [m/s^2]
-    double I = 0.027;      ///< beam moment of inertia          [kg*m^2]
-    double m = 0.23;       ///< ball mass                       [kg]
-    double R = 0.019;      ///< ball radius                     [m]
+    double I = 0.025;      ///< beam moment of inertia          [kg*m^2]
+    double m = 0.25;       ///< ball mass                       [kg]
+    double R = 0.03;       ///< ball radius                     [m]
+    double L = 0.8;        ///< beam length                     [m]
 
     double tau;            ///< torque acting on beam           [Nm]
     double r, rd, rdd;     ///< ball state                      [m, m/s m/s^2]

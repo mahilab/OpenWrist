@@ -1,4 +1,4 @@
-#include <MEL/Exoskeletons/OpenWrist/OpenWrist.hpp>
+#include "OpenWrist.hpp"
 #include <MEL/Math/Functions.hpp>
 #include <MEL/Utility/Timer.hpp>
 #include <MEL/Core/PositionSensor.hpp>

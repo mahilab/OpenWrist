@@ -21,8 +21,8 @@
 #include <MEL/Core/Exo.hpp>
 #include <MEL/Core/Motor.hpp>
 #include <MEL/Core/PdController.hpp>
-#include <MEL/Exoskeletons/OpenWrist/OwConfiguration.hpp>
-#include <MEL/Exoskeletons/OpenWrist/OwParameters.hpp>
+#include "OwConfiguration.hpp"
+#include "OwParameters.hpp"
 #include <atomic>
 #include <vector>
 

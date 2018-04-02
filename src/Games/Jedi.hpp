@@ -2,7 +2,7 @@
 
 #include <MEL/Utility/Timer.hpp>
 #include <MEL/Utility/StateMachine.hpp>
-#include <MEL/Exoskeletons/OpenWrist/OpenWrist.hpp>
+#include "OpenWrist.hpp"
 #include <MEL/Communications/MelNet.hpp>
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include <MEL/Utility/Console.hpp>

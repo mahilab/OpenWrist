@@ -1,5 +1,5 @@
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
-#include <MEL/Exoskeletons/OpenWrist/OpenWrist.hpp>
+#include "OpenWrist.hpp"
 #include <MEL/Utility/Console.hpp>
 #include <MEL/Utility/Options.hpp>
 #include <MEL/Utility/System.hpp>
@@ -7,11 +7,11 @@
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Communications/Windows/MelShare.hpp>
 #include <MEL/Math/Functions.hpp>
-#include "Pendulum.hpp"
-#include "Jedi.hpp"
+#include "HapticGuidance/Pendulum.hpp"
+#include "Games/Jedi.hpp"
 #include <atomic>
 #include <MEL/Logging/Log.hpp>
-#include "BallAndBeam.hpp"
+#include "HapticGuidance/BallAndBeam.hpp"
 
 ctrl_bool stop(false);
 bool handler(CtrlEvent event) {

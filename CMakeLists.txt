@@ -22,7 +22,7 @@ if(WIN32)
 endif()
 
 # include directories (your includes and MEL's)
-include_directories("include" "../MEL/include")
+include_directories("src" "../MEL/include")
 
 # link MEL and other libs
 set(LINK_LIBS "")
@@ -47,7 +47,26 @@ if(WIN32)
         legacy_stdio_definitions)
 endif()
 
+# get common files
+set(COMMON src/OpenWrist.hpp src/OwConfiguration src/OwParameters src/OpenWrist.cpp src/OwConfiguration.cpp)
+
 # create application(s)
-add_executable(demos src/demos.cpp src/Jedi.cpp include/Jedi.hpp src/Pendulum.cpp include/Pendulum.hpp src/BallAndBeam.cpp include/BallAndBeam.hpp)
+add_executable(demos ${COMMON}
+    src/demos.cpp
+    src/Games/Jedi.cpp
+    src/Games/Jedi.hpp
+    src/HapticGuidance/Pendulum.cpp
+    src/HapticGuidance/Pendulum.hpp
+    src/HapticGuidance/BallAndBeam.cpp
+    src/HapticGuidance/BallAndBeam.hpp)
 target_link_libraries(demos ${LINK_LIBS})
 
+add_executable(haptic_guidance ${COMMON}
+    src/HapticGuidance/main.cpp
+    src/Cuff/Cuff.hpp
+    src/Cuff/Cuff.cpp
+    src/Cuff/definitions.h
+    src/Cuff/commands.h
+    src/Cuff/qbmove_communications.h
+    src/Cuff/qbmove_communications.cpp)
+target_link_libraries(haptic_guidance ${LINK_LIBS})

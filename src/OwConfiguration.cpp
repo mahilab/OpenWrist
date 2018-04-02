@@ -1,4 +1,4 @@
-#include <MEL/Exoskeletons/OpenWrist/OwConfiguration.hpp>
+#include "OwConfiguration.hpp"
 
 namespace mel {
 

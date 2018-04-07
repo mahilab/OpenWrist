@@ -18,7 +18,7 @@
 #ifndef MEL_OPENWRIST_HPP
 #define MEL_OPENWRIST_HPP
 
-#include <MEL/Core/Exo.hpp>
+#include <MEL/Core/Robot.hpp>
 #include <MEL/Core/Motor.hpp>
 #include <MEL/Core/PdController.hpp>
 #include "OwConfiguration.hpp"
@@ -32,7 +32,7 @@ namespace mel {
 // CLASS DECLARATION
 //==============================================================================
 
-class OpenWrist : public Exo {
+class OpenWrist : public Robot {
 
 public:
 

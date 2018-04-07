@@ -3,7 +3,7 @@
 #include <MEL/Utility/Console.hpp>
 #include <MEL/Utility/Options.hpp>
 #include <MEL/Utility/System.hpp>
-#include <MEL/Utility/Timer.hpp>
+#include <MEL/Core/Timer.hpp>
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Communications/Windows/MelShare.hpp>
 #include <MEL/Math/Functions.hpp>

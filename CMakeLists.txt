@@ -63,6 +63,12 @@ target_link_libraries(demos ${LINK_LIBS})
 
 add_executable(haptic_guidance ${COMMON}
     src/HapticGuidance/main.cpp
+    src/HapticGuidance/FurutaPendulum.hpp
+    src/HapticGuidance/FurutaPendulum.cpp
+    src/HapticGuidance/Pendulum.hpp
+    src/HapticGuidance/Pendulum.cpp
+    src/HapticGuidance/BallAndBeam.hpp
+    src/HapticGuidance/BallAndBeam.cpp
     src/Cuff/Cuff.hpp
     src/Cuff/Cuff.cpp
     src/Cuff/definitions.h

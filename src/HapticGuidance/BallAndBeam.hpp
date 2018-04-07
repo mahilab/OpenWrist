@@ -1,7 +1,7 @@
 #ifndef MEL_BALLANDBEAM_HPP
 #define MEL_BALLANDBEAM_HPP
 
-#include <MEL/Utility/Time.hpp>
+#include <MEL/Core/Time.hpp>
 #include <MEL/Math/Constants.hpp>
 #include <MEL/Math/Functions.hpp>
 #include <MEL/Math/Integrator.hpp>

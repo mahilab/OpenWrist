@@ -20,7 +20,7 @@
 
 #include <MEL/Math/Constants.hpp>
 #include <MEL/Utility/Types.hpp>
-#include <MEL/Utility/Time.hpp>
+#include <MEL/Core/Time.hpp>
 #include <array>
 
 namespace mel {

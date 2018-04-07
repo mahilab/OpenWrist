@@ -1,6 +1,6 @@
 #pragma once
 
-#include <MEL/Utility/Timer.hpp>
+#include <MEL/Core/Timer.hpp>
 #include <MEL/Utility/StateMachine.hpp>
 #include "OpenWrist.hpp"
 #include <MEL/Communications/MelNet.hpp>

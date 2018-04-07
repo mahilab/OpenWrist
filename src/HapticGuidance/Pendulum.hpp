@@ -1,6 +1,6 @@
 #pragma once
 #include <array>
-#include <MEL/Utility/Time.hpp>
+#include <MEL/Core/Time.hpp>
 #include <MEL/Math/Constants.hpp>
 #include <MEL/Math/Functions.hpp>
 #include <MEL/Math/Integrator.hpp>

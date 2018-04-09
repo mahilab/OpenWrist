@@ -15,34 +15,44 @@ public:
     FurutaPendulum();
 
     /// Steps the pendulum simulation
-    void update(mel::Time time, double position_ref, double velocity_ref);
+    void update(mel::Time time, double tau);
 
     /// Resets the pendulum integrators
-    void reset();
-
-public:
-
-    double K_player = 25;                        ///< [N/m]
-    double B_player = 1;                       ///< [N-s/m]
-    double g = 9.81;                             ///< [m/s^2]
-    std::array<double, 2> M = { 0.01, 0.05};    ///< [kg]
-    std::array<double, 2> L = { 1.5, 1 };     ///< [m]
-    std::array<double, 2> B = { 0.001,0.001 };   ///< [N-s/m]
-
-    std::array<double, 2> Qdd = { 0,0 };
-    std::array<double, 2> Qd = { 0,0 };
-    std::array<double, 2> Q =  { 0 , mel::PI };
-    std::array<double, 2> Tau = { 0, 0 };
+    void reset(double q1_0 = 0.0, double q2_0 = 0.1, double q1d_0 = 0.0, double q2d_0 = 0.0);
 
 private:
 
-    std::array<mel::Integrator, 2> Qdd2Qd = { mel::Integrator(Qd[0]), mel::Integrator(Qd[1]) };
-    std::array<mel::Integrator, 2> Qd2Q = { mel::Integrator(Q[0]),  mel::Integrator(Q[1]) };
+    /// Reads properties from external applications (Unity)
+    void read_properties();
 
-    mel::MelShare ms_props_;
-    mel::MelShare ms_state_;
+    /// Updates computed properties
+    void update_properties();
 
-    std::vector<double> data_props_;
-    std::vector<double> data_state_;
+public:
 
+    // Default Pendulum Properties
+    double g        = 9.81;   ///< [m/s^2]
+    double rho_link = 10;   ///< [kg/m^3]
+    double rho_mass = 10;   ///< [kg/m^3]
+    double r_link   = 0.025;  ///< [m]
+    double r_mass   = 0.1;    ///< [m]
+    double l1       = 1.0;    ///< [m]
+    double l2       = 1.0;    ///< [m]
+    double b1       = 0.01;   ///< [Nm-s/rad]
+    double b2       = 0.01;   ///< [Nm-s/rad]
+
+    // Computed Properties
+    double m1, m2, m2_link, m2_mass, c1, c2, c2_link, c2_mass, Ixx1, Iyy1, Ixx2, Ixx2_link, Ixx2_mass, Iyy2;
+
+    // State Variables
+    double q1, q2, q1d, q2d, q1dd, q2dd, tau1, tau2;
+
+private:    
+
+    // Integrators
+    mel::Integrator q1dd_q1d, q2dd_q2d, q1d_q1, q2d_q2;
+
+    // MELShare and Data
+    mel::MelShare ms_props_, ms_state_;
+    std::vector<double> data_props_, data_state_;
 };

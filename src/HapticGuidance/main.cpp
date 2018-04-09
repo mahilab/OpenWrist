@@ -28,6 +28,30 @@ int main() {
     // register ctrl-c handler
     register_ctrl_handler(handler);
 
+    // create pendulum
+    FurutaPendulum furuta;
+
+    Timer timer(hertz(1000));
+    while (!stop) {
+        furuta.update(timer.get_elapsed_time(), 0.0);
+        timer.wait();
+    }
+}
+
+// double K_player = 25;                        ///< [N/m]
+// double B_player = 1;                       ///< [N-s/m]
+// compute torque of first joint given reference position and velocity
+//Tau[0] = K_player * (position_ref - Q[0]) + B_player * (velocity_ref - Qd[0]);
+
+/*
+int main() {
+
+    // initialize MEL logger
+    init_logger();
+
+    // register ctrl-c handler
+    register_ctrl_handler(handler);
+
     // enable Windows realtime
     // enable_realtime();
 
@@ -111,7 +135,7 @@ int main() {
     }
     return 0;
 }
-
+*/
 
 
 /*

@@ -127,7 +127,7 @@ int main() {
                 fe_total_torque += k_wall * (-wall - ow[1].get_position());
         }
 
-        //double fe_total_torque = -pendulum.tau1;
+        fe_total_torque += -pendulum.tau1;
         ow[1].set_torque(fe_total_torque);
 
         ow[0].set_torque(pd1.move_to_hold(0, ow[0].get_position(),

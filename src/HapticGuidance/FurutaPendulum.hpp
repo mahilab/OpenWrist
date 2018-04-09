@@ -18,7 +18,7 @@ public:
     void update(mel::Time time, double tau);
 
     /// Resets the pendulum integrators
-    void reset(double q1_0 = 0.0, double q2_0 = 0.1, double q1d_0 = 0.0, double q2d_0 = 0.0);
+    void reset(double q1_0 = 0.0, double q2_0 = 0.0, double q1d_0 = 0.0, double q2d_0 = 0.0);
 
 private:
 
@@ -43,6 +43,11 @@ public:
 
     // Computed Properties
     double m1, m2, m2_link, m2_mass, c1, c2, c2_link, c2_mass, Ixx1, Iyy1, Ixx2, Ixx2_link, Ixx2_mass, Iyy2;
+
+    // Wall Properties
+    double k_wall = 20;
+    double b_wall = 1.0;
+    double wall   = 40 * mel::DEG2RAD;
 
     // State Variables
     double q1, q2, q1d, q2d, q1dd, q2dd, tau1, tau2;

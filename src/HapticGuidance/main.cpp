@@ -20,30 +20,7 @@ bool handler(CtrlEvent event) {
     return true;
 }
 
-int main() {
 
-    // initialize MEL logger
-    init_logger();
-
-    // register ctrl-c handler
-    register_ctrl_handler(handler);
-
-    // create pendulum
-    FurutaPendulum furuta;
-
-    Timer timer(hertz(1000));
-    while (!stop) {
-        furuta.update(timer.get_elapsed_time(), 0.0);
-        timer.wait();
-    }
-}
-
-// double K_player = 25;                        ///< [N/m]
-// double B_player = 1;                       ///< [N-s/m]
-// compute torque of first joint given reference position and velocity
-//Tau[0] = K_player * (position_ref - Q[0]) + B_player * (velocity_ref - Qd[0]);
-
-/*
 int main() {
 
     // initialize MEL logger
@@ -94,10 +71,21 @@ int main() {
     FurutaPendulum pendulum;
     mel::PdController pd1(60, 1);   // OpenWrist Joint 1 (FE)
     mel::PdController pd2(40, 0.5); // OpenWrist Joint 2 (RU)
-    std::vector<double> state_data(4);
+
+    double K_player = 25;                      ///< [N/m]
+    double B_player = 1;                       ///< [N-s/m]
+    double tau;
+
     q8.enable();
     ow.enable();
     q8.watchdog.start();
+
+    MelShare ms("haptics");
+    std::vector<double> data(2);
+
+    double wall = 40 * mel::DEG2RAD;
+    double k_wall = 20;
+    double b_wall = 1.0;
 
     Timer timer(milliseconds(1));
     while (!stop) {
@@ -105,14 +93,41 @@ int main() {
         q8.update_input();
 
         if (Keyboard::is_key_pressed(Key::R)) {
-            pendulum.reset();
-            pendulum.Q[0] = ow[1].get_position();
+            pendulum.reset(ow[1].get_position(), 0.0, 0.0, 0.0);
         }
 
-        pendulum.update(timer.get_elapsed_time(), ow[1].get_position(), ow[1].get_velocity());
+        tau = K_player * (ow[1].get_position() - pendulum.q1) + B_player * (ow[1].get_velocity() - pendulum.q1d);
+        
+        //tau = -1.0 * pendulum.q1 + 145.7642 * pendulum.q2 - 4.0186 * pendulum.q1d + 24.3704 * pendulum.q2d;
+        //if (Keyboard::is_key_pressed(Key::Right))
+        //    pendulum.tau2 = 1;
+        //else if (Keyboard::is_key_pressed(Key::Left))
+        //    pendulum.tau2 = -1;
+        //else
+        //    pendulum.tau2 = 0.0;
 
-        double fe_comp_torque = ow.compute_gravity_compensation(1) + 0.75 * ow.compute_friction_compensation(1);
-        double fe_total_torque = fe_comp_torque -pendulum.Tau[0];
+
+        pendulum.update(timer.get_elapsed_time(), tau);
+
+        data[0] = pendulum.tau1;
+        data[1] = pendulum.tau2;
+        ms.write_data(data);
+
+        double fe_total_torque = 0.0;
+        if (ow[1].get_position() >= wall) {
+            if (ow[1].get_velocity() > 0)
+                fe_total_torque += k_wall * (wall - ow[1].get_position()) + b_wall * (0 - ow[1].get_velocity());
+            else
+                fe_total_torque += k_wall * (wall - ow[1].get_position());
+        }
+        else if (ow[1].get_position() <= -wall) {
+            if (ow[1].get_velocity() < 0)
+                fe_total_torque += k_wall * (-wall - ow[1].get_position()) + b_wall * (0 - ow[1].get_velocity());
+            else
+                fe_total_torque += k_wall * (-wall - ow[1].get_position());
+        }
+
+        //double fe_total_torque = -pendulum.tau1;
         ow[1].set_torque(fe_total_torque);
 
         ow[0].set_torque(pd1.move_to_hold(0, ow[0].get_position(),
@@ -127,7 +142,7 @@ int main() {
         //cuff_ref_pos_2_ = offset[1] + ow[0].get_position() * cuff_ff_gain_ * RAD2DEG;
         //cuff.set_motor_positions(cuff_ref_pos_1_, cuff_ref_pos_2_, true);
 
-        if (ow.any_torque_limit_exceeded())
+        if (ow.any_limit_exceeded())
             stop = true;
 
         q8.update_output();
@@ -135,7 +150,7 @@ int main() {
     }
     return 0;
 }
-*/
+
 
 
 /*

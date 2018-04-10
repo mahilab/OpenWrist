@@ -10,6 +10,7 @@
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include "OpenWrist.hpp"
 #include <MEL/Utility/Windows/Keyboard.hpp>
+#include <MEL/Utility/RingBuffer.hpp>
 
 using namespace mel;
 
@@ -20,7 +21,70 @@ bool handler(CtrlEvent event) {
     return true;
 }
 
+int main() {
+    register_ctrl_handler(handler);
+    FurutaPendulum pendulum;
+    pendulum.reset(0, 0.2, 0, 0);
+    double tau = 0.0;
+    Timer timer(hertz(1000));
+    RingBuffer<double> rb(40);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    rb.push_back(0.0);
+    while (!stop) {
+        tau = -1.0 * pendulum.q1 + 145.7642 * pendulum.q2 - 4.0186 * pendulum.q1d + 24.3704 * pendulum.q2d;
+        if (Keyboard::is_key_pressed(Key::Right))
+            pendulum.tau2 = 1;
+        else if (Keyboard::is_key_pressed(Key::Left))
+            pendulum.tau2 = -1;
+        else
+            pendulum.tau2 = 0.0;
+        tau = mel::saturate(tau, -3.0, 3.0);
+        rb.push_back(tau);
+        pendulum.update(timer.get_elapsed_time(), -rb[0]);
+        timer.wait();
+    }
+    return 0;
+}
 
+/*
 int main() {
 
     // initialize MEL logger
@@ -150,7 +214,7 @@ int main() {
     }
     return 0;
 }
-
+*/
 
 
 /*

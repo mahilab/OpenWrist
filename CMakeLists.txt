@@ -22,7 +22,7 @@ if(WIN32)
 endif()
 
 # include directories (your includes and MEL's)
-include_directories("src" "../MEL/include")
+include_directories("src" "../MEII/include" "../MEL/include" "C:/dev/myo-sdk-win-0.9.0/include")
 
 # link MEL and other libs
 set(LINK_LIBS "")
@@ -33,6 +33,8 @@ if(WIN32)
     else()
         link_directories("${QUANSER_ROOT}/QUARC/lib/windows")
     endif()
+    link_directories("C:/dev/myo-sdk-win-0.9.0/lib")
+    link_directories("../MEII/lib/Release")
     list(APPEND LINK_LIBS
         MEL
         ws2_32
@@ -76,3 +78,6 @@ add_executable(haptic_guidance ${COMMON}
     src/Cuff/qbmove_communications.h
     src/Cuff/qbmove_communications.cpp)
 target_link_libraries(haptic_guidance ${LINK_LIBS})
+
+add_executable(myo ${COMMON} src/Myo/main.cpp src/Myo/MyoBand.cpp src/Myo/MyoBand.hpp)
+target_link_libraries(myo ${LINK_LIBS} myo64 MEII)

@@ -8,7 +8,7 @@
 import os
 import shutil
 
-keep = []
+keep = ['bin/windows/Release/myo64.dll']
 
 folders = ['build',
            'build/linux_make',

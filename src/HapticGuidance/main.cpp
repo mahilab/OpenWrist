@@ -22,6 +22,7 @@ bool handler(CtrlEvent event) {
     return true;
 }
 
+/*
 int main() {
     MelShare ms("p_tau");
     register_ctrl_handler(handler);
@@ -48,8 +49,9 @@ int main() {
     }
     return 0;
 }
+*/
 
-/*
+
 int main() {
 
     // initialize MEL logger
@@ -112,9 +114,9 @@ int main() {
     MelShare ms("haptics");
     std::vector<double> data(2);
 
-    double wall = 40 * mel::DEG2RAD;
-    double k_wall = 20;
-    double b_wall = 1.0;
+    double wall = 50 * mel::DEG2RAD;
+    double k_wall = 50;
+    double b_wall = 1;
 
     Timer timer(milliseconds(1));
     while (!stop) {
@@ -171,7 +173,7 @@ int main() {
         //cuff_ref_pos_2_ = offset[1] + ow[0].get_position() * cuff_ff_gain_ * RAD2DEG;
         //cuff.set_motor_positions(cuff_ref_pos_1_, cuff_ref_pos_2_, true);
 
-        if (ow.any_limit_exceeded())
+        if (ow.any_torque_limit_exceeded())
             stop = true;
 
         q8.update_output();
@@ -179,7 +181,7 @@ int main() {
     }
     return 0;
 }
-*/
+
 
 
 /*

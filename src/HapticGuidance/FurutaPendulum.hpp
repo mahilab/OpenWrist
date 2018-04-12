@@ -25,6 +25,9 @@ private:
     /// Reads properties from external applications (Unity)
     void read_properties();
 
+    /// Write state
+    void write_state();
+
     /// Updates computed properties
     void update_properties();
 
@@ -44,13 +47,8 @@ public:
     // Computed Properties
     double m1, m2, m2_link, m2_mass, c1, c2, c2_link, c2_mass, Ixx1, Iyy1, Ixx2, Ixx2_link, Ixx2_mass, Iyy2;
 
-    // Wall Properties
-    double k_wall = 20;
-    double b_wall = 1.0;
-    double wall   = 40 * mel::DEG2RAD;
-
     // State Variables
-    double q1, q2, q1d, q2d, q1dd, q2dd, tau1, tau2;
+    double q1, q2, q1d, q2d, q1dd, q2dd, tau1, tau2, k1, k2, u1, u2;
 
 private:    
 

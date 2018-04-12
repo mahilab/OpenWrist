@@ -6,7 +6,7 @@ FurutaPendulum::FurutaPendulum() :
     ms_props_("pendulum_props"),
     ms_state_("pendulum_state"),
     data_props_(9),
-    data_state_(2)
+    data_state_(12)
 {
     if (ms_props_.read_data().size() != 9) {
         mel::print("Loading Furuta Pendulum from scratch");
@@ -51,20 +51,6 @@ void FurutaPendulum::update(mel::Time time, double tau) {
     // set tau1
     tau1 = tau;
 
-    // virtual wall
-    //if (q1 >= wall) {
-    //    if (q1d > 0)
-    //        mel::print(k_wall * (wall - q1) + b_wall * (0 - q1d));
-    //    else
-    //        tau1 += k_wall * (wall - q1);
-    //}
-    //else if (q1 <= -wall) {
-    //    if (q1d < 0)
-    //        tau1 += k_wall * (-wall - q1) + b_wall * (0 - q1d);
-    //    else
-    //        tau1 += k_wall * (-wall - q1);
-    //}
-
     // evaluate the equations of motion
     q1dd = -(-Ixx2*tau1 - (c2*c2)*m2*tau1 + Ixx2*b1*q1d + (Ixx2*Ixx2)*q1d*q2d*sin(q2*2.0) + b1*(c2*c2)*m2*q1d - (c2*c2)*g*l1*(m2*m2)*sin(q2*2.0)*(1.0 / 2.0) + (c2*c2*c2)*l1*(m2*m2)*(q2d*q2d)*sin(q2) - (c2*c2*c2)*l1*(m2*m2)*(q1d*q1d)*(sin(q2) - pow(sin(q2), 3.0)) + (c2*c2*c2*c2)*(m2*m2)*q1d*q2d*sin(q2*2.0) - Ixx2*Iyy2*q1d*q2d*sin(q2*2.0) - c2*l1*m2*tau2*cos(q2) + b2*c2*l1*m2*q2d*cos(q2) + Ixx2*c2*l1*m2*(q2d*q2d)*sin(q2) - Ixx2*c2*l1*m2*(q1d*q1d)*(sin(q2) - pow(sin(q2), 3.0)) + Iyy2*c2*l1*m2*(q1d*q1d)*(sin(q2) - pow(sin(q2), 3.0)) + Ixx2*(c2*c2)*m2*q1d*q2d*sin(q2*2.0)*2.0 - Iyy2*(c2*c2)*m2*q1d*q2d*sin(q2*2.0)) / (-(Ixx2*Ixx2)*pow(cos(q2), 2.0) + Ixx2*Ixx2 + (c2*c2*c2*c2)*(m2*m2) + Ixx1*Ixx2 - (c2*c2*c2*c2)*(m2*m2)*pow(cos(q2), 2.0) + Ixx2*Iyy2*pow(cos(q2), 2.0) + (c2*c2)*(l1*l1)*(m2*m2) + Ixx2*(c1*c1)*m1 + Ixx1*(c2*c2)*m2 + Ixx2*(c2*c2)*m2*2.0 + Ixx2*(l1*l1)*m2 - Ixx2*(c2*c2)*m2*pow(cos(q2), 2.0)*2.0 + Iyy2*(c2*c2)*m2*pow(cos(q2), 2.0) + (c1*c1)*(c2*c2)*m1*m2 - (c2*c2)*(l1*l1)*(m2*m2)*pow(cos(q2), 2.0));
     q2dd = ((tau2 - b2*q2d + c2*g*m2*sin(q2) + (q1d*q1d)*cos(q2)*sin(q2)*(Ixx2 - Iyy2 + (c2*c2)*m2))*(Ixx1 + Ixx2 + (c1*c1)*m1 + (c2*c2)*m2 + (l1*l1)*m2 - Ixx2*pow(cos(q2), 2.0) + Iyy2*pow(cos(q2), 2.0) - (c2*c2)*m2*pow(cos(q2), 2.0))) / (-(Ixx2*Ixx2)*pow(cos(q2), 2.0) + Ixx2*Ixx2 + (c2*c2*c2*c2)*(m2*m2) + Ixx1*Ixx2 - (c2*c2*c2*c2)*(m2*m2)*pow(cos(q2), 2.0) + Ixx2*Iyy2*pow(cos(q2), 2.0) + (c2*c2)*(l1*l1)*(m2*m2) + Ixx2*(c1*c1)*m1 + Ixx1*(c2*c2)*m2 + Ixx2*(c2*c2)*m2*2.0 + Ixx2*(l1*l1)*m2 - Ixx2*(c2*c2)*m2*pow(cos(q2), 2.0)*2.0 + Iyy2*(c2*c2)*m2*pow(cos(q2), 2.0) + (c1*c1)*(c2*c2)*m1*m2 - (c2*c2)*(l1*l1)*(m2*m2)*pow(cos(q2), 2.0)) - (c2*l1*m2*cos(q2)*(-tau1 + b1*q1d + Ixx2*q1d*q2d*sin(q2*2.0) - Iyy2*q1d*q2d*sin(q2*2.0) + c2*l1*m2*(q2d*q2d)*sin(q2) + (c2*c2)*m2*q1d*q2d*sin(q2*2.0))) / (-(Ixx2*Ixx2)*pow(cos(q2), 2.0) + Ixx2*Ixx2 + (c2*c2*c2*c2)*(m2*m2) + Ixx1*Ixx2 - (c2*c2*c2*c2)*(m2*m2)*pow(cos(q2), 2.0) + Ixx2*Iyy2*pow(cos(q2), 2.0) + (c2*c2)*(l1*l1)*(m2*m2) + Ixx2*(c1*c1)*m1 + Ixx1*(c2*c2)*m2 + Ixx2*(c2*c2)*m2*2.0 + Ixx2*(l1*l1)*m2 - Ixx2*(c2*c2)*m2*pow(cos(q2), 2.0)*2.0 + Iyy2*(c2*c2)*m2*pow(cos(q2), 2.0) + (c1*c1)*(c2*c2)*m1*m2 - (c2*c2)*(l1*l1)*(m2*m2)*pow(cos(q2), 2.0));
@@ -76,11 +62,17 @@ void FurutaPendulum::update(mel::Time time, double tau) {
     // integrate velocities to find positions
     q1 = q1d_q1.update(q1d, time);
     q2 = q2d_q2.update(q2d, time);
+    
+    // compute kinetic energies
+    k1 = (q1d*q1d)*(Ixx1 + (c1*c1)*m1)*(1.0 / 2.0);
+    k2 = Ixx2*(q1d*q1d)*(1.0 / 2.0) + Ixx2*(q2d*q2d)*(1.0 / 2.0) + (c2*c2)*m2*(q1d*q1d)*(1.0 / 2.0) + (c2*c2)*m2*(q2d*q2d)*(1.0 / 2.0) + (l1*l1)*m2*(q1d*q1d)*(1.0 / 2.0) - Ixx2*(q1d*q1d)*pow(cos(q2), 2.0)*(1.0 / 2.0) + Iyy2*(q1d*q1d)*pow(cos(q2), 2.0)*(1.0 / 2.0) - (c2*c2)*m2*(q1d*q1d)*pow(cos(q2), 2.0)*(1.0 / 2.0) - c2*l1*m2*q1d*q2d*cos(q2);
+
+    // compute potential energies
+    u1 = 0;
+    u2 = c2*g*m2*cos(q2);
 
     // write out state
-    data_state_[0] = q1;
-    data_state_[1] = q2;
-    ms_state_.write_data(data_state_);
+    write_state();
 }
 
 void FurutaPendulum::read_properties() {
@@ -94,6 +86,22 @@ void FurutaPendulum::read_properties() {
     l2 = data_props_[6];
     b1 = data_props_[7];
     b2 = data_props_[8];
+}
+
+void FurutaPendulum::write_state() {
+    data_state_[0] = q1;
+    data_state_[1] = q2;
+    data_state_[2] = q2d;
+    data_state_[3] = q2d;
+    data_state_[4] = q1dd;
+    data_state_[5] = q2dd;
+    data_state_[6] = tau1;
+    data_state_[7] = tau2;
+    data_state_[8] = k1;
+    data_state_[9] = k2;
+    data_state_[10] = u1;
+    data_state_[11] = u2;
+    ms_state_.write_data(data_state_);
 }
 
 void FurutaPendulum::update_properties() {

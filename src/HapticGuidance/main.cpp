@@ -11,6 +11,7 @@
 #include "OpenWrist.hpp"
 #include <MEL/Utility/Windows/Keyboard.hpp>
 #include <MEL/Utility/RingBuffer.hpp>
+#include <MEL/Math/Waveform.hpp>
 
 using namespace mel;
 
@@ -22,63 +23,27 @@ bool handler(CtrlEvent event) {
 }
 
 int main() {
+    MelShare ms("p_tau");
     register_ctrl_handler(handler);
     FurutaPendulum pendulum;
-    pendulum.reset(0, 0.2, 0, 0);
+    pendulum.reset(0, 3.14/8, 0, 0);
     double tau = 0.0;
     Timer timer(hertz(1000));
-    RingBuffer<double> rb(40);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
-    rb.push_back(0.0);
+    Waveform swave(Waveform::Sin, seconds(0.25), 0.1);
     while (!stop) {
-        tau = -1.0 * pendulum.q1 + 145.7642 * pendulum.q2 - 4.0186 * pendulum.q1d + 24.3704 * pendulum.q2d;
+        tau = -1.0 * pendulum.q1 + 4.6172 * pendulum.q2 - 0.9072 * pendulum.q1d + 1.2218 * pendulum.q2d;
+        ms.write_data({ tau });
         if (Keyboard::is_key_pressed(Key::Right))
-            pendulum.tau2 = 1;
+            pendulum.tau2 = 0.25;
         else if (Keyboard::is_key_pressed(Key::Left))
-            pendulum.tau2 = -1;
+            pendulum.tau2 = -0.25;
         else
             pendulum.tau2 = 0.0;
         tau = mel::saturate(tau, -3.0, 3.0);
-        rb.push_back(tau);
-        pendulum.update(timer.get_elapsed_time(), -rb[0]);
+        if (Keyboard::is_key_pressed(Key::Space))
+            pendulum.update(timer.get_elapsed_time(), 0);
+        else
+            pendulum.update(timer.get_elapsed_time(), -tau);
         timer.wait();
     }
     return 0;

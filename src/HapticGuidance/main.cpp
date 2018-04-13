@@ -12,6 +12,9 @@
 #include <MEL/Utility/Windows/Keyboard.hpp>
 #include <MEL/Utility/RingBuffer.hpp>
 #include <MEL/Math/Waveform.hpp>
+#include <MEL/Utility/Options.hpp>
+#include <MEL/Utility/Windows/XboxController.hpp>
+#include <MEL/Math/Differentiator.hpp>
 
 using namespace mel;
 
@@ -22,37 +25,20 @@ bool handler(CtrlEvent event) {
     return true;
 }
 
-/*
-int main() {
-    MelShare ms("p_tau");
-    register_ctrl_handler(handler);
-    FurutaPendulum pendulum;
-    pendulum.reset(0, 3.14/8, 0, 0);
-    double tau = 0.0;
-    Timer timer(hertz(1000));
-    Waveform swave(Waveform::Sin, seconds(0.25), 0.1);
-    while (!stop) {
-        tau = -1.0 * pendulum.q1 + 4.6172 * pendulum.q2 - 0.9072 * pendulum.q1d + 1.2218 * pendulum.q2d;
-        ms.write_data({ tau });
-        if (Keyboard::is_key_pressed(Key::Right))
-            pendulum.tau2 = 0.25;
-        else if (Keyboard::is_key_pressed(Key::Left))
-            pendulum.tau2 = -0.25;
-        else
-            pendulum.tau2 = 0.0;
-        tau = mel::saturate(tau, -3.0, 3.0);
-        if (Keyboard::is_key_pressed(Key::Space))
-            pendulum.update(timer.get_elapsed_time(), 0);
-        else
-            pendulum.update(timer.get_elapsed_time(), -tau);
-        timer.wait();
+int main(int argc, char* argv[]) {
+    
+    // set up options
+    mel::Options options("haptic_guidance.exe", "Haptic Guidance Experiment");
+    options.add_options()
+        ("x,test", "Test Code")
+        ("s,sim", "Haptic Code")
+        ("h,help", "Prints Help Message");
+
+    auto result = options.parse(argc, argv);
+    if (result.count("help") > 0) {
+        print(options.help());
+        return 0;
     }
-    return 0;
-}
-*/
-
-
-int main() {
 
     // initialize MEL logger
     init_logger();
@@ -62,6 +48,54 @@ int main() {
 
     // enable Windows realtime
     // enable_realtime();
+
+
+    // test code
+    if (result.count("test") > 0) {
+        MelShare ms("p_tau");
+        register_ctrl_handler(handler);
+        FurutaPendulum pendulum;
+        pendulum.reset(0, 3.14 / 8, 0, 0);
+        double tau = 0.0;
+        Timer timer(hertz(1000));
+        // Xbox controller
+        XboxController xbox(0);
+        print(xbox.is_connected());
+        xbox.set_deadzone(XboxController::LX, 0.1);
+
+        Differentiator xbox_vel;
+
+        double K_player = 25;                      ///< [N/m]
+        double B_player = 1;                       ///< [N-s/m]
+
+        while (!stop) {
+            tau = -(-1.0 * pendulum.q1 + 4.6172 * pendulum.q2 - 0.9072 * pendulum.q1d + 1.2218 * pendulum.q2d);
+            ms.write_data({ tau });
+            if (Keyboard::is_key_pressed(Key::Right))
+                pendulum.tau2 = 0.25;
+            else if (Keyboard::is_key_pressed(Key::Left))
+                pendulum.tau2 = -0.25;
+            else
+                pendulum.tau2 = 0.0;
+
+            //double position = xbox.get_axis(XboxController::LT) - xbox.get_axis(XboxController::RT);
+            //double velocity = xbox_vel.update(position, timer.get_elapsed_time());
+            //print(position);
+            //tau = K_player * (position - pendulum.q1) + +B_player * (velocity - pendulum.q1d);
+
+            //tau = 1.0 * xbox.get_axis(XboxController::LT) - 1.0 * xbox.get_axis(XboxController::RT);
+
+
+            tau = mel::saturate(tau, -3.0, 3.0);
+            if (Keyboard::is_key_pressed(Key::Space))
+                pendulum.update(timer.get_elapsed_time(), 0);
+            else
+                pendulum.update(timer.get_elapsed_time(), tau);
+            timer.wait();
+        }
+        return 0;
+    }
+
 
     // OpenWrist setup
     // make Q8 USB that's configured for current control with VoltPAQ-X4

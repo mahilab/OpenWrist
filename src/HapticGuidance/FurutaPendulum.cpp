@@ -1,15 +1,13 @@
 #include "FurutaPendulum.hpp"
-#include <MEL/Math/Constants.hpp>
-#include <MEL/Utility/Console.hpp>
 
 FurutaPendulum::FurutaPendulum() :
     ms_props_("pendulum_props"),
     ms_state_("pendulum_state"),
+    ms_up_("pendulum_up"),
     data_props_(9),
     data_state_(12)
 {
     if (ms_props_.read_data().size() != 9) {
-        mel::print("Loading Furuta Pendulum from scratch");
         data_props_[0] = g;
         data_props_[1] = rho_link;
         data_props_[2] = rho_mass;
@@ -22,7 +20,6 @@ FurutaPendulum::FurutaPendulum() :
         ms_props_.write_data(data_props_);
     }
     else {
-        mel::print("Loading Furuta Pendulum from MELShare");
         read_properties();
     }
     reset();
@@ -62,7 +59,7 @@ void FurutaPendulum::update(mel::Time time, double tau) {
     // integrate velocities to find positions
     q1 = q1d_q1.update(q1d, time);
     q2 = q2d_q2.update(q2d, time);
-    
+
     // compute kinetic energies
     k1 = (q1d*q1d)*(Ixx1 + (c1*c1)*m1)*(1.0 / 2.0);
     k2 = Ixx2*(q1d*q1d)*(1.0 / 2.0) + Ixx2*(q2d*q2d)*(1.0 / 2.0) + (c2*c2)*m2*(q1d*q1d)*(1.0 / 2.0) + (c2*c2)*m2*(q2d*q2d)*(1.0 / 2.0) + (l1*l1)*m2*(q1d*q1d)*(1.0 / 2.0) - Ixx2*(q1d*q1d)*pow(cos(q2), 2.0)*(1.0 / 2.0) + Iyy2*(q1d*q1d)*pow(cos(q2), 2.0)*(1.0 / 2.0) - (c2*c2)*m2*(q1d*q1d)*pow(cos(q2), 2.0)*(1.0 / 2.0) - c2*l1*m2*q1d*q2d*cos(q2);
@@ -70,6 +67,9 @@ void FurutaPendulum::update(mel::Time time, double tau) {
     // compute potential energies
     u1 = 0;
     u2 = c2*g*m2*cos(q2);
+
+    // determine if upright
+    determine_upright();
 
     // write out state
     write_state();
@@ -91,7 +91,7 @@ void FurutaPendulum::read_properties() {
 void FurutaPendulum::write_state() {
     data_state_[0] = q1;
     data_state_[1] = q2;
-    data_state_[2] = q2d;
+    data_state_[2] = q1d;
     data_state_[3] = q2d;
     data_state_[4] = q1dd;
     data_state_[5] = q2dd;
@@ -102,6 +102,13 @@ void FurutaPendulum::write_state() {
     data_state_[10] = u1;
     data_state_[11] = u2;
     ms_state_.write_data(data_state_);
+}
+
+void FurutaPendulum::determine_upright() {
+    if (u2 > 0.75 *c2*g*m2 && k2 < 0.1)
+        ms_up_.write_message("up");
+    else
+        ms_up_.write_message("down");
 }
 
 void FurutaPendulum::update_properties() {

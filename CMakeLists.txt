@@ -46,7 +46,8 @@ if(WIN32)
         quanser_runtime
         quanser_common
         bufferoverflowU
-        legacy_stdio_definitions)
+        legacy_stdio_definitions
+        XInput)
 endif()
 
 # get common files

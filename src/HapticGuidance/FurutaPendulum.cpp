@@ -105,10 +105,14 @@ void FurutaPendulum::write_state() {
 }
 
 void FurutaPendulum::determine_upright() {
-    if (u2 > 0.75 *c2*g*m2 && k2 < 0.1)
+    if (u2 > 0.9 *c2*g*m2 && k2 < 0.05) {
         ms_up_.write_message("up");
-    else
+        upright = true;
+    }
+    else {
         ms_up_.write_message("down");
+        upright = false;
+    }
 }
 
 void FurutaPendulum::update_properties() {

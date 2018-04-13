@@ -18,7 +18,7 @@ public:
     void update(mel::Time time, double tau);
 
     /// Resets the pendulum integrators
-    void reset(double q1_0 = 0.0, double q2_0 = 0.0, double q1d_0 = 0.0, double q2d_0 = 0.0);
+    void reset(double q1_0 = 0.0, double q2_0 = mel::PI, double q1d_0 = 0.0, double q2d_0 = 0.0);
 
 private:
 
@@ -33,6 +33,7 @@ private:
 
     /// Updates computed properties
     void update_properties();
+
 
 public:
 
@@ -53,6 +54,10 @@ public:
     // State Variables
     double q1, q2, q1d, q2d, q1dd, q2dd, tau1, tau2, k1, k2, u1, u2;
 
+    std::vector<double> data_props_, data_state_;
+
+    bool upright;
+
 private:
 
     // Integrators
@@ -60,5 +65,4 @@ private:
 
     // MELShare and Data
     mel::MelShare ms_props_, ms_state_, ms_up_;
-    std::vector<double> data_props_, data_state_;
 };

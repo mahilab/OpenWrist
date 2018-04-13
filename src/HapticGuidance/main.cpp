@@ -15,8 +15,48 @@
 #include <MEL/Utility/Options.hpp>
 #include <MEL/Utility/Windows/XboxController.hpp>
 #include <MEL/Math/Differentiator.hpp>
+#include <MEL/Logging/DataLogger.hpp>
+#include <fstream>
 
 using namespace mel;
+
+bool read_csv(std::string filename, std::string directory, int row_offset, std::vector<std::vector<double>>& output) {
+    output.clear();
+    std::string full_filename = directory + "\\" + filename + ".csv";
+    std::ifstream input(full_filename);
+    input.precision(12);
+    if (input.is_open()) {
+        std::string csv_line;
+        int row = 0;
+        while (std::getline(input, csv_line)) {
+            if (row++ >= row_offset) {
+                std::istringstream csv_stream(csv_line);
+                std::vector<double> row;
+                std::string number;
+                double data;
+                while (std::getline(csv_stream, number, ',')) {
+                    std::istringstream number_stream(number);
+                    number_stream >> data;
+                    row.push_back(data);
+                }
+                output.push_back(row);
+            }
+        }
+        return true;
+    }
+    else {
+        LOG(Warning) << "File not found for read_csv().";
+        return false;
+    }
+}
+
+std::vector<double> get_column(const std::vector<std::vector<double>>& data, int col) {
+    std::vector<double> col_data(data.size());
+    for (std::size_t i = 0; i < data.size(); ++i) {
+        col_data[i] = data[i][col];
+    }
+    return col_data;
+}
 
 ctrl_bool stop(false);
 bool handler(CtrlEvent event) {
@@ -52,45 +92,45 @@ int main(int argc, char* argv[]) {
 
     // test code
     if (result.count("test") > 0) {
+
+        std::vector<std::vector<double>> data;
+        read_csv("best", "./recordings/", 1, data);
+        std::vector<double> tau_vec = get_column(data, 6);
+
         MelShare ms("p_tau");
         register_ctrl_handler(handler);
-        FurutaPendulum pendulum;
-        pendulum.reset(0, 3.14 / 8, 0, 0);
+        FurutaPendulum fp;
+        fp.reset(0, 3.14, 0, 0);
         double tau = 0.0;
         Timer timer(hertz(1000));
-        // Xbox controller
-        XboxController xbox(0);
-        print(xbox.is_connected());
-        xbox.set_deadzone(XboxController::LX, 0.1);
 
-        Differentiator xbox_vel;
-
-        double K_player = 25;                      ///< [N/m]
-        double B_player = 1;                       ///< [N-s/m]
-
+        double u_ref = fp.c2 * fp.g * fp.m2;
+        bool lqr = false;
+        int i = 0;
         while (!stop) {
-            tau = -(-1.0 * pendulum.q1 + 4.6172 * pendulum.q2 - 0.9072 * pendulum.q1d + 1.2218 * pendulum.q2d);
-            ms.write_data({ tau });
-            if (Keyboard::is_key_pressed(Key::Right))
-                pendulum.tau2 = 0.25;
-            else if (Keyboard::is_key_pressed(Key::Left))
-                pendulum.tau2 = -0.25;
-            else
-                pendulum.tau2 = 0.0;
 
-            //double position = xbox.get_axis(XboxController::LT) - xbox.get_axis(XboxController::RT);
-            //double velocity = xbox_vel.update(position, timer.get_elapsed_time());
-            //print(position);
-            //tau = K_player * (position - pendulum.q1) + +B_player * (velocity - pendulum.q1d);
+            //  tau = -(-1.0 * pendulum.q1 + 4.6172 * pendulum.q2 - 0.9072 * pendulum.q1d + 1.2218 * pendulum.q2d);
+            //tau = -2.5 * fp.q2d * (u_ref - (fp.k1 + fp.k2 + fp.u2));
+            if (i < tau_vec.size())
+                tau = tau_vec[i];
+            else {
+                tau = -(-1.0 * fp.q1 + 4.6172 * fp.q2 - 0.9072 * fp.q1d + 1.2218 * fp.q2d);
+            }
 
-            //tau = 1.0 * xbox.get_axis(XboxController::LT) - 1.0 * xbox.get_axis(XboxController::RT);
 
+            //if (Keyboard::is_key_pressed(Key::Right))
+            //    fp.tau2 = 0.25;
+            //else if (Keyboard::is_key_pressed(Key::Left))
+            //    fp.tau2 = -0.25;
+            //else
+            //    fp.tau2 = 0.0;
 
             tau = mel::saturate(tau, -3.0, 3.0);
             if (Keyboard::is_key_pressed(Key::Space))
-                pendulum.update(timer.get_elapsed_time(), 0);
+                fp.update(timer.get_elapsed_time(), 0);
             else
-                pendulum.update(timer.get_elapsed_time(), tau);
+                fp.update(timer.get_elapsed_time(), tau);
+            ++i;
             timer.wait();
         }
         return 0;
@@ -128,6 +168,9 @@ int main(int argc, char* argv[]) {
     short int scaling_factor[2];
     Cuff cuff("cuff", 4);
 
+    DataLogger log(WriterType::Buffered, false);
+    log.set_header({ "q1", "q2","q1d", "q2d", "q1dd", "q2dd", "tau1", "tau2", "k1", "k2", "u1", "u2" });
+
     //prompt("Press ENTER to tension CUFF");
     //cuff.enable();
     //cuff.pretension(cuff_normal_force_, offset, scaling_factor);
@@ -151,6 +194,7 @@ int main(int argc, char* argv[]) {
     double wall = 50 * mel::DEG2RAD;
     double k_wall = 50;
     double b_wall = 1;
+    bool recording = false;
 
     Timer timer(milliseconds(1));
     while (!stop) {
@@ -158,7 +202,7 @@ int main(int argc, char* argv[]) {
         q8.update_input();
 
         if (Keyboard::is_key_pressed(Key::R)) {
-            pendulum.reset(ow[1].get_position(), 0.0, 0.0, 0.0);
+            pendulum.reset(ow[1].get_position(), mel::PI, 0.0, 0.0);
         }
 
         tau = K_player * (ow[1].get_position() - pendulum.q1) + B_player * (ow[1].get_velocity() - pendulum.q1d);
@@ -170,7 +214,6 @@ int main(int argc, char* argv[]) {
         //    pendulum.tau2 = -1;
         //else
         //    pendulum.tau2 = 0.0;
-
 
         pendulum.update(timer.get_elapsed_time(), tau);
 
@@ -202,6 +245,21 @@ int main(int argc, char* argv[]) {
         ow[2].set_torque(pd2.move_to_hold(mel::DEG2RAD * 0, ow[2].get_position(),
             60 * mel::DEG2RAD, ow[2].get_velocity(),
             0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
+
+
+        // record
+        if (Keyboard::is_key_pressed(Key::D) && !recording) {
+            log.clear_data();
+            log.buffer(pendulum.data_state_);
+            recording = true;
+        }
+        else if (Keyboard::is_key_pressed(Key::D) && recording) {
+            log.buffer(pendulum.data_state_);
+        }
+        else if (recording) {
+            log.save_data("data", ".", true);
+            recording = false;
+        }
 
         //cuff_ref_pos_1_ = offset[0] + ow[0].get_position() * cuff_ff_gain_ * RAD2DEG;
         //cuff_ref_pos_2_ = offset[1] + ow[0].get_position() * cuff_ff_gain_ * RAD2DEG;

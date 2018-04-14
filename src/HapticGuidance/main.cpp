@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
         MelShare ms("p_tau");
         register_ctrl_handler(handler);
         FurutaPendulum fp;
-        fp.reset(0, 3.14, 0, 0);
+
         double tau = 0.0;
         Timer timer(hertz(1000));
 
@@ -111,25 +111,24 @@ int main(int argc, char* argv[]) {
 
             //  tau = -(-1.0 * pendulum.q1 + 4.6172 * pendulum.q2 - 0.9072 * pendulum.q1d + 1.2218 * pendulum.q2d);
             //tau = -2.5 * fp.q2d * (u_ref - (fp.k1 + fp.k2 + fp.u2));
+            
             if (i < tau_vec.size())
                 tau = tau_vec[i];
-            else {
+            else
                 tau = -(-1.0 * fp.q1 + 4.6172 * fp.q2 - 0.9072 * fp.q1d + 1.2218 * fp.q2d);
-            }
 
-
-            //if (Keyboard::is_key_pressed(Key::Right))
-            //    fp.tau2 = 0.25;
-            //else if (Keyboard::is_key_pressed(Key::Left))
-            //    fp.tau2 = -0.25;
-            //else
-            //    fp.tau2 = 0.0;
+            if (Keyboard::is_key_pressed(Key::Right))
+                fp.tau2 = 0.25;
+            else if (Keyboard::is_key_pressed(Key::Left))
+                fp.tau2 = -0.25;
+            else
+                fp.tau2 = 0.0;
 
             tau = mel::saturate(tau, -3.0, 3.0);
             if (Keyboard::is_key_pressed(Key::Space))
-                fp.update(timer.get_elapsed_time(), 0);
+                fp.update(timer.get_elapsed_time_ideal(), 0);
             else
-                fp.update(timer.get_elapsed_time(), tau);
+                fp.update(timer.get_elapsed_time_ideal(), tau);
             ++i;
             timer.wait();
         }

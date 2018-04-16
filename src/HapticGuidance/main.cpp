@@ -128,9 +128,9 @@ int main(int argc, char* argv[]) {
 
             tau = mel::saturate(tau, -3.0, 3.0);
             if (Keyboard::is_key_pressed(Key::Space))
-                fp.update(timer.get_elapsed_time_ideal(), 0);
+                fp.update(timer.get_elapsed_time(), 0);
             else
-                fp.update(timer.get_elapsed_time_ideal(), tau);
+                fp.update(timer.get_elapsed_time(), tau);
             ++i;
             timer.wait();
         }

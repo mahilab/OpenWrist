@@ -71,7 +71,10 @@ int main(int argc, char* argv[]) {
     mel::Options options("haptic_guidance.exe", "Haptic Guidance Experiment");
     options.add_options()
         ("x,test", "Test Code")
-        ("s,sim", "Haptic Code")
+        ("u,up", "Pendulum Starts Upright")
+        ("d,down", "Pendulum Starts Downright")
+        ("p,pos", "Use position input instead of torque")
+        ("c,cuff", "Enables CUFF")
         ("h,help", "Prints Help Message");
 
     auto result = options.parse(argc, argv);
@@ -89,13 +92,13 @@ int main(int argc, char* argv[]) {
     // enable Windows realtime
     // enable_realtime();
 
+    std::vector<std::vector<double>> recorded_data;
+    read_csv("best", "./recordings/", 1, recorded_data);
+    std::vector<double> recorded_torque = get_column(recorded_data, 6);
+    std::vector<double> recorded_position = get_column(recorded_data, 0);
 
     // test code
     if (result.count("test") > 0) {
-
-        std::vector<std::vector<double>> data;
-        read_csv("best", "./recordings/", 1, data);
-        std::vector<double> tau_vec = get_column(data, 6);
 
         MelShare ms("p_tau");
         register_ctrl_handler(handler);
@@ -111,8 +114,8 @@ int main(int argc, char* argv[]) {
 
             //  tau = -(-1.0 * pendulum.q1 + 4.6172 * pendulum.q2 - 0.9072 * pendulum.q1d + 1.2218 * pendulum.q2d);
             //tau = -2.5 * fp.q2d * (u_ref - (fp.k1 + fp.k2 + fp.u2));
-            if (i < tau_vec.size())
-                tau = tau_vec[i];
+            if (i < recorded_torque.size())
+                tau = recorded_torque[i];
             else {
                 tau = -(-1.0 * fp.q1 + 4.6172 * fp.q2 - 0.9072 * fp.q1d + 1.2218 * fp.q2d);
             }
@@ -161,28 +164,49 @@ int main(int argc, char* argv[]) {
     // init cuff
     short int cuff_ref_pos_1_;
     short int cuff_ref_pos_2_;
-    const short int cuff_normal_force_ = 1;
+    const short int cuff_normal_force_ = 2;
     const short int cuff_ff_gain_ = 250;
     const short int cuff_fb_gain_ = 175;
     short int offset[2];
     short int scaling_factor[2];
+    double cuff_angle = 0.0;
     Cuff cuff("cuff", 4);
 
     DataLogger log(WriterType::Buffered, false);
     log.set_header({ "q1", "q2","q1d", "q2d", "q1dd", "q2dd", "tau1", "tau2", "k1", "k2", "u1", "u2" });
 
-    //prompt("Press ENTER to tension CUFF");
-    //cuff.enable();
-    //cuff.pretension(cuff_normal_force_, offset, scaling_factor);
-    //cuff.set_motor_positions(offset[0], offset[1], true);
+    if (result.count("cuff")) {
+        prompt("Press ENTER to tension CUFF");
+        cuff.enable();
+        cuff.pretension(cuff_normal_force_, offset, scaling_factor);
+        cuff.set_motor_positions(offset[0], offset[1], true);
+    }
 
-    FurutaPendulum pendulum;
+    FurutaPendulum fp;
+
+    if (result.count("up") > 0) {
+        fp.reset(0, 0, 0, 0);
+    }
+    else if (result.count("down")) {
+        fp.reset(0, mel::PI, 0, 0);
+    }
+    fp.update(Time::Zero, 0);
+
     mel::PdController pd1(60, 1);   // OpenWrist Joint 1 (FE)
     mel::PdController pd2(40, 0.5); // OpenWrist Joint 2 (RU)
 
     double K_player = 25;                      ///< [N/m]
     double B_player = 1;                       ///< [N-s/m]
     double tau;
+
+    prompt("Press Enter to Start");
+
+    if (result.count("up") > 0) {
+        fp.reset(0, 0, 0, 0);
+    }
+    else if (result.count("down")) {
+        fp.reset(0, mel::PI, 0, 0);
+    }
 
     q8.enable();
     ow.enable();
@@ -196,31 +220,32 @@ int main(int argc, char* argv[]) {
     double b_wall = 1;
     bool recording = false;
 
+    int r_index = 0;
+
     Timer timer(milliseconds(1));
     while (!stop) {
         q8.watchdog.kick();
         q8.update_input();
 
+        // reset on R
         if (Keyboard::is_key_pressed(Key::R)) {
-            pendulum.reset(ow[1].get_position(), mel::PI, 0.0, 0.0);
+            if (result.count("up"))
+                fp.reset(ow[1].get_position(), 0, 0.0, 0.0);
+            else if (result.count("down")) {
+                r_index = 0;
+                fp.reset(ow[1].get_position(), mel::PI ,0.0, 0.0);
+            }
         }
 
-        tau = K_player * (ow[1].get_position() - pendulum.q1) + B_player * (ow[1].get_velocity() - pendulum.q1d);
-        
-        //tau = -1.0 * pendulum.q1 + 145.7642 * pendulum.q2 - 4.0186 * pendulum.q1d + 24.3704 * pendulum.q2d;
-        //if (Keyboard::is_key_pressed(Key::Right))
-        //    pendulum.tau2 = 1;
-        //else if (Keyboard::is_key_pressed(Key::Left))
-        //    pendulum.tau2 = -1;
-        //else
-        //    pendulum.tau2 = 0.0;
+        // update pendulum
+        tau = K_player * (ow[1].get_position() - fp.q1) + B_player * (ow[1].get_velocity() - fp.q1d);        
+        fp.update(timer.get_elapsed_time(), tau);
 
-        pendulum.update(timer.get_elapsed_time(), tau);
-
-        data[0] = pendulum.tau1;
-        data[1] = pendulum.tau2;
+        data[0] = fp.tau1;
+        data[1] = fp.tau2;
         ms.write_data(data);
 
+        // lock other joints
         double fe_total_torque = 0.0;
         if (ow[1].get_position() >= wall) {
             if (ow[1].get_velocity() > 0)
@@ -235,9 +260,11 @@ int main(int argc, char* argv[]) {
                 fe_total_torque += k_wall * (-wall - ow[1].get_position());
         }
 
-        fe_total_torque += -pendulum.tau1;
+        // set FE torque due to pendulum
+        fe_total_torque += -fp.tau1;
         ow[1].set_torque(fe_total_torque);
 
+        // render walls
         ow[0].set_torque(pd1.move_to_hold(0, ow[0].get_position(),
             60 * mel::DEG2RAD, ow[0].get_velocity(),
             0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
@@ -247,28 +274,56 @@ int main(int argc, char* argv[]) {
             0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
 
 
-        // record
+        // record user data when D held
         if (Keyboard::is_key_pressed(Key::D) && !recording) {
             log.clear_data();
-            log.buffer(pendulum.data_state_);
+            log.buffer(fp.data_state_);
             recording = true;
         }
         else if (Keyboard::is_key_pressed(Key::D) && recording) {
-            log.buffer(pendulum.data_state_);
+            log.buffer(fp.data_state_);
         }
         else if (recording) {
             log.save_data("data", ".", true);
             recording = false;
         }
 
-        //cuff_ref_pos_1_ = offset[0] + ow[0].get_position() * cuff_ff_gain_ * RAD2DEG;
-        //cuff_ref_pos_2_ = offset[1] + ow[0].get_position() * cuff_ff_gain_ * RAD2DEG;
-        //cuff.set_motor_positions(cuff_ref_pos_1_, cuff_ref_pos_2_, true);
+        // CUFF control
+        if (result.count("cuff")) {
+            if (result.count("up")) {
+                if (fp.upright) {
+                    cuff_angle = -(-1.0 * fp.q1 + 4.6172 * fp.q2 - 0.9072 * fp.q1d + 1.2218 * fp.q2d) * 3000;
+                }
+            }
+            else if (result.count("down")) {
+                if (r_index < recorded_torque.size()) {
+                    if (result.count("pos"))
+                        cuff_angle = recorded_position[r_index] * RAD2DEG * cuff_ff_gain_;
+                    else
+                        cuff_angle = recorded_torque[r_index] * 5000;
+                }
+                else
+                    cuff_angle = 0.0;
+            }
+            else {
+                cuff_angle = ow[1].get_position() * RAD2DEG * cuff_ff_gain_;
+            }
+            cuff_ref_pos_1_ = offset[0] + cuff_angle;
+            cuff_ref_pos_2_ = offset[1] + cuff_angle;
+            cuff.set_motor_positions(cuff_ref_pos_1_, cuff_ref_pos_2_, true);
+        }
 
+        // interement r
+        r_index++;
+
+        // check limtis
         if (ow.any_torque_limit_exceeded())
             stop = true;
 
+        // update Q8 output
         q8.update_output();
+
+        // wait timer
         timer.wait();
     }
     return 0;

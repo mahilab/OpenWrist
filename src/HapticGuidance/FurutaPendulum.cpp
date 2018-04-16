@@ -60,6 +60,10 @@ void FurutaPendulum::update(mel::Time time, double tau) {
     q1 = q1d_q1.update(q1d, time);
     q2 = q2d_q2.update(q2d, time);
 
+    // wrap angles to [-pi, pi]
+    q1 = mel::wrap_to_pi(q1);
+    q2 = mel::wrap_to_pi(q2);
+
     // compute kinetic energies
     k1 = (q1d*q1d)*(Ixx1 + (c1*c1)*m1)*(1.0 / 2.0);
     k2 = Ixx2*(q1d*q1d)*(1.0 / 2.0) + Ixx2*(q2d*q2d)*(1.0 / 2.0) + (c2*c2)*m2*(q1d*q1d)*(1.0 / 2.0) + (c2*c2)*m2*(q2d*q2d)*(1.0 / 2.0) + (l1*l1)*m2*(q1d*q1d)*(1.0 / 2.0) - Ixx2*(q1d*q1d)*pow(cos(q2), 2.0)*(1.0 / 2.0) + Iyy2*(q1d*q1d)*pow(cos(q2), 2.0)*(1.0 / 2.0) - (c2*c2)*m2*(q1d*q1d)*pow(cos(q2), 2.0)*(1.0 / 2.0) - c2*l1*m2*q1d*q2d*cos(q2);

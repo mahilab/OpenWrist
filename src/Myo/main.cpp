@@ -37,7 +37,6 @@ int main(int argc, char *argv[]) {
     std::vector<uint32> emg_channel_numbers = { 0,1,2,3,4,5,6,7 };
 
     mel::MyoBand myo("my_myo");
-    MelShare ms("myo");
 
     // initialize logger
     mel::init_logger(mel::Verbose);
@@ -55,8 +54,8 @@ int main(int argc, char *argv[]) {
 
     // initialize testing conditions
     Time Ts = milliseconds(1); // sample period
-    std::size_t num_classes = 5; // number of active classes
-    std::vector<Key> active_keys = { Key::Num1, Key::Num2, Key::Num3, Key::Num4, Key::Num5, Key::Num6 };
+    std::size_t num_classes = 7; // number of active classes
+    std::vector<Key> active_keys = { Key::Num1, Key::Num2, Key::Num3, Key::Num4, Key::Num5, Key::Num6, Key::Num7 };
     Time mes_active_capture_period = seconds(0.2);
     std::size_t mes_active_capture_window_size = (std::size_t)((unsigned)(mes_active_capture_period.as_seconds() / Ts.as_seconds()));
     mes.resize_buffer(mes_active_capture_window_size);
@@ -121,6 +120,8 @@ int main(int argc, char *argv[]) {
     print("Number of targets/classes is:");
     print(num_classes);
     print("Press 'T' to train classifier and begin real-time classification.");
+    print("Press 'R' to run the OpenWrist");
+    print("Press 'S' to stop the OpenWrist");
     print("Press 'Escape' to exit.");
 
     // enable hardware
@@ -183,10 +184,28 @@ int main(int argc, char *argv[]) {
         }
 
         // set OpenWrist run state
-        if (Keyboard::is_key_pressed(Key::R))
+        if (Keyboard::is_key_pressed(Key::R) && keypress_refract_clock.get_elapsed_time() > keypress_refract_time) {
+            LOG(Info) << "OpenWrist Running";
             run = true;
-        else if (Keyboard::is_key_pressed(Key::S))
+            keypress_refract_clock.restart();
+        }
+        else if (Keyboard::is_key_pressed(Key::S) && keypress_refract_clock.get_elapsed_time() > keypress_refract_time) {
+            LOG(Info) << "OpenWrist Stopped";
             run = false;
+            keypress_refract_clock.restart();
+        }
+
+        // //fake prediction
+        //if (Keyboard::is_key_pressed(Key::Z))
+        //    pred_label = 0;
+        //else if (Keyboard::is_key_pressed(Key::X))
+        //    pred_label = 1;
+        //else if (Keyboard::is_key_pressed(Key::C))
+        //    pred_label = 2;
+        //else if (Keyboard::is_key_pressed(Key::V))
+        //    pred_label = 3;
+        //else if (Keyboard::is_key_pressed(Key::B))
+        //    pred_label = 4;
 
         // set OpenWrist goal
         if (run) {
@@ -220,6 +239,18 @@ int main(int argc, char *argv[]) {
                     ps_goal = ow[0].get_position();
                     fe_goal = ow[1].get_position();
                     ru_goal = -30 * mel::DEG2RAD;
+                }
+                else if (pred_label == 5) {
+                    // Pronation
+                    ps_goal = 80 * mel::DEG2RAD;
+                    fe_goal = ow[1].get_position();
+                    ru_goal = ow[2].get_position();
+                }
+                else if (pred_label == 6) {
+                    // Supination
+                    ps_goal = -80 * mel::DEG2RAD;
+                    fe_goal = ow[1].get_position();
+                    ru_goal = ow[2].get_position();
                 }
                 cooldown_clock.restart(); // restart so OpenWrist goal is only change once per half second
             }

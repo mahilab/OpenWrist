@@ -97,6 +97,8 @@ int main(int argc, char* argv[]) {
     std::vector<double> recorded_torque = get_column(recorded_data, 6);
     std::vector<double> recorded_position = get_column(recorded_data, 0);
 
+
+
     // test code
     if (result.count("test") > 0) {
 
@@ -162,7 +164,7 @@ int main(int argc, char* argv[]) {
     // init cuff
     short int cuff_ref_pos_1_;
     short int cuff_ref_pos_2_;
-    const short int cuff_normal_force_ = 2;
+    const short int cuff_normal_force_ = 2.5;
     const short int cuff_ff_gain_ = 250;
     const short int cuff_fb_gain_ = 175;
     short int offset[2];
@@ -220,6 +222,11 @@ int main(int argc, char* argv[]) {
 
     int r_index = 0;
 
+    MelShare ms_up("uptime");
+    Time curr_up_time = Time::Zero;
+    Time best_up_time = Time::Zero;
+    Clock up_time_clock;
+
     Timer timer(milliseconds(1));
     while (!stop) {
         q8.watchdog.kick();
@@ -227,8 +234,10 @@ int main(int argc, char* argv[]) {
 
         // reset on R
         if (Keyboard::is_key_pressed(Key::R)) {
-            if (result.count("up"))
+            if (result.count("up")) {
                 fp.reset(ow[1].get_position(), 0, 0.0, 0.0);
+                up_time_clock.restart();
+            }
             else if (result.count("down")) {
                 r_index = 0;
                 fp.reset(ow[1].get_position(), mel::PI ,0.0, 0.0);
@@ -290,7 +299,7 @@ int main(int argc, char* argv[]) {
         if (result.count("cuff")) {
             if (result.count("up")) {
                 if (fp.upright) {
-                    cuff_angle = -(-1.0 * fp.q1 + 4.6172 * fp.q2 - 0.9072 * fp.q1d + 1.2218 * fp.q2d) * 3000;
+                    cuff_angle = -(-1.0 * fp.q1 + 4.6172 * fp.q2 - 0.9072 * fp.q1d + 1.2218 * fp.q2d) * 5000;
                 }
             }
             else if (result.count("down")) {
@@ -310,6 +319,20 @@ int main(int argc, char* argv[]) {
             cuff_ref_pos_2_ = offset[1] + cuff_angle;
             cuff.set_motor_positions(cuff_ref_pos_1_, cuff_ref_pos_2_, true);
         }
+
+        // Track time
+        if (result.count("up")) {
+            if (fp.upright) {
+                curr_up_time = up_time_clock.get_elapsed_time();
+                if (curr_up_time > best_up_time) {
+                    best_up_time = curr_up_time;
+                }
+            }
+            else {
+                up_time_clock.restart();
+            }
+        }       
+        ms_up.write_data({ curr_up_time.as_seconds(), best_up_time.as_seconds() });
 
         // interement r
         r_index++;

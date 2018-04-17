@@ -1,5 +1,6 @@
 #include "Jedi.hpp"
 #include <MEL/Utility/System.hpp>
+#include <MEL/Utility/Windows/Keyboard.hpp>
 
 Jedi::Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, ctrl_bool& stop_flag) :
     StateMachine(4),
@@ -56,7 +57,8 @@ void Jedi::sf_play(const NoEventData*) {
             ow_state_.send_data(state_);
         // check for stop conditions
         if (stop_flag_ ||
-            ow_.any_torque_limit_exceeded()) {
+            ow_.any_torque_limit_exceeded() ||
+            Keyboard::is_key_pressed(Key::Escape)) {
             event(ST_STOP);
             return;
         }

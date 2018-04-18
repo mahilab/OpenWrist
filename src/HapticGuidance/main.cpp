@@ -106,6 +106,14 @@ int main(int argc, char* argv[]) {
         register_ctrl_handler(handler);
         FurutaPendulum fp;
 
+        if (result.count("up") > 0) {
+            fp.reset(0, 0, 0, 0);
+        }
+        else if (result.count("down")) {
+            fp.reset(0, mel::PI, 0, 0);
+        }
+        fp.update(Time::Zero, 0);
+
         double tau = 0.0;
         Timer timer(hertz(1000));
 
@@ -114,12 +122,16 @@ int main(int argc, char* argv[]) {
         int i = 0;
         while (!stop) {
 
-            //  tau = -(-1.0 * pendulum.q1 + 4.6172 * pendulum.q2 - 0.9072 * pendulum.q1d + 1.2218 * pendulum.q2d);
-            //tau = -2.5 * fp.q2d * (u_ref - (fp.k1 + fp.k2 + fp.u2));
-            if (i < recorded_torque.size())
-                tau = recorded_torque[i];
-            else
+
+            if (result.count("up") > 0) {
                 tau = -(-1.0 * fp.q1 + 4.6172 * fp.q2 - 0.9072 * fp.q1d + 1.2218 * fp.q2d);
+            }
+            else if (result.count("down")) {
+                if (i < recorded_torque.size())
+                    tau = recorded_torque[i];
+                else
+                    tau = 0.0;
+            }
 
             if (Keyboard::is_key_pressed(Key::Right))
                 fp.tau2 = 0.25;

@@ -21,52 +21,6 @@
 
 using namespace mel;
 
-bool read_csv(std::string filename, std::string directory, int row_offset, std::vector<std::vector<double>>& output) {
-    output.clear();
-    std::string full_filename = directory + "\\" + filename + ".csv";
-    std::ifstream input(full_filename);
-    input.precision(12);
-    if (input.is_open()) {
-        std::string csv_line;
-        int row = 0;
-        while (std::getline(input, csv_line)) {
-            if (row++ >= row_offset) {
-                std::istringstream csv_stream(csv_line);
-                std::vector<double> row;
-                std::string number;
-                double data;
-                while (std::getline(csv_stream, number, ',')) {
-                    std::istringstream number_stream(number);
-                    number_stream >> data;
-                    row.push_back(data);
-                }
-                output.push_back(row);
-            }
-        }
-        return true;
-    }
-    else {
-        LOG(Warning) << "File not found for read_csv().";
-        return false;
-    }
-}
-
-std::vector<double> get_column(const std::vector<std::vector<double>>& data, int col) {
-    std::vector<double> col_data(data.size());
-    for (std::size_t i = 0; i < data.size(); ++i) {
-        col_data[i] = data[i][col];
-    }
-    return col_data;
-}
-
-ctrl_bool stop(false);
-bool handler(CtrlEvent event) {
-    print("Ctrl+C Pressed");
-    stop = true;
-    return true;
-}
-
-
 int main(int argc, char* argv[]) {
 
     // init logger
@@ -146,24 +100,18 @@ int main2(int argc, char* argv[]) {
     // initialize MEL logger
     init_logger();
 
-    // register ctrl-c handler
-    register_ctrl_handler(handler);
-
     // enable Windows realtime
     // enable_realtime();
 
     std::vector<std::vector<double>> recorded_data;
-    read_csv("best", "./recordings/", 1, recorded_data);
-    std::vector<double> recorded_torque = get_column(recorded_data, 6);
-    std::vector<double> recorded_position = get_column(recorded_data, 0);
-
-
+    //read_csv("best", "./recordings/", 1, recorded_data);
+    std::vector<double> recorded_torque; //= get_column(recorded_data, 6);
+    std::vector<double> recorded_position; //= get_column(recorded_data, 0);
 
     // test code
     if (result.count("test") > 0) {
 
         MelShare ms("p_tau");
-        register_ctrl_handler(handler);
         FurutaPendulum fp;
 
         if (result.count("up") > 0) {
@@ -180,7 +128,7 @@ int main2(int argc, char* argv[]) {
         double u_ref = fp.c2 * fp.g * fp.m2;
         bool lqr = false;
         int i = 0;
-        while (!stop) {
+        while (true) {
 
 
             if (result.count("up") > 0) {
@@ -300,7 +248,7 @@ int main2(int argc, char* argv[]) {
     Clock up_time_clock;
 
     Timer timer(milliseconds(1));
-    while (!stop) {
+    while (true) {
         q8.watchdog.kick();
         q8.update_input();
 
@@ -410,8 +358,8 @@ int main2(int argc, char* argv[]) {
         r_index++;
 
         // check limtis
-        if (ow.any_torque_limit_exceeded())
-            stop = true;
+        //if (ow.any_torque_limit_exceeded())
+        //    stop = true;
 
         // update Q8 output
         q8.update_output();

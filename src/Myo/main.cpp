@@ -25,9 +25,9 @@ using namespace mel;
 using namespace mel;
 using namespace meii;
 
-ctrl_bool stop(false);
+ctrl_bool ctrlc(false);
 bool handler(CtrlEvent event) {
-    stop = true;
+    ctrlc = true;
     return true;
 }
 
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
     q8.watchdog.start();
     myo.enable();
 
-    while (!stop) {
+    while (!ctrlc) {
 
         // update hardware
         q8.watchdog.kick();
@@ -292,12 +292,12 @@ int main(int argc, char *argv[]) {
 
         // check limits
         if (ow.any_limit_exceeded()) {
-            stop == true;
+            ctrlc == true;
         }
 
         // check for exit key
         if (Keyboard::is_key_pressed(Key::Escape)) {
-            stop = true;
+            ctrlc = true;
         }
 
         // update hardware

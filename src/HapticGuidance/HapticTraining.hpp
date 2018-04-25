@@ -6,6 +6,7 @@
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Utility/StateMachine.hpp>
+#include <MEL/Core/PdController.hpp>
 #include "Cuff/Cuff.hpp"
 #include "FurutaPendulum.hpp"
 #include "MEL/Communications/Windows/MelShare.hpp"
@@ -51,56 +52,49 @@ public:
                    int condition,
                    const std::string& start_trial);
 
+    //==========================================================================
+    // STATE MACHINE SETUP
+    //==========================================================================
+
     /// States
     enum States {
         ST_START,
-        ST_FAMILIARIZATION,
-        ST_EVALUATION,
-        ST_TRAINING,
-        ST_BREAK,
-        ST_GENERALIZATION,
-        ST_TRANSITION,
+        ST_BALANCE,
+        ST_INVERT,
+        ST_RESET,
         ST_STOP,
         ST_NUM_STATES
     };
 
     /// STATE FUNCTIONS
     void sf_start(const NoEventData*);
-    void sf_familiarization(const NoEventData*);
-    void sf_evaluation(const NoEventData*);
-    void sf_training(const NoEventData*);
-    void sf_break(const NoEventData*);
-    void sf_generalization(const NoEventData*);
-    void sf_transition(const NoEventData*);
+    void sf_balance(const NoEventData*);
+    void sf_invert(const NoEventData*);
+    void sf_reset(const NoEventData*);
     void sf_stop(const NoEventData*);
 
     /// STATE ACTIONS
-    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_start>
-        sa_start;
-    StateAction<HapticTraining,
-                NoEventData,
-                &HapticTraining::sf_familiarization>
-        sa_familiarization;
-    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_evaluation>
-        sa_evaluation;
-    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_training>
-        sa_training;
-    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_break>
-        sa_break;
-    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_generalization>
-        sa_generlization;
-    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_transition>
-        sa_transition;
+    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_start> sa_start;
+    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_balance> sa_balance;
+    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_invert> sa_invert;
+    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_reset> sa_reset;
     StateAction<HapticTraining, NoEventData, &HapticTraining::sf_stop> sa_stop;
 
     /// STATE MAP
     virtual const StateMapRow* get_state_map() {
         static const StateMapRow STATE_MAP[] = {
-            &sa_start, &sa_familiarization, &sa_evaluation, &sa_training,
-            &sa_break, &sa_generlization,   &sa_transition, &sa_stop,
+            &sa_start,
+            &sa_balance,
+            &sa_invert,
+            &sa_reset,
+            &sa_stop,
         };
         return &STATE_MAP[0];
     }
+
+    //==========================================================================
+    // EXPERIMENT SETUP
+    //==========================================================================
 
     /// SUBJECT
     const int subject_number_;
@@ -151,10 +145,49 @@ public:
     // SUBJECT DIRECTORY
     std::string directory_;
 
+    Timer timer_;
+
     /// Hardware
     Q8Usb& q8_;
     OpenWrist& ow_;
     Cuff& cuff_;
+
+    PdController pd0_;
+    PdController pd1_;
+    PdController pd2_;
+
+    short int cuff_ref_pos_1_;
+    short int cuff_ref_pos_2_;
+    const short int cuff_normal_force_ = 3;
+    const short int cuff_ff_gain_ = 250;
+    const short int cuff_fb_gain_ = 175;
+    short int offset_[2];
+    short int scaling_factor_[2];
+    double cuff_angle_ = 0.0;
+
+    /// PENDULUM
+    FurutaPendulum fp_;
+
+    double wall_ = 50 * mel::DEG2RAD;
+    double k_wall_ = 50;
+    double b_wall_ = 1;
+    double K_player_ = 25;                      
+    double B_player_ = 1;     
+    double tau_ = 0.0;
+
+    /// FUNCTIONS
+    void render_pendulum();
+    void render_walls();
+    void lock_joints();
+
+    Time best_up_time = Time::Zero;
+
+
+    /// MELSHARS
+    MelShare ms_scores_;
+    std::vector<double> data_scores_;
+
+
 };
 
 #endif  // MEL_HAPTICTRAINING_HPP

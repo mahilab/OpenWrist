@@ -20,8 +20,6 @@ public:
     /// Resets the pendulum integrators
     void reset(double q1_0 = 0.0, double q2_0 = mel::PI, double q1d_0 = 0.0, double q2d_0 = 0.0);
 
-private:
-
     /// Reads properties from external applications (Unity)
     void read_properties();
 

@@ -40,7 +40,7 @@ FurutaPendulum::FurutaPendulum() :
 void FurutaPendulum::update(mel::Time time, double tau) {
 
     // read in properties
-    read_properties();
+    // read_properties();
 
     // update mass properties
     update_properties();

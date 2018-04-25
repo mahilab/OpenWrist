@@ -13,10 +13,10 @@
 #include <MEL/Logging/Log.hpp>
 #include "HapticGuidance/BallAndBeam.hpp"
 
-ctrl_bool stop(false);
+ctrl_bool ctrlc(false);
 bool handler(CtrlEvent event) {
     print("Ctrl+C Pressed");
-    stop = true;
+    ctrlc = true;
     return true;
 }
 
@@ -72,21 +72,21 @@ int main(int argc, char* argv[]) {
 
     // run calibration script
     if (result.count("calibrate") > 0) {
-        ow.calibrate(stop);
+        ow.calibrate(ctrlc);
         disable_realtime();
         return 0;
     }
 
     // enter transparency mode
     if (result.count("transparency") > 0) {
-        ow.transparency_mode(stop);
+        ow.transparency_mode(ctrlc);
         disable_realtime();
         return 0;
     }
 
     // enter Jedi demo
     if (result.count("jedi") > 0) {
-        Jedi game(Timer(hertz(1000), Timer::Hybrid), q8, ow, stop);
+        Jedi game(Timer(hertz(1000), Timer::Hybrid), q8, ow, ctrlc);
         game.execute();
         disable_realtime();
         return 0;
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
         ow.enable();
         q8.watchdog.start();
         Timer timer(milliseconds(1));
-        while (!stop) {
+        while (!ctrlc) {
             q8.watchdog.kick();
             q8.update_input();
 
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
                 0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
 
             if (ow.any_limit_exceeded())
-                stop == true;
+                ctrlc == true;
 
             q8.update_output();
             timer.wait();
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
         ow.enable();
         q8.watchdog.start();
         Timer timer(hertz(1000), Timer::Hybrid);
-        while (!stop) {
+        while (!ctrlc) {
             q8.watchdog.kick();
             q8.update_input();
 
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
                 0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
 
             if (ow.any_limit_exceeded())
-                stop == true;
+                ctrlc == true;
 
             q8.update_output();
             timer.wait();
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
         ow.enable();
         q8.watchdog.start();
         Timer timer(milliseconds(1), Timer::Hybrid);
-        while (!stop) {
+        while (!ctrlc) {
             q8.update_input();
             positions = ms.read_data();
             positions[0] = saturate(positions[0], 80);
@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
 
             ow.set_joint_torques(torques);
             if (!q8.watchdog.kick() || ow.any_limit_exceeded())
-                stop = true;
+                ctrlc = true;
             q8.update_output();
             timer.wait();
         }

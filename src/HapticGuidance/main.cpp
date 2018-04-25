@@ -17,6 +17,7 @@
 #include <MEL/Math/Differentiator.hpp>
 #include <MEL/Logging/DataLogger.hpp>
 #include <fstream>
+#include "HapticTraining.hpp"
 
 using namespace mel;
 
@@ -65,8 +66,67 @@ bool handler(CtrlEvent event) {
     return true;
 }
 
+
 int main(int argc, char* argv[]) {
-    
+
+    // init logger
+    init_logger(Info,Info);
+
+    // set up options
+    mel::Options options("haptic_guidance.exe", "Haptic Guidance Experiment");
+    options.add_options()
+        ("s,subj","Subject Number", value<int>())
+        ("c,cond","Condition Number", value<int>())
+        ("t,trial","Start Trial Tag Name", value<std::string>())
+        ("h,help","Print Help Message");
+
+    auto input = options.parse(argc, argv);
+    if (input.count("help") > 0) {
+        print(options.help());
+        return 0;
+    }
+
+    int subject_number = 1;
+    int condition = 1;
+    std::string start_trial = "F1-1";
+
+    if (input.count("subj"))
+        subject_number = input["subj"].as<int>();
+    if (input.count("cond"))
+        condition = input["cond"].as<int>();
+    if (input.count("trial"))
+        start_trial = input["trial"].as<std::string>();
+
+    // Hardware
+    QOptions qoptions;
+    qoptions.set_update_rate(QOptions::UpdateRate::Fast);
+    qoptions.set_analog_output_mode(0, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    qoptions.set_analog_output_mode(1, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    qoptions.set_analog_output_mode(2, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    Q8Usb q8(qoptions);
+
+    VoltPaqX4 vpx4(q8.digital_output[{ 0, 1, 2 }], q8.analog_output[{ 0, 1, 2 }], q8.digital_input[{0, 1, 2}], q8.analog_input[{ 0, 1, 2 }]);
+
+    // create OpenWrist and bind Q8 channels to it
+    OwConfiguration config(
+        q8,
+        q8.watchdog,
+        q8.encoder[{ 0, 1, 2 }],
+        q8.velocity[{ 0, 1, 2 }],
+        vpx4.amplifiers
+    );
+    OpenWrist ow(config);
+    Cuff cuff("cuff", 4);
+
+    HapticTraining experiment(q8, ow, cuff, subject_number, condition, start_trial);
+    experiment.execute();
+
+}
+
+
+
+int main2(int argc, char* argv[]) {
+
     // set up options
     mel::Options options("haptic_guidance.exe", "Haptic Guidance Experiment");
     options.add_options()
@@ -257,7 +317,7 @@ int main(int argc, char* argv[]) {
         }
 
         // update pendulum
-        tau = K_player * (ow[1].get_position() - fp.q1) + B_player * (ow[1].get_velocity() - fp.q1d);        
+        tau = K_player * (ow[1].get_position() - fp.q1) + B_player * (ow[1].get_velocity() - fp.q1d);
         fp.update(timer.get_elapsed_time(), tau);
 
         data[0] = fp.tau1;
@@ -343,7 +403,7 @@ int main(int argc, char* argv[]) {
             else {
                 up_time_clock.restart();
             }
-        }       
+        }
         ms_up.write_data({ curr_up_time.as_seconds(), best_up_time.as_seconds() });
 
         // interement r
@@ -361,8 +421,6 @@ int main(int argc, char* argv[]) {
     }
     return 0;
 }
-
-
 
 /*
 #include "Clock.h"

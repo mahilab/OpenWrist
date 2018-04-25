@@ -82,9 +82,9 @@ int main(int argc, char *argv[]) {
     );
     OpenWrist ow(config);
 
-    mel::PdController pd0(60, 0);   // OpenWrist Joint 0 (PS)
-    mel::PdController pd1(60, 1);   // OpenWrist Joint 1 (FE)
-    mel::PdController pd2(40, 0.5); // OpenWrist Joint 2 (RU)
+    mel::PdController pd0(25, 1.15); // OpenWrist Joint 0 (PS)
+    mel::PdController pd1(20, 1.00); // OpenWrist Joint 1 (FE)
+    mel::PdController pd2(20, 0.25); // OpenWrist Joint 2 (RU)
 
     double ps_goal = 0.0;
     double fe_goal = 0.0;
@@ -195,7 +195,7 @@ int main(int argc, char *argv[]) {
             keypress_refract_clock.restart();
         }
 
-        // //fake prediction
+         //fake prediction
         //if (Keyboard::is_key_pressed(Key::Z))
         //    pred_label = 0;
         //else if (Keyboard::is_key_pressed(Key::X))
@@ -206,10 +206,14 @@ int main(int argc, char *argv[]) {
         //    pred_label = 3;
         //else if (Keyboard::is_key_pressed(Key::B))
         //    pred_label = 4;
+        //else if (Keyboard::is_key_pressed(Key::N))
+        //    pred_label = 5;
+        //else if (Keyboard::is_key_pressed(Key::M))
+        //    pred_label = 6;
 
         // set OpenWrist goal
         if (run) {
-            if (cooldown_clock.get_elapsed_time() > seconds(0.5) && (pred_label != prev_pred_label)) {
+            if (cooldown_clock.get_elapsed_time() > seconds(0.5)) {
                 if (pred_label == 0) {
                     // Rest
                     ps_goal = ow[0].get_position();
@@ -268,14 +272,18 @@ int main(int argc, char *argv[]) {
         ow[0].set_torque(pd0.move_to_hold(ps_goal, ow[0].get_position(),
             move_speed, ow[0].get_velocity(),
             0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
+        ow[0].add_torque(ow.compute_gravity_compensation(0));
 
         ow[1].set_torque(pd1.move_to_hold(fe_goal, ow[1].get_position(),
             move_speed, ow[1].get_velocity(),
             0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
+        ow[0].add_torque(ow.compute_gravity_compensation(1));
 
         ow[2].set_torque(pd2.move_to_hold(ru_goal, ow[2].get_position(),
             move_speed, ow[2].get_velocity(),
             0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
+        ow[0].add_torque(ow.compute_gravity_compensation(2));
+
 
         // write to MelShares
         ms_mes_env.write_data(mes.get_envelope());

@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD 11)
 # create project
 project(OpenWrist)
 
+# add configurations
+set(CMAKE_CONFIGURATION_TYPES Release)
+
 # set binary output location (optional, but recommended)
 if(WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/windows)
@@ -72,6 +75,8 @@ add_executable(haptic_guidance ${COMMON}
     src/HapticGuidance/Pendulum.cpp
     src/HapticGuidance/BallAndBeam.hpp
     src/HapticGuidance/BallAndBeam.cpp
+    src/HapticGuidance/HapticTraining.hpp
+    src/HapticGuidance/HapticTraining.cpp
     src/Cuff/Cuff.hpp
     src/Cuff/Cuff.cpp
     src/Cuff/definitions.h

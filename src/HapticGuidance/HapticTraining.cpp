@@ -69,6 +69,7 @@ HapticTraining::HapticTraining(Q8Usb& q8,
       pd2_(40.0, 0.5),
       timer_(hertz(1000)),
       ms_scores_("scores"),
+      ms_active("active"),
       data_scores_(4, 0.0)
 {
     // register ctrl-c handler
@@ -155,7 +156,7 @@ void HapticTraining::sf_balance(const NoEventData*) {
     fp_.reset(0, 0, 0, 0);
 
     bool balanced = true;
-    Time unblanaced_time = seconds(2.0);
+    Time unblanaced_time = seconds(1.0);
     Clock unbalanced_clock;
 
     Time curr_up_time = Time::Zero;
@@ -245,6 +246,8 @@ void HapticTraining::sf_invert(const NoEventData*) {
 
 void HapticTraining::sf_reset(const NoEventData*) {
 
+    ms_active.write_message("inactive");
+
     Time reset_time = seconds(1.0);
 
     pd1_.reset_move_to_hold();
@@ -265,7 +268,6 @@ void HapticTraining::sf_reset(const NoEventData*) {
             0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
 
         t = timer_.get_elapsed_time().as_seconds() / reset_time.as_seconds();
-
         fp_.q1 = ow_[1].get_position();
         fp_.q2 = q2 + t * (0 - q2);
         fp_.write_state();
@@ -273,7 +275,6 @@ void HapticTraining::sf_reset(const NoEventData*) {
         data_scores_[0] = score1 - score1 * t;
         data_scores_[2] = score2 - score2 * t;
         ms_scores_.write_data(data_scores_);
-
 
         lock_joints();
 
@@ -286,10 +287,28 @@ void HapticTraining::sf_reset(const NoEventData*) {
         timer_.wait();
     }
 
+    while (!ctrlc && timer_.get_elapsed_time() < seconds(2.0)) {
+        q8_.watchdog.kick();
+        q8_.update_input();
+
+        ow_[1].set_torque(pd1_.move_to_hold(0, ow_[1].get_position(),
+            60 * mel::DEG2RAD, ow_[1].get_velocity(),
+            0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
+        lock_joints();
+        if (ow_.any_torque_limit_exceeded()) {
+            event(ST_STOP);
+            return;
+        }
+        q8_.update_output();
+        timer_.wait();
+    }
+
+    ms_active.write_message("active");
+
     if (ctrlc)
         event(ST_STOP);
     else
-        event(ST_INVERT);
+        event(ST_BALANCE);
 
 }
 

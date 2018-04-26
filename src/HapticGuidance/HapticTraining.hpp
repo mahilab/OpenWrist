@@ -186,6 +186,8 @@ public:
     MelShare ms_scores_;
     std::vector<double> data_scores_;
 
+    MelShare ms_active;
+
 
 };
 

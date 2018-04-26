@@ -62,5 +62,5 @@ private:
     mel::Integrator q1dd_q1d, q2dd_q2d, q1d_q1, q2d_q2;
 
     // MELShare and Data
-    mel::MelShare ms_props_, ms_state_, ms_up_;
+    mel::MelShare ms_props_, ms_state_;
 };

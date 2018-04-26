@@ -147,7 +147,6 @@ void HapticTraining::sf_start(const NoEventData*) {
 
     // transition to next state
     event(ST_RESET);
-
 }
 
 void HapticTraining::sf_balance(const NoEventData*) {
@@ -193,7 +192,7 @@ void HapticTraining::sf_balance(const NoEventData*) {
         if (ow_.any_torque_limit_exceeded()) {
             event(ST_STOP);
             return;
-        }     
+        }
 
         // update output
         q8_.update_output();
@@ -281,9 +280,9 @@ void HapticTraining::sf_reset(const NoEventData*) {
         if (ow_.any_torque_limit_exceeded()) {
             event(ST_STOP);
             return;
-        }      
+        }
 
-        q8_.update_output();        
+        q8_.update_output();
         timer_.wait();
     }
 

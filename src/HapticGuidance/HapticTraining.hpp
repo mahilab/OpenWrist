@@ -171,8 +171,8 @@ public:
     double wall_ = 50 * mel::DEG2RAD;
     double k_wall_ = 50;
     double b_wall_ = 1;
-    double K_player_ = 25;                      
-    double B_player_ = 1;     
+    double K_player_ = 25;
+    double B_player_ = 1;
     double tau_ = 0.0;
 
     /// FUNCTIONS
@@ -181,7 +181,6 @@ public:
     void lock_joints();
 
     Time best_up_time = Time::Zero;
-
 
     /// MELSHARS
     MelShare ms_scores_;

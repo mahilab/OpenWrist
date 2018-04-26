@@ -101,6 +101,8 @@
 			"-I$project_base_path/include",
 			"-I$project_base_path/src",
 			"-I$project_base_path/../MEL/include"
-		]
+		],
+		"ecc_flags_sources": []
+
 	}
 }

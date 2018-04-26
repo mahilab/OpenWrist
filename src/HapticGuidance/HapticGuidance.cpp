@@ -8,7 +8,7 @@
 // CONSTRUCTOR
 //-----------------------------------------------------------------------------
 
-HapticGuidance::HapticGuidance(Q8Usb& q8_ow, OpenWrist& ow, Cuff& cuff, int subject_number, int condition, std::string start_trial) :
+HapticGuidance::HapticGuidance(Q8Usb& q8_ow, OpenWrist& ow, Cuff& cuff, int subject_number, int condition, const std::string& start_trial) :
     StateMachine(8),
     timer_(hertz(1000)),
     q8_ow_(q8_ow),
@@ -27,7 +27,7 @@ HapticGuidance::HapticGuidance(Q8Usb& q8_ow, OpenWrist& ow, Cuff& cuff, int subj
     ms_traj_name_("traj_name"),
     ms_ui_msg_("ui_msg"),
     ms_score_msg_("score_msg"),
-    ms_menu_msg_("menug_msg"),
+    ms_menu_msg_("menu_msg"),
     timer_data_(2, 0.0),
     angles_data_(3, 0.0),
     scores_data_(4, 0.0)
@@ -168,9 +168,9 @@ void HapticGuidance::sf_familiarization(const NoEventData*) {
         if (condition_ == 1 || condition_ == 2 || condition_ == 3) {
             step_cuff();
         }
-        else if (condition_ == 4) {
-            step_meii();
-        }
+        // else if (condition_ == 4) {
+        //     step_meii();
+        // }
         // log data
         log_step();
         // wait for the next clock cycle
@@ -334,9 +334,9 @@ void HapticGuidance::sf_generalization(const NoEventData*) {
         if (condition_ == 1 || condition_ == 2 || condition_ == 3) {
             step_cuff();
         }
-        else if (condition_ == 4) {
-            step_meii();
-        }
+        // else if (condition_ == 4) {
+        //     step_meii();
+        // }
 
         // log data
         log_step();
@@ -440,8 +440,8 @@ void HapticGuidance::sf_transition(const NoEventData*) {
                 step_system_idle();
 
                 // step meii
-                if (condition_ == 4)
-                    step_meii();
+                // if (condition_ == 4)
+                //     step_meii();
 
                 // check  if resetters triggered
                 if (((std::abs(player_angle_) > reset_angle_window_) && !reset_triggered_) || Keyboard::is_key_pressed(Key::R, false)) {
@@ -552,8 +552,8 @@ void HapticGuidance::sf_stop(const NoEventData*) {
     //     meii_daq_->disable();
     // }
 
-    main_log_.save_data(directory_, directory_, true);
-    main_log_.wait_for_save();
+    //main_log_.save_data(directory_, directory_, true);
+    //main_log_.wait_for_save();
 }
 
 //-----------------------------------------------------------------------------
@@ -561,31 +561,33 @@ void HapticGuidance::sf_stop(const NoEventData*) {
 //-----------------------------------------------------------------------------
 
 void HapticGuidance::init_logs() {
-    main_log_
-        .add_col("Trial No.")
-        .add_col("Block Type")
-        .add_col("Amplitude [deg]")
-        .add_col("A")
-        .add_col("B")
-        .add_col("C")
-        .add_col("a [Hz]")
-        .add_col("b [Hz]")
-        .add_col("c [Hz]")
-        .add_col("Player Score")
-        .add_col("Expert Score")
-        .add_col("Abs. Error Mean")
-        .add_col("Abs. Error Std. Dev.");
+    // main_log_
+    //     .add_col("Trial No.")
+    //     .add_col("Block Type")
+    //     .add_col("Amplitude [deg]")
+    //     .add_col("A")
+    //     .add_col("B")
+    //     .add_col("C")
+    //     .add_col("a [Hz]")
+    //     .add_col("b [Hz]")
+    //     .add_col("c [Hz]")
+    //     .add_col("Player Score")
+    //     .add_col("Expert Score")
+    //     .add_col("Abs. Error Mean")
+    //     .add_col("Abs. Error Std. Dev.");
 
-    trial_log_
-        .add_col("Time [s]")
-        .add_col("Player Angle [deg]")
-        .add_col("Expert Angle [deg]")
-        .add_col("Error [deg]")
-        .add_col("OW PS Position [rad]")
-        .add_col("OW PS Velocity [rad/s]")
-        .add_col("OW PS Total Torque [Nm]")
-        .add_col("OW PS Compensation Torque [Nm]")
-        .add_col("OW PS Task Torque [Nm]")
+    // trial_log_
+    //     .add_col("Time [s]")
+    //     .add_col("Player Angle [deg]")
+    //     .add_col("Expert Angle [deg]")
+    //     .add_col("Error [deg]")
+    //     .add_col("OW PS Position [rad]")
+    //     .add_col("OW PS Velocity [rad/s]")
+    //     .add_col("OW PS Total Torque [Nm]")
+    //     .add_col("OW PS Compensation Torque [Nm]")
+    //     .add_col("OW PS Task Torque [Nm]")
+
+
         // .add_col("MEII PS Position [rad]")
         // .add_col("MEII PS Velocity [rad/s]")
         // .add_col("MEII PS Torque [Nm]");
@@ -598,7 +600,7 @@ void HapticGuidance::init_logs() {
 }
 
 void HapticGuidance::log_trial() {
-    std::vector<double> row;
+/*    std::vector<double> row;
     row.reserve(main_log_.get_col_count());
 
     row.push_back(static_cast<double>(current_trial_index_));
@@ -623,11 +625,11 @@ void HapticGuidance::log_trial() {
     std::string filename = stringify(current_trial_index_) + "_" + all_trial_tags_[current_trial_index_] + "_" + traj_.name_;
     std::string directory = directory_ + "\\_" + all_trial_blocks_[current_trial_index_];
 
-    trial_log_.save_and_clear_data(filename, directory, true);
+    trial_log_.save_and_clear_data(filename, directory, true);*/
 }
 
 void HapticGuidance::log_step() {
-    std::vector<double> row;
+/*    std::vector<double> row;
     row.reserve(trial_log_.get_col_count());
 
     row.push_back(timer_.get_elapsed_time().as_seconds());
@@ -649,7 +651,7 @@ void HapticGuidance::log_step() {
     //row.push_back(static_cast<double>(cuff_act_current_1_));
     //row.push_back(static_cast<double>(cuff_act_current_2_));
 
-    trial_log_.add_row(row);
+    trial_log_.add_row(row);*/
 }
 
 void HapticGuidance::wait_for_input() {
@@ -768,8 +770,8 @@ void HapticGuidance::step_cuff() {
 
     meii_daq_->read_all();
 
-    meii_.joints_[0]->set_torque(meii_.robot_joint_pd_controllers_[0].move_to_hold(-10 * math::DEG2RAD, meii_.joints_[0]->get_position(), 0.25, meii_.joints_[0]->get_velocity(), clock_.delta_time_, math::DEG2RAD, 10 * math::DEG2RAD));
-    meii_.joints_[1]->set_torque(pd1_meii_.move_to_hold(math::DEG2RAD * (meii_offset + expert_angle_), meii_.joints_[1]->get_position(), 0.25, meii_.joints_[1]->get_velocity(), clock_.delta_time_, math::DEG2RAD, 30 * math::DEG2RAD));
+    meii_.joints_[0]->set_torque(meii_.robot_joint_pd_controllers_[0].move_to_hold(-10 * DEG2RAD, meii_.joints_[0]->get_position(), 0.25, meii_.joints_[0]->get_velocity(), clock_.delta_time_, DEG2RAD, 10 * DEG2RAD));
+    meii_.joints_[1]->set_torque(pd1_meii_.move_to_hold(DEG2RAD * (meii_offset + expert_angle_), meii_.joints_[1]->get_position(), 0.25, meii_.joints_[1]->get_velocity(), clock_.delta_time_, DEG2RAD, 30 * DEG2RAD));
 
     meii_.joints_[2]->set_torque(0.0);
     meii_.joints_[3]->set_torque(0.0);
@@ -787,7 +789,7 @@ void HapticGuidance::step_cuff() {
 void HapticGuidance::update_scores() {
 
     // calculate max score
-    max_score_ = length_trials_[trials_block_types_[current_trial_index_]] * clock_.frequency_ * error_window_;
+    max_score_ = length_trials_[trials_block_types_[current_trial_index_]] * timer_.get_frequency().as_hertz() * error_window_;
 
     // update current scores
     player_score_ += saturate(error_window_ - std::abs(error_angle_), error_window_, 0.0);
@@ -800,7 +802,7 @@ void HapticGuidance::update_scores() {
     high_score_ = high_score_records_[traj_.name_];
 
     scores_data_ = { player_score_, expert_score_, high_score_, max_score_ };
-    scores_.write(scores_data_);
+    ms_scores_.write_data(scores_data_);
 }
 
 //-----------------------------------------------------------------------------
@@ -809,11 +811,11 @@ void HapticGuidance::update_scores() {
 
 void HapticGuidance::step_system_ui() {
 
-    q8_ow_->read_all();
+    q8_ow_.update_input();
     ow_.get_joint_positions();
-    ow_.update_state_map();
+    //ow_.update_state_map();
 
-    if (ow_.check_all_joint_limits() || q8_ow_->is_watchdog_expired()) {
+    if (ow_.any_limit_exceeded() || q8_ow_.watchdog.is_expired()) {
         auto_stop_ = true;
     }
 }
@@ -822,23 +824,23 @@ void HapticGuidance::step_system_play() {
 
     // read and reload DAQ
     if (condition_ > 0) {
-        q8_ow_->reload_watchdog();
-        q8_ow_->read_all();
+        q8_ow_.watchdog.kick();
+        q8_ow_.update_input();
     }
 
     // step the pendulum simuation
-    pendulum_.step_simulation(clock_.time(), ow_.joints_[0]->get_position(), ow_.joints_[0]->get_velocity());
+    pendulum_.step_simulation(timer_.get_elapsed_time(), ow_[0].get_position(), ow_[0].get_velocity());
 
     // update player angle
-    player_angle_ = ow_.joints_[0]->get_position() * math::RAD2DEG;
+    player_angle_ = ow_[0].get_position() * RAD2DEG;
 
     // update expert angle
-    expert_angle_ = traj_.eval(clock_.time());
+    expert_angle_ = traj_.eval(timer_.get_elapsed_time().as_seconds());
 
     // compute anglular error / write out angles
     error_angle_ = player_angle_ - expert_angle_;
     angles_data_ = { player_angle_ , expert_angle_ , error_angle_ };
-    angles_.write(angles_data_);
+    ms_angles_.write_data(angles_data_);
 
     // compute scores
     update_scores();
@@ -847,29 +849,29 @@ void HapticGuidance::step_system_play() {
         // compute OpenWrist PS torque
         ps_comp_torque_ = ow_.compute_gravity_compensation(0) + 0.75 * ow_.compute_friction_compensation(0);
         ps_total_torque_ = ps_comp_torque_ - pendulum_.Tau[0];
-        ow_.joints_[0]->set_torque(ps_total_torque_);
+        ow_[0].set_torque(ps_total_torque_);
 
-        ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
-            move_to_speed_ * math::DEG2RAD, ow_.joints_[1]->get_velocity(),
-            clock_.delta_time_, math::DEG2RAD, 10*math::DEG2RAD));
+        ow_[1].set_torque(pd1_.move_to_hold(0, ow_[1].get_position(),
+            move_to_speed_ * DEG2RAD, ow_[1].get_velocity(),
+            timer_.get_period().as_seconds(), DEG2RAD, 10*DEG2RAD));
 
-        ow_.joints_[2]->set_torque(pd2_.move_to_hold(math::DEG2RAD * 0, ow_.joints_[2]->get_position(),
-            move_to_speed_ * math::DEG2RAD, ow_.joints_[2]->get_velocity(),
-            clock_.delta_time_, math::DEG2RAD, 10 * math::DEG2RAD));
+        ow_[2].set_torque(pd2_.move_to_hold(DEG2RAD * 0, ow_[2].get_position(),
+            move_to_speed_ * DEG2RAD, ow_[2].get_velocity(),
+            timer_.get_period().as_seconds(), DEG2RAD, 10 * DEG2RAD));
 
     }
 
     // check joint limits
-    if (ow_.check_all_joint_limits() || q8_ow_->is_watchdog_expired()) {
+    if (ow_.any_limit_exceeded() || q8_ow_.watchdog.is_expired()) {
         auto_stop_ = true;
     }
 
     // update OpenWrist state
-    ow_.update_state_map();
+    //ow_.update_state_map();
 
     // write the DAQ
     if (condition_ > 0)
-        q8_ow_->write_all();
+        q8_ow_.update_output();
 
     // check for manual stop from conductor
     manual_stop_ = check_stop();
@@ -879,43 +881,43 @@ void HapticGuidance::step_system_idle() {
 
     // read and reload DAQ
     if (condition_ > 0) {
-        q8_ow_->reload_watchdog();
-        q8_ow_->read_all();
+        q8_ow_.watchdog.kick();
+        q8_ow_.update_input();
     }
 
     // step the pendulum simuation
-    pendulum_.step_simulation(clock_.time(), ow_.joints_[0]->get_position(), ow_.joints_[0]->get_velocity());
+    pendulum_.step_simulation(timer_.get_elapsed_time(), ow_[0].get_position(), ow_[0].get_velocity());
 
     // update player angle
-    player_angle_ = ow_.joints_[0]->get_position() * math::RAD2DEG;
+    player_angle_ = ow_[0].get_position() * RAD2DEG;
 
     if (condition_ > 0) {
         // compute OpenWrist PS torque
         ps_comp_torque_ = ow_.compute_gravity_compensation(0) + 0.75 * ow_.compute_friction_compensation(0);
         ps_total_torque_ = ps_comp_torque_ - pendulum_.Tau[0];
-        ow_.joints_[0]->set_torque(ps_total_torque_);
+        ow_[0].set_torque(ps_total_torque_);
 
-        ow_.joints_[1]->set_torque(pd1_.move_to_hold(0, ow_.joints_[1]->get_position(),
-            move_to_speed_ * math::DEG2RAD, ow_.joints_[1]->get_velocity(),
-            clock_.delta_time_, math::DEG2RAD, 10* math::DEG2RAD));
+        ow_[1].set_torque(pd1_.move_to_hold(0, ow_[1].get_position(),
+            move_to_speed_ * DEG2RAD, ow_[1].get_velocity(),
+            timer_.get_period().as_seconds(), DEG2RAD, 10* DEG2RAD));
 
-        ow_.joints_[2]->set_torque(pd2_.move_to_hold(math::DEG2RAD * 0, ow_.joints_[2]->get_position(),
-            move_to_speed_ * math::DEG2RAD, ow_.joints_[2]->get_velocity(),
-            clock_.delta_time_, math::DEG2RAD, 10* math::DEG2RAD));
+        ow_[2].set_torque(pd2_.move_to_hold(DEG2RAD * 0, ow_[2].get_position(),
+            move_to_speed_ * DEG2RAD, ow_[2].get_velocity(),
+            timer_.get_period().as_seconds(), DEG2RAD, 10* DEG2RAD));
 
     }
 
     // check joint limits
-    if (ow_.check_all_joint_limits() || q8_ow_->is_watchdog_expired()) {
+    if (ow_.any_limit_exceeded() || q8_ow_.watchdog.is_expired()) {
         auto_stop_ = true;
     }
 
     // update OpenWrist state
-    ow_.update_state_map();
+    //ow_.update_state_map();
 
     // write the DAQ
     if (condition_ > 0)
-        q8_ow_->write_all();
+        q8_ow_.update_output();
 
     // check for manual stop from conductor
     manual_stop_ = check_stop();

@@ -38,7 +38,7 @@ class HapticGuidance : public StateMachine {
 
 public:
 
-    HapticGuidance(Q8Usb& q8_ow, OpenWrist& ow, Cuff& cuff, int subject_number, int condition, std::string start_trial = "F1-1");
+    HapticGuidance(Q8Usb& q8_ow, OpenWrist& ow, Cuff& cuff, int subject_number, int condition, const std::string& start_trial = "F1-1");
 
     //-------------------------------------------------------------------------
     // STATE MACHINE SETUP
@@ -288,8 +288,8 @@ public:
     bool auto_stop_ = false;
 
     // DATA LOGGING
-    DataLog main_log_ = DataLog("main_log", true, 100);
-    DataLog trial_log_ = DataLog("trial_log", false, 180000);
+    //DataLog main_log_ = DataLog("main_log", true, 100);
+    //DataLog trial_log_ = DataLog("trial_log", false, 180000);
     void init_logs();
     void log_step();
     void log_trial();

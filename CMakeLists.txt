@@ -88,6 +88,8 @@ target_link_libraries(demos ${LINK_LIBS})
 # Haptics Symposium 2018 Experiments
 add_executable(haptic_guidance ${OPENWRIST_SRC} ${CUFF_SRC}
     src/HapticGuidance/main.cpp
+    src/HapticGuidance/HapticGuidance.hpp
+    src/HapticGuidance/HapticGuidance.cpp
     src/HapticGuidance/Pendulum.hpp
     src/HapticGuidance/Pendulum.cpp)
 target_link_libraries(haptic_guidance ${LINK_LIBS})

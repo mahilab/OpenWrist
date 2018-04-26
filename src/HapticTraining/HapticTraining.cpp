@@ -5,7 +5,6 @@
 #include <fstream>
 #include <MEL/Utility/Windows/Keyboard.hpp>
 
-
 bool read_csv(std::string filename, std::string directory, int row_offset, std::vector<std::vector<double>>& output) {
     output.clear();
     std::string full_filename = directory + "\\" + filename + ".csv";
@@ -49,6 +48,7 @@ bool handler(CtrlEvent event) {
     print("Ctrl+C Pressed");
     ctrlc = true;
     return true;
+
 }
 
 HapticTraining::HapticTraining(Q8Usb& q8,

@@ -102,7 +102,16 @@
 			"-I$project_base_path/src",
 			"-I$project_base_path/../MEL/include"
 		],
-		"ecc_flags_sources": []
+		"ecc_flags_sources":
+		[
+			// {
+			//   "file": "CMakeLists.txt",
+			//   "flags": ["-DCMAKE_BUILD_TYPE=Release", "-D XXXX=ON"],
+			//   "prefix_paths": [ "/opt/ros/indigo",
+			//                     "~/Code/catkin_ws/devel",
+			//                     "$project_base_path/catkin_ws/devel" ]
+			// },
+		]
 
 	}
 }

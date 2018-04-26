@@ -11,7 +11,7 @@
 #include "Games/Jedi.hpp"
 #include <atomic>
 #include <MEL/Logging/Log.hpp>
-#include "HapticGuidance/BallAndBeam.hpp"
+#include "HapticTraining/BallAndBeam.hpp"
 
 ctrl_bool ctrlc(false);
 bool handler(CtrlEvent event) {

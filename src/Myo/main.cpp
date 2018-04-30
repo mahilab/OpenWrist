@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
 
     double move_speed = 30 * DEG2RAD; // 30 deg/s
 
+
     // initialize classifier
     bool RMS = true;
     bool MAV = false;

@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD 11)
 # create project
 project(OpenWrist)
 
+# add configurations
+set(CMAKE_CONFIGURATION_TYPES Release)
+
 # set binary output location (optional, but recommended)
 if(WIN32)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/windows)
@@ -51,34 +54,57 @@ if(WIN32)
 endif()
 
 # get common files
-set(COMMON src/OpenWrist.hpp src/OwConfiguration src/OwParameters src/OpenWrist.cpp src/OwConfiguration.cpp)
 
-# create application(s)
-add_executable(demos ${COMMON}
-    src/demos.cpp
-    src/Games/Jedi.cpp
-    src/Games/Jedi.hpp
-    src/HapticGuidance/Pendulum.cpp
-    src/HapticGuidance/Pendulum.hpp
-    src/HapticGuidance/BallAndBeam.cpp
-    src/HapticGuidance/BallAndBeam.hpp)
-target_link_libraries(demos ${LINK_LIBS})
+set(OPENWRIST_SRC
+    src/OpenWrist.hpp
+    src/OwConfiguration
+    src/OwParameters
+    src/OpenWrist.cpp
+    src/OwConfiguration.cpp)
 
-add_executable(haptic_guidance ${COMMON}
-    src/HapticGuidance/main.cpp
-    src/HapticGuidance/FurutaPendulum.hpp
-    src/HapticGuidance/FurutaPendulum.cpp
-    src/HapticGuidance/Pendulum.hpp
-    src/HapticGuidance/Pendulum.cpp
-    src/HapticGuidance/BallAndBeam.hpp
-    src/HapticGuidance/BallAndBeam.cpp
+set(CUFF_SRC
     src/Cuff/Cuff.hpp
     src/Cuff/Cuff.cpp
     src/Cuff/definitions.h
     src/Cuff/commands.h
     src/Cuff/qbmove_communications.h
     src/Cuff/qbmove_communications.cpp)
+
+#==============================================================================
+# APPLICATIONS
+#==============================================================================
+
+# Various Demos and Utilities
+add_executable(demos ${OPENWRIST_SRC}
+    src/demos.cpp
+    src/Games/Jedi.cpp
+    src/Games/Jedi.hpp
+    src/HapticGuidance/Pendulum.cpp
+    src/HapticGuidance/Pendulum.hpp
+    src/HapticTraining/BallAndBeam.cpp
+    src/HapticTraining/BallAndBeam.hpp)
+target_link_libraries(demos ${LINK_LIBS})
+
+# Haptics Symposium 2018 Experiments
+add_executable(haptic_guidance ${OPENWRIST_SRC} ${CUFF_SRC}
+    src/HapticGuidance/main.cpp
+    src/HapticGuidance/HapticGuidance.hpp
+    src/HapticGuidance/HapticGuidance.cpp
+    src/HapticGuidance/Pendulum.hpp
+    src/HapticGuidance/Pendulum.cpp)
 target_link_libraries(haptic_guidance ${LINK_LIBS})
 
-add_executable(myo ${COMMON} src/Myo/main.cpp src/Myo/MyoBand.cpp src/Myo/MyoBand.hpp)
+# ToH 2019 Experiments
+add_executable(haptic_training ${OPENWRIST_SRC} ${CUFF_SRC}
+    src/HapticTraining/main.cpp
+    src/HapticTraining/FurutaPendulum.hpp
+    src/HapticTraining/FurutaPendulum.cpp
+    src/HapticTraining/BallAndBeam.hpp
+    src/HapticTraining/BallAndBeam.cpp
+    src/HapticTraining/HapticTraining.hpp
+    src/HapticTraining/HapticTraining.cpp)
+target_link_libraries(haptic_training ${LINK_LIBS})
+
+# Myo EMG Control - ELEC 575 2018 Final Project
+add_executable(myo ${OPENWRIST_SRC} src/Myo/main.cpp src/Myo/MyoBand.cpp src/Myo/MyoBand.hpp)
 target_link_libraries(myo ${LINK_LIBS} myo64 MEII)

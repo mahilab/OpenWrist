@@ -20,8 +20,6 @@ public:
     /// Resets the pendulum integrators
     void reset(double q1_0 = 0.0, double q2_0 = mel::PI, double q1d_0 = 0.0, double q2d_0 = 0.0);
 
-private:
-
     /// Reads properties from external applications (Unity)
     void read_properties();
 
@@ -64,5 +62,5 @@ private:
     mel::Integrator q1dd_q1d, q2dd_q2d, q1d_q1, q2d_q2;
 
     // MELShare and Data
-    mel::MelShare ms_props_, ms_state_, ms_up_;
+    mel::MelShare ms_props_, ms_state_;
 };

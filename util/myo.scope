@@ -1,0 +1,57 @@
+DATA_SOURCES:
+- curve_colors:
+  - [31, 120, 180]
+  - [227, 26, 28]
+  - [51, 160, 44]
+  - [178, 223, 138]
+  - [106, 61, 154]
+  - [177, 89, 40]
+  - [166, 206, 227]
+  - [251, 154, 153]
+  curve_names: [Channel 1, Channel 2, Channel 3, Channel 4, Channel 5, Channel 6,
+    Channel 7, Channel 8]
+  curve_styles: [Solid, Solid, Solid, Solid, Solid, Solid, Solid, Solid]
+  curve_widths: [2, 2, 2, 2, 2, 2, 2, 2]
+  mode: Read Only
+  name: mes_env
+  settings: null
+  size: 8
+  type: melshare
+- curve_colors:
+  - [178, 223, 138]
+  curve_names: [Predicted State]
+  curve_styles: [Solid]
+  curve_widths: [4]
+  mode: Read Only
+  name: pred_label
+  settings: null
+  size: 1
+  type: melshare
+GRID_COLS: 3
+GRID_ROWS: 1
+SCOPES:
+- filter:
+    mes_env: [true, true, true, true, true, true, true, true]
+    pred_label: [false]
+  index: 0
+  legend: true
+  mode: Plot
+  title: EMG
+  yrange: [0.0, 0.1]
+- filter:
+    mes_env: [false, false, false, false, false, false, false, false]
+    pred_label: [true]
+  index: 1
+  legend: false
+  mode: Plot
+  title: Predicted State Scope
+  yrange: [1.0, 8.0]
+- filter:
+    mes_env: [false, false, false, false, false, false, false, false]
+    pred_label: [true]
+  index: 2
+  legend: false
+  mode: Numeric
+  title: Predicted State
+  yrange: [-1.0, 1.0]
+THEME: Dark

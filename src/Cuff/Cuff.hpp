@@ -1,10 +1,10 @@
 #pragma once
 #include <thread>
-#include "qbmove_communications.h"
 #include <MEL/Utility/Spinlock.hpp>
 #include <MEL/Core/Device.hpp>
 #include <atomic>
 #include <MEL/Utility/Types.hpp>
+#include "comm_settings.h"
 
 class Cuff : public mel::Device{
 

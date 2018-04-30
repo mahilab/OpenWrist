@@ -3,6 +3,7 @@
 #include "commands.h"
 #include <chrono>
 #include <iostream>
+#include "qbmove_communications.h"
 
 #define CUFF_ID 1
 
@@ -32,7 +33,7 @@ bool Cuff::enable() {
                 reference_motor_positions_[0] = 0;
                 reference_motor_positions_[1] = 0;
                 commSetInputs(&comm_settings_t_, CUFF_ID, motpos_zero);
-                // start IO thread 
+                // start IO thread
                 poll_io_ = true;
                 io_thread_ = std::thread(&Cuff::io_thread_func, this);
                 std::cout << "Done" << std::endl;

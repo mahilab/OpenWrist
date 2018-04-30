@@ -3,7 +3,6 @@
 FurutaPendulum::FurutaPendulum() :
     ms_props_("pendulum_props"),
     ms_state_("pendulum_state"),
-    ms_up_("pendulum_up"),
     data_props_(9),
     data_state_(12)
 {
@@ -40,7 +39,7 @@ FurutaPendulum::FurutaPendulum() :
 void FurutaPendulum::update(mel::Time time, double tau) {
 
     // read in properties
-    read_properties();
+    // read_properties();
 
     // update mass properties
     update_properties();
@@ -110,11 +109,9 @@ void FurutaPendulum::write_state() {
 
 void FurutaPendulum::determine_upright() {
     if (u2 > 0.9 *c2*g*m2 && k2 < 0.05) {
-        ms_up_.write_message("up");
         upright = true;
     }
     else {
-        ms_up_.write_message("down");
         upright = false;
     }
 }

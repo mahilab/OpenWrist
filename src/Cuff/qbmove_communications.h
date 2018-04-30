@@ -77,6 +77,7 @@
 #define READ_TIMEOUT            4000        //< Timeout on readings
 
 #include "commands.h"
+#include "comm_settings.h"
 #include <stdint.h>
 #include <tchar.h>
 
@@ -85,12 +86,14 @@
 //                                                              structures/enums
 //==============================================================================
 
-typedef struct comm_settings comm_settings;
+// typedef struct comm_settings comm_settings;
 
-struct comm_settings
-{
-	HANDLE file_handle;
-};
+// struct comm_settings
+// {
+// 	HANDLE file_handle;
+// };
+//
+// ** Evan Pezent: moved this to separate file so don't have to include windows.h
 
 
 //==============================================================================

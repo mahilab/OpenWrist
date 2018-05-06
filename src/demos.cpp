@@ -94,11 +94,9 @@ int main(int argc, char* argv[]) {
 
     // enter Pendulum demo
     if (result.count("pendulum") > 0) {
-        MelShare ms("pendulum");
         Pendulum pendulum;
         mel::PdController pd1(60, 1);   // OpenWrist Joint 1 (FE)
         mel::PdController pd2(40, 0.5); // OpenWrist Joint 2 (RU)
-        std::vector<double> state_data(8);
         q8.enable();
         ow.enable();
         q8.watchdog.start();
@@ -108,10 +106,6 @@ int main(int argc, char* argv[]) {
             q8.update_input();
 
             pendulum.step_simulation(timer.get_elapsed_time(), ow[0].get_position(), ow[0].get_velocity());
-
-            state_data[0] = pendulum.Q[0];
-            state_data[1] = pendulum.Q[1];
-            ms.write_data(state_data);
 
             double ps_comp_torque_ = ow.compute_gravity_compensation(0) + 0.75 * ow.compute_friction_compensation(0);
             double ps_total_torque_ = ps_comp_torque_ - pendulum.Tau[0];

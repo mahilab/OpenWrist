@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[]) {
     // init logger
-    init_logger(Verbose, Verbose);
+    init_logger();
 
     // set up options
     mel::Options options("haptic_guidance.exe", "Haptic Guidance Experiment");

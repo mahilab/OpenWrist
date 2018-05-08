@@ -806,6 +806,10 @@ void HapticGuidance::step_cuff() {
         // feedback mechanism
         cuff_ref_pos_1_ -= (short int)((error_angle_)* cuff_fb_gain_);
         cuff_ref_pos_2_ -= (short int)((error_angle_)* cuff_fb_gain_);
+        cuff_ref_pos_1_ = (short)saturate((double)cuff_ref_pos_1_, -32000, 32000);
+        cuff_ref_pos_2_ = (short)saturate((double)cuff_ref_pos_2_, -32000, 32000);
+
+
     }
 
     // set motor positions

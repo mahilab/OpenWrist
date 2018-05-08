@@ -32,6 +32,7 @@ int main(int argc, char* argv[]) {
         ("s,subj","Subject Number", value<int>())
         ("c,cond","Condition Number", value<int>())
         ("t,trial","Start Trial Tag Name", value<std::string>())
+        ("d,debug", "Debug")
         ("h,help","Print Help Message");
 
     auto input = options.parse(argc, argv);
@@ -71,6 +72,22 @@ int main(int argc, char* argv[]) {
     );
     OpenWrist ow(config);
     Cuff cuff("cuff", 4);
+
+    if (input.count("debug")) {
+        Timer timer(hertz(100));
+        short int pos = 0;
+        cuff.enable();
+        while (!Keyboard::is_key_pressed(Key::Escape)) {
+            
+            if (Keyboard::is_key_pressed(Key::Up))
+                pos += 100;
+            else if (Keyboard::is_key_pressed(Key::Down))
+                pos -= 199;
+            print(pos);
+            cuff.set_motor_positions(pos, pos, true);
+            timer.wait();
+        }
+    }
 
     HapticTraining experiment(q8, ow, cuff, subject_number, condition, start_trial);
     experiment.execute();

@@ -5,6 +5,7 @@
 #include "Cuff/Cuff.hpp"
 #include "HapticGuidance.hpp"
 #include "OpenWrist.hpp"
+#include <MEL/Utility/Windows/Keyboard.hpp> 
 
 int main(int argc, char* argv[]) {
     // init logger
@@ -14,7 +15,10 @@ int main(int argc, char* argv[]) {
     mel::Options options("haptic_guidance.exe", "Haptic Guidance Experiment");
     options.add_options()("s,subj", "Subject Number", value<int>())(
         "c,cond", "Condition Number", value<int>())(
-        "t,trial", "Start Trial Tag Name", value<std::string>())(
+        "t,trial", "Start Trial Tag Name", value<std::string>())
+            ("d,debug", "Debug")
+
+            (
         "h,help", "Print Help Message");
 
     auto input = options.parse(argc, argv);
@@ -53,6 +57,24 @@ int main(int argc, char* argv[]) {
                            q8.velocity[{0, 1, 2}], vpx4.amplifiers);
     OpenWrist ow(config);
     Cuff cuff("cuff", 4);
+
+    if (input.count("debug")) {
+        Timer timer(hertz(1000));
+        int pos = 0;
+        cuff.enable();
+        while (!Keyboard::is_key_pressed(Key::Escape)) {
+
+            if (Keyboard::is_key_pressed(Key::Up))
+                pos += 1;
+            else if (Keyboard::is_key_pressed(Key::Down))
+                pos -= 1;
+            print(pos);
+            cuff.set_motor_positions(-pos, pos, true);
+            timer.wait();
+        }
+        cuff.disable();
+        return 0;
+    }
 
     HapticGuidance experiment(q8, ow, cuff, subject_number, condition,
                               start_trial);

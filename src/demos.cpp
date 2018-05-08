@@ -39,6 +39,7 @@ int main(int argc, char* argv[]) {
         ("j,jedi", "Runs A Jedi's Last Stand demo")
         ("p,pendulum", "Runs OpenWrist Pendulum demo")
         ("b,ballbeam", "Runs OpenWrist Ball and Beam demo")
+        ("d,debug", "Debug Mode (No Power)")
         ("h,help", "Prints this help message");
 
     auto result = options.parse(argc, argv);
@@ -81,6 +82,26 @@ int main(int argc, char* argv[]) {
     if (result.count("transparency") > 0) {
         ow.transparency_mode(ctrlc);
         disable_realtime();
+        return 0;
+    }
+
+    // enter debug mode 
+    if (result.count("debug") > 0) {
+        q8.enable();
+        MelShare ms_ow_state("ow_state");
+        std::vector<double> ow_state_data(6);
+        Timer timer(milliseconds(1));
+        while (!ctrlc) {
+            q8.update_input();
+            ow_state_data[0] = ow[0].get_position();
+            ow_state_data[1] = ow[1].get_position();
+            ow_state_data[2] = ow[2].get_position();
+            ow_state_data[3] = ow[0].get_velocity();
+            ow_state_data[4] = ow[1].get_velocity();
+            ow_state_data[5] = ow[2].get_velocity();
+            ms_ow_state.write_data(ow_state_data);
+            timer.wait();
+        }
         return 0;
     }
 

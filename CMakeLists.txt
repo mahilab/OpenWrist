@@ -130,3 +130,5 @@ target_link_libraries(xwing ${LINK_LIBS})
 add_executable(testing tests/testing.cpp ${OPENWRIST_SRC})
 target_link_libraries(testing ${LINK_LIBS})
 
+add_executable(dylan src/Dylan/main.cpp ${OPENWRIST_SRC})
+target_link_libraries(dylan ${LINK_LIBS})

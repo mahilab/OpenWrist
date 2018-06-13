@@ -5,7 +5,7 @@
 #include <MEL/Utility/System.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Devices/VoltPaqX4.hpp>
-#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Communications/MelShare.hpp>
 #include <MEL/Logging/Log.hpp>
 #include <Games/XWing/XWing.hpp>
 

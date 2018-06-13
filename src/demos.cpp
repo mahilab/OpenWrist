@@ -5,7 +5,7 @@
 #include <MEL/Utility/System.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Devices/VoltPaqX4.hpp>
-#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Communications/MelShare.hpp>
 #include <MEL/Math/Functions.hpp>
 #include "HapticGuidance/Pendulum.hpp"
 #include "Games/Jedi.hpp"
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // enter debug mode 
+    // enter debug mode
     if (result.count("debug") > 0) {
         q8.enable();
         MelShare ms_ow_state("ow_state");

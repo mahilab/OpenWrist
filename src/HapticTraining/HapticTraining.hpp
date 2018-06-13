@@ -9,7 +9,7 @@
 #include <MEL/Core/PdController.hpp>
 #include "Cuff/Cuff.hpp"
 #include "FurutaPendulum.hpp"
-#include "MEL/Communications/Windows/MelShare.hpp"
+#include "MEL/Communications/MelShare.hpp"
 #include "OpenWrist.hpp"
 
 // =============================================================================

@@ -1,4 +1,4 @@
-#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Communications/MelShare.hpp>
 #include <MEL/Core/PdController.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Utility/StateMachine.hpp>

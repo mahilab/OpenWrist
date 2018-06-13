@@ -5,7 +5,7 @@
 #include <MEL/Math/Constants.hpp>
 #include <MEL/Math/Functions.hpp>
 #include <MEL/Math/Integrator.hpp>
-#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Communications/MelShare.hpp>
 
 class FurutaPendulum {
 

@@ -1,15 +1,14 @@
-#include "MyoBand.hpp"  
+#include "MyoBand.hpp"
 #include <MEL/Logging/Log.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Utility/Console.hpp>
-#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Communications/MelShare.hpp>
 #include <MEII/EMG/MesArray.hpp>
 #include "MEL/Daq/Quanser/Q8Usb.hpp"
 #include "MEL/Utility/System.hpp"
 #include "MEL/Logging/Log.hpp"
 #include "MEL/Utility/Console.hpp"
 #include "MEII/EMG/MesArray.hpp"
-#include "MEL/Communications/Windows/MelShare.hpp"
 #include "MEL/Utility/Windows/Keyboard.hpp"
 #include "MEII/Classification/EmgDirClassifier.hpp"
 #include <MEL/Core/Clock.hpp>
@@ -33,7 +32,7 @@ bool handler(CtrlEvent event) {
 
 int main(int argc, char *argv[]) {
 
-    // handle inputs 
+    // handle inputs
     std::vector<uint32> emg_channel_numbers = { 0,1,2,3,4,5,6,7 };
 
     mel::MyoBand myo("my_myo");
@@ -44,7 +43,7 @@ int main(int argc, char *argv[]) {
     // register ctrl-c handler
     register_ctrl_handler(handler);
 
-    // construct array of Myoelectric Signals    
+    // construct array of Myoelectric Signals
     MesArray mes(myo.get_channels(emg_channel_numbers));
 
     // make MelShares

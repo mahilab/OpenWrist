@@ -1,5 +1,5 @@
 #pragma once
-#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Communications/MelShare.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include <MEL/Utility/Console.hpp>

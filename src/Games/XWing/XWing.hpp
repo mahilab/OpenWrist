@@ -6,7 +6,7 @@
 #include <MEL/Communications/MelNet.hpp>
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include <MEL/Utility/Console.hpp>
-#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Communications/MelShare.hpp>
 
 
 using namespace mel;
@@ -16,7 +16,7 @@ class XWing : public StateMachine {
 public:
 
 	XWing(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, ctrl_bool& stop_flag);
-	
+
 private:
 
     //-------------------------------------------------------------------------
@@ -68,7 +68,7 @@ private:
     std::vector<double> state_;
 	std::vector<double> impulse_data_;
     std::vector<double> impulse_data_temp_;
-	
+
     Clock pulse_clock_;
 
     // MELSHARES

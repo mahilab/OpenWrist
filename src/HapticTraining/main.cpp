@@ -1,6 +1,6 @@
 #include "Cuff/Cuff.hpp"
 #include <MEL/Utility/Console.hpp>
-#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Communications/MelShare.hpp>
 #include "FurutaPendulum.hpp"
 #include <MEL/Core/PdController.hpp>
 #include <MEL/Core/Timer.hpp>
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
         short int pos = 0;
         cuff.enable();
         while (!Keyboard::is_key_pressed(Key::Escape)) {
-            
+
             if (Keyboard::is_key_pressed(Key::Up))
                 pos += 100;
             else if (Keyboard::is_key_pressed(Key::Down))

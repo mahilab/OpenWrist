@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.7)
 
 set(MEL_ROOT "C:/Git/MEL" CACHE FILEPATH "Absolute path to MEL.")
 set(QUANSER_ROOT "C:/Program Files/Quanser" CACHE FILEPATH "Absolute path to Quanser installation.")
+set(EIGEN_ROOT   "C:/dev/eigen"             CACHE FILEPATH "Absolute path to Eigen installation.")
+set(SFML_ROOT    "C:/Git/SFML"              CACHE FILEPATH "Absolute path to SFML")
 
 # enable C++11
 set(CMAKE_CXX_STANDARD 11)
@@ -25,7 +27,14 @@ if(WIN32)
 endif()
 
 # include directories (your includes and MEL's)
-include_directories("src" "../MEII/include" "../MEL/include" "C:/dev/myo-sdk-win-0.9.0/include")
+include_directories(
+    "src"
+    "../MEII/include"
+    "../MEL/include"
+    "C:/dev/myo-sdk-win-0.9.0/include"
+    "${SFML_ROOT}/include"
+    ${EIGEN_ROOT}
+)
 
 # link MEL and other libs
 set(LINK_LIBS "")
@@ -37,6 +46,7 @@ if(WIN32)
         link_directories("${QUANSER_ROOT}/QUARC/lib/windows")
     endif()
     link_directories("C:/dev/myo-sdk-win-0.9.0/lib")
+    link_directories("${SFML_ROOT}/lib")
     link_directories("../MEII/lib/Release")
     list(APPEND LINK_LIBS
         MEL
@@ -115,5 +125,13 @@ add_executable(xwing ${OPENWRIST_SRC}
     src/Games/XWing/XWing.cpp)
 target_link_libraries(xwing ${LINK_LIBS})
 
+add_executable(testing tests/testing.cpp ${OPENWRIST_SRC})
+target_link_libraries(testing ${LINK_LIBS})
 
-
+# SFVG
+# find OpenGL
+find_package(OpenGL REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIR})
+set(ADDITIONAL_LIBRARIES ${OPENGL_LIBRARIES})
+add_executable(sfvg src/SFVG/main.cpp)
+target_link_libraries(sfvg sfml-system sfml-window ${ADDITIONAL_LIBRARIES})

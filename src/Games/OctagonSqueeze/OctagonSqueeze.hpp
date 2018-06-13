@@ -20,20 +20,16 @@ private:
     //-------------------------------------------------------------------------
 
     // STATES
-    enum States { ST_START, ST_PLAY, ST_RESET, ST_STOP, ST_NUM_STATES };
+    enum States { ST_START, ST_PLAY, ST_STOP, ST_NUM_STATES };
 
     // STATE FUNCTIONS
     void sf_start(const NoEventData*);
     void sf_play(const NoEventData*);
-    void sf_reset(const NoEventData*);
     void sf_stop(const NoEventData*);
 
     // STATE ACTIONS
-    StateAction<OctagonSqueeze, NoEventData, &OctagonSqueeze::sf_start>
-        sa_start;
+    StateAction<OctagonSqueeze, NoEventData, &OctagonSqueeze::sf_start> sa_start;
     StateAction<OctagonSqueeze, NoEventData, &OctagonSqueeze::sf_play> sa_play;
-    StateAction<OctagonSqueeze, NoEventData, &OctagonSqueeze::sf_reset>
-        sa_reset;
     StateAction<OctagonSqueeze, NoEventData, &OctagonSqueeze::sf_stop> sa_stop;
 
     // STATE MAP
@@ -41,7 +37,6 @@ private:
         static const StateMapRow STATE_MAP[] = {
             &sa_start,
             &sa_play,
-            &sa_reset,
             &sa_stop,
         };
         return &STATE_MAP[0];
@@ -59,18 +54,24 @@ private:
     OpenWrist& ow_;
 
     // STOP FLAG
-    ctrl_bool stop_flag_;
+    ctrl_bool& stop_flag_;
     std::vector<double> state_;
 
     Clock pulse_clock_;
 
-    double K_couple = 20.0;
+    double K_couple = 10.0;
     double B_couble = 1.0;
 
-    double rad_per_pix_x = 100 * DEG2RAD / 1920.0;
-    double rad_per_pix_y = 50  * DEG2RAD / 1080.0;
+    double px_per_rad_x_ = 1920.0 / (100 * DEG2RAD);
+    double px_per_rad_y_ = 1080.0 / (50  * DEG2RAD);
 
     // MELSHARES
-    MelShare ms_player_state_;
+    MelShare ms_real_state_;
+    MelShare ms_virt_state_;
     MelShare ms_force_torque_;
+
+    // DATA
+    std::vector<double> real_state_;
+    std::vector<double> virt_state_;
+    std::vector<double> force_torque_data_;
 };

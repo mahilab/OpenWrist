@@ -791,6 +791,8 @@ void HapticGuidance::step_cuff() {
     cuff_ref_pos_1_ = offset[0];
     cuff_ref_pos_2_ = offset[1];
 
+
+
     // feedforward mechanism
     if (condition_ == 1) {
         // feedforward mechanism
@@ -804,12 +806,12 @@ void HapticGuidance::step_cuff() {
     }
     else if (condition_ == 3) {
         // feedback mechanism
-        cuff_ref_pos_1_ -= (short int)((error_angle_)* cuff_fb_gain_);
-        cuff_ref_pos_2_ -= (short int)((error_angle_)* cuff_fb_gain_);
-        cuff_ref_pos_1_ = (short)saturate((double)cuff_ref_pos_1_, -32000, 32000);
-        cuff_ref_pos_2_ = (short)saturate((double)cuff_ref_pos_2_, -32000, 32000);
-
-
+        double temp1 = (double)offset[0];
+        double temp2 = (double)offset[1];
+        temp1 -= error_angle_* cuff_fb_gain_;
+        temp2 -= error_angle_* cuff_fb_gain_;
+        cuff_ref_pos_1_ = (short)saturate(temp1, -20000, 20000);
+        cuff_ref_pos_2_ = (short)saturate(temp2, -20000, 20000);
     }
 
     // set motor positions

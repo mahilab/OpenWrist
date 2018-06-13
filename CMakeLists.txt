@@ -79,6 +79,8 @@ add_executable(demos ${OPENWRIST_SRC}
     src/demos.cpp
     src/Games/Jedi.cpp
     src/Games/Jedi.hpp
+    src/Games/OctagonSqueeze/OctagonSqueeze.hpp
+    src/Games/OctagonSqueeze/OctagonSqueeze.cpp
     src/HapticGuidance/Pendulum.cpp
     src/HapticGuidance/Pendulum.hpp
     src/HapticTraining/BallAndBeam.cpp

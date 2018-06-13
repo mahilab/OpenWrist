@@ -183,9 +183,9 @@ public:
    // PdController pd1_meii_ = PdController(4, 0.05); // half of Craig's default PD Controller
 
     // CUFF
-    const short int cuff_normal_force_ = 3;
+    const short int cuff_normal_force_ = 4;
     const short int cuff_ff_gain_ = 250;
-    const short int cuff_fb_gain_ = 400;
+    const short int cuff_fb_gain_ = 350;
     short int offset[2];
     short int scaling_factor[2];
 

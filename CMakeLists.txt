@@ -89,6 +89,8 @@ add_executable(demos ${OPENWRIST_SRC}
     src/demos.cpp
     src/Games/Jedi.cpp
     src/Games/Jedi.hpp
+    src/Games/OctagonSqueeze/OctagonSqueeze.hpp
+    src/Games/OctagonSqueeze/OctagonSqueeze.cpp
     src/HapticGuidance/Pendulum.cpp
     src/HapticGuidance/Pendulum.hpp
     src/HapticTraining/BallAndBeam.cpp
@@ -128,10 +130,3 @@ target_link_libraries(xwing ${LINK_LIBS})
 add_executable(testing tests/testing.cpp ${OPENWRIST_SRC})
 target_link_libraries(testing ${LINK_LIBS})
 
-# SFVG
-# find OpenGL
-find_package(OpenGL REQUIRED)
-include_directories(${OPENGL_INCLUDE_DIR})
-set(ADDITIONAL_LIBRARIES ${OPENGL_LIBRARIES})
-add_executable(sfvg src/SFVG/main.cpp)
-target_link_libraries(sfvg sfml-system sfml-window ${ADDITIONAL_LIBRARIES})

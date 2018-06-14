@@ -126,6 +126,7 @@ int main(int argc, char* argv[]) {
             ow[0].set_torque(torque0);
             ow[1].set_torque(torque1);
             ow[2].set_torque(torque2);
+
             // END DYLAN'S CODE
 
             // check limits

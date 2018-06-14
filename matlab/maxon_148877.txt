@@ -1,0 +1,40 @@
+Values at nominal voltage
+Nominal voltage	48 V
+No load speed	7590 rpm
+No load current	68.6 mA
+Nominal speed	7000 rpm
+Nominal torque (max. continuous torque)	187 mNm
+Nominal current (max. continuous current)	3.17 A
+Stall torque	2560 mNm
+Stall current	42.4 A
+Max. efficiency	92 %
+Characteristics
+Terminal resistance	1.13 ?
+Terminal inductance	0.33 mH
+Torque constant	60.3 mNm/A
+Speed constant	158 rpm/V
+Speed / torque gradient	2.97 rpm/mNm
+Mechanical time constant	4.28 ms
+Rotor inertia	137 gcm²
+Thermal data
+Thermal resistance housing-ambient	4.65 K/W
+Thermal resistance winding-housing	1.93 K/W
+Thermal time constant winding	41.5 s
+Thermal time constant motor	809 s
+Ambient temperature	-30...+100 °C
+Max. winding temperature	+155 °C
+Mechanical data
+Bearing type	ball bearings
+Max. speed	12000 rpm
+Axial play	0.05 - 0.15 mm
+Radial play	0.025 mm
+Max. axial load (dynamic)	5.6 N
+Max. force for press fits (static)	110 N
+(static, shaft supported)	1200 N
+Max. radial load	28 N, 5 mm from flange
+Other specifications
+Number of pole pairs	1
+Number of commutator segments	13
+Number of autoclave cycles	0
+Product
+Weight	480 g

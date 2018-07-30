@@ -39,7 +39,7 @@ include_directories(
 # link MEL and other libs
 set(LINK_LIBS "")
 if(WIN32)
-    link_directories("${MEL_ROOT}/lib/windows/Release")
+    link_directories("${MEL_ROOT}/lib/Release")
     if (CMAKE_SIZEOF_VOID_P EQUAL 8) # 64-bit
         link_directories("${QUANSER_ROOT}/QUARC/lib/win64")
     else()
@@ -118,7 +118,7 @@ add_executable(haptic_training ${OPENWRIST_SRC} ${CUFF_SRC}
 target_link_libraries(haptic_training ${LINK_LIBS})
 
 # Myo EMG Control - ELEC 575 2018 Final Project
-add_executable(myo ${OPENWRIST_SRC} src/Myo/main.cpp src/Myo/MyoBand.cpp src/Myo/MyoBand.hpp)
+add_executable(myo ${OPENWRIST_SRC} src/Myo/main.cpp)
 target_link_libraries(myo ${LINK_LIBS} myo64 MEII)
 
 add_executable(xwing ${OPENWRIST_SRC}

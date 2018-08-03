@@ -23,9 +23,6 @@ using namespace mel;
 
 int main(int argc, char* argv[]) {
 
-    // init logger
-    init_logger(Verbose,Verbose);
-
     // set up options
     mel::Options options("haptic_guidance.exe", "Haptic Guidance Experiment");
     options.add_options()
@@ -113,9 +110,6 @@ int main2(int argc, char* argv[]) {
         print(options.help());
         return 0;
     }
-
-    // initialize MEL logger
-    init_logger();
 
     // enable Windows realtime
     // enable_realtime();

@@ -38,9 +38,6 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // initialize MEL logger
-    init_logger();
-
     // register ctrl-c handler
     register_ctrl_handler(handler);
 

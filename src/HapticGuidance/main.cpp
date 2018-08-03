@@ -8,8 +8,6 @@
 #include <MEL/Utility/Windows/Keyboard.hpp> 
 
 int main(int argc, char* argv[]) {
-    // init logger
-    init_logger();
 
     // set up options
     mel::Options options("haptic_guidance.exe", "Haptic Guidance Experiment");

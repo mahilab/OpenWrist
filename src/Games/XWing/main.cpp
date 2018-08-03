@@ -20,9 +20,6 @@ using namespace mel;
 
 int main(int argc, char* argv[]) {
 
-    // initialize MEL logger
-    init_logger();
-
     // register ctrl-c handler
     register_ctrl_handler(handler);
 

@@ -1,6 +1,6 @@
 #include "XWing.hpp"
 #include <MEL/Utility/System.hpp>
-#include <MEL/Utility/Windows/Keyboard.hpp>
+#include <MEL/Devices/Windows/Keyboard.hpp>
 #include <MEL/Math/Functions.hpp>
 
 XWing::XWing(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, ctrl_bool& stop_flag) :

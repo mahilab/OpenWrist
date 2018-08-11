@@ -1,9 +1,9 @@
 #include "HapticTraining.hpp"
 #include <MEL/Logging/Log.hpp>
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
 #include <random>
 #include <fstream>
-#include <MEL/Utility/Windows/Keyboard.hpp>
+#include <MEL/Devices/Windows/Keyboard.hpp>
 
 bool read_csv(std::string filename, std::string directory, int row_offset, std::vector<std::vector<double>>& output) {
     output.clear();

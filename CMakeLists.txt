@@ -38,8 +38,9 @@ endif()
 # get common files
 set(OPENWRIST_SRC
     src/OpenWrist.hpp
-    src/OwConfiguration
-    src/OwParameters
+    src/OwConfiguration.hpp
+    src/OwConfiguration.cpp
+    src/OwParameters.hpp
     src/OpenWrist.cpp
     src/OwConfiguration.cpp)
 

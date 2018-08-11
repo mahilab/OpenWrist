@@ -1,19 +1,19 @@
 #include "Cuff/Cuff.hpp"
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
 #include <MEL/Communications/MelShare.hpp>
 #include "FurutaPendulum.hpp"
-#include <MEL/Core/PdController.hpp>
+#include <MEL/Mechatronics/PdController.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Logging/Log.hpp>
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Math/Functions.hpp>
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include "OpenWrist.hpp"
-#include <MEL/Utility/Windows/Keyboard.hpp>
+#include <MEL/Devices/Windows/Keyboard.hpp>
 #include <MEL/Utility/RingBuffer.hpp>
 #include <MEL/Math/Waveform.hpp>
 #include <MEL/Utility/Options.hpp>
-#include <MEL/Utility/Windows/XboxController.hpp>
+#include <MEL/Devices/Windows/XboxController.hpp>
 #include <MEL/Math/Differentiator.hpp>
 #include <MEL/Logging/DataLogger.hpp>
 #include <fstream>
@@ -64,7 +64,6 @@ int main(int argc, char* argv[]) {
         q8,
         q8.watchdog,
         q8.encoder[{ 0, 1, 2 }],
-        q8.velocity[{ 0, 1, 2 }],
         vpx4.amplifiers
     );
     OpenWrist ow(config);
@@ -187,7 +186,6 @@ int main2(int argc, char* argv[]) {
         q8,
         q8.watchdog,
         q8.encoder[{ 0, 1, 2 }],
-        q8.velocity[{ 0, 1, 2 }],
         vpx4.amplifiers
     );
     OpenWrist ow(config);

@@ -4,7 +4,7 @@
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Logging/Log.hpp>
 #include <MEL/Math/Functions.hpp>
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
 #include <MEL/Utility/Options.hpp>
 #include <MEL/Utility/System.hpp>
 #include <MEL/Core/Timer.hpp>
@@ -68,8 +68,7 @@ int main(int argc, char* argv[]) {
     VoltPaqX4 vpx4(q8.DO[{ 0, 1, 2 }], q8.AO[{ 0, 1, 2 }], q8.DI[{0, 1, 2}], q8.AI[{ 0, 1, 2 }]);
 
     // create OpenWrist and bind Q8 channels to it
-    OwConfiguration config(q8, q8.watchdog, q8.encoder[{0, 1, 2}],
-                           q8.velocity[{0, 1, 2}], vpx4.amplifiers);
+    OwConfiguration config(q8, q8.watchdog, q8.encoder[{0, 1, 2}], vpx4.amplifiers);
     OpenWrist ow(config);
 
     // run calibration script

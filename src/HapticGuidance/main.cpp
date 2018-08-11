@@ -5,7 +5,7 @@
 #include "Cuff/Cuff.hpp"
 #include "HapticGuidance.hpp"
 #include "OpenWrist.hpp"
-#include <MEL/Utility/Windows/Keyboard.hpp> 
+#include <MEL/Devices/Windows/Keyboard.hpp> 
 
 int main(int argc, char* argv[]) {
 
@@ -47,8 +47,7 @@ int main(int argc, char* argv[]) {
     VoltPaqX4 vpx4(q8.DO[{ 0, 1, 2 }], q8.AO[{ 0, 1, 2 }], q8.DI[{0, 1, 2}], q8.AI[{ 0, 1, 2 }]);
 
     // create OpenWrist and bind Q8 channels to it
-    OwConfiguration config(q8, q8.watchdog, q8.encoder[{0, 1, 2}],
-                           q8.velocity[{0, 1, 2}], vpx4.amplifiers);
+    OwConfiguration config(q8, q8.watchdog, q8.encoder[{0, 1, 2}], vpx4.amplifiers);
     OpenWrist ow(config);
     Cuff cuff("cuff", 4);
 

@@ -18,9 +18,9 @@
 #ifndef MEL_OPENWRIST_HPP
 #define MEL_OPENWRIST_HPP
 
-#include <MEL/Core/Robot.hpp>
-#include <MEL/Core/Motor.hpp>
-#include <MEL/Core/PdController.hpp>
+#include <MEL/Mechatronics/Robot.hpp>
+#include <MEL/Mechatronics/Motor.hpp>
+#include <MEL/Mechatronics/PdController.hpp>
 #include "OwConfiguration.hpp"
 #include "OwParameters.hpp"
 #include <atomic>

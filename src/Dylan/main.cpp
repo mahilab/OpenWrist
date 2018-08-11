@@ -4,7 +4,7 @@
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Logging/Log.hpp>
 #include <MEL/Math/Functions.hpp>
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
 #include <MEL/Utility/Options.hpp>
 #include <MEL/Utility/System.hpp>
 #include "OpenWrist.hpp"
@@ -56,7 +56,6 @@ int main(int argc, char* argv[]) {
         q8,
         q8.watchdog,
         q8.encoder[{ 0, 1, 2 }],
-        q8.velocity[{ 0, 1, 2 }],
         vpx4.amplifiers
     );
     OpenWrist ow(config);

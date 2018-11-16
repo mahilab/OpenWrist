@@ -3,7 +3,7 @@
 #include <MEL/Utility/Spinlock.hpp>
 #include <MEL/Core/Device.hpp>
 #include <atomic>
-#include <MEL/Utility/Types.hpp>
+#include <MEL/Core/Types.hpp>
 #include "comm_settings.h"
 
 class Cuff : public mel::Device{
@@ -14,8 +14,7 @@ public:
     Cuff(std::string name, mel::uint32 comm_port);
     ~Cuff() override;
 
-	bool enable() override;
-    bool disable() override;
+
 	void set_motor_positions(short int motor_position_0, short int motor_position_1, bool immediate);
     void get_motor_positions(short int& motor_position_0, short int& motor_position_1, bool immediate);
     void get_motor_currents(short int& motor_current_0, short int& motor_current_1, bool immediate);
@@ -23,6 +22,9 @@ public:
 	void pretension(int force_newtons, short int* motpos_zero, short int* scaling_factor);
 
 private:
+
+    bool on_enable() override;
+    bool on_disable() override;
 
 	std::atomic_short reference_motor_positions_[2];
 	std::atomic_short actual_motor_positions_[2];

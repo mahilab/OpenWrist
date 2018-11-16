@@ -1,9 +1,9 @@
 #include "OpenWrist.hpp"
 #include <MEL/Math/Functions.hpp>
 #include <MEL/Core/Timer.hpp>
-#include <MEL/Core/PositionSensor.hpp>
-#include <MEL/Core/VelocitySensor.hpp>
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Mechatronics/PositionSensor.hpp>
+#include <MEL/Mechatronics/VelocitySensor.hpp>
+#include <MEL/Core/Console.hpp>
 #include <MEL/Logging/Log.hpp>
 
 namespace mel {
@@ -31,16 +31,15 @@ OpenWrist::OpenWrist(OwConfiguration configuration, OwParameters parameters) :
 
         // set encoder counts
         config_.encoder_channels_[i].set_units_per_count(2 * PI / params_.encoder_res_[i]);
-        config_.velocity_channels_[i].set_units_per_count(2 * PI / params_.encoder_res_[i]);
 
         // create joint
         Joint joint(
             "ow_joint_" + num,
-            motors_[i],
+            &motors_[i],
             params_.eta_[i],
-            config_.encoder_channels_[i],
+            &config_.encoder_channels_[i],
             params_.eta_[i],
-            config_.velocity_channels_[i],
+            &config_.encoder_channels_[i],
             params_.eta_[i],
             std::array<double, 2>({ params_.pos_limits_neg_[i] , params_.pos_limits_pos_[i] }),
             params_.vel_limits_[i],

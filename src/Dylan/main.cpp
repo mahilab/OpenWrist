@@ -4,7 +4,7 @@
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Logging/Log.hpp>
 #include <MEL/Math/Functions.hpp>
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
 #include <MEL/Utility/Options.hpp>
 #include <MEL/Utility/System.hpp>
 #include "OpenWrist.hpp"
@@ -36,7 +36,7 @@ bool handler(CtrlEvent event) {
 
 // this is my function for measuring the human's applied force
 Vector3d getForce(Butterworth& lp_filter0, Butterworth& lp_filter1, Butterworth& lp_filter2, OpenWrist& ow) {
-    
+
     VectorXd TORQUE_THRESHOLD(3);
     TORQUE_THRESHOLD << 0.3, 0.2, 0.3;
 
@@ -69,13 +69,13 @@ VectorXd getDesired(VectorXd theta, double t) {
     double e = theta(4);
     double f = theta(5);
     double g = theta(6);
-    
+
     VectorXd q_d(3);
     q_d << c, a*mel::cos(g*t)*mel::cos(f) - b*mel::sin(g*t)*mel::sin(f) + d, a*mel::cos(g*t)*mel::sin(f) + b*mel::sin(g*t)*mel::cos(f) + e;
-    
+
     VectorXd qdot_d(3);
     qdot_d << 0, -a*g*mel::sin(g*t)*mel::cos(f) - b*g*mel::cos(g*t)*mel::sin(f), -a*g*mel::sin(g*t)*mel::sin(f) + b*g*mel::cos(g*t)*mel::cos(f);
-    
+
     VectorXd x_d(6);
     x_d << q_d, qdot_d;
 
@@ -85,7 +85,7 @@ VectorXd getDesired(VectorXd theta, double t) {
 
 // this is my function for getting the Jacobian of the desired trajectory
 MatrixXd getJacobian(VectorXd psi, VectorXd x_d, double t) {
-    
+
     double DELTA = 0.01;
     int m = (int)psi.size();
     MatrixXd xdJacobian(6, m);
@@ -163,30 +163,24 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    // initialize MEL logger
-    init_logger();
-
     // register ctrl-c handler
     register_ctrl_handler(handler);
 
     // make Q8 USB that's configured for current control with VoltPAQ-X4
-    QOptions qoptions;
-    qoptions.set_update_rate(QOptions::UpdateRate::Fast);
-    qoptions.set_analog_output_mode(0, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
-    qoptions.set_analog_output_mode(1, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
-    qoptions.set_analog_output_mode(2, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    QuanserOptions qoptions;
+    qoptions.set_update_rate(QuanserOptions::UpdateRate::Fast);
+    qoptions.set_analog_output_mode(0, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    qoptions.set_analog_output_mode(1, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    qoptions.set_analog_output_mode(2, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     Q8Usb q8(qoptions);
-    VoltPaqX4 vpx4(q8.digital_output[{ 0, 1, 2 }],
-                   q8.analog_output[{ 0, 1, 2 }],
-                   q8.digital_input[{0, 1, 2}],
-                   q8.analog_input[{ 0, 1, 2 }]);
+
+    VoltPaqX4 vpx4(q8.DO[{ 0, 1, 2 }], q8.AO[{ 0, 1, 2 }], q8.DI[{0, 1, 2}], q8.AI[{ 0, 1, 2 }]);
 
     // create OpenWrist and bind Q8 channels to it
     OwConfiguration config(
         q8,
         q8.watchdog,
         q8.encoder[{ 0, 1, 2 }],
-        q8.velocity[{ 0, 1, 2 }],
         vpx4.amplifiers
     );
     OpenWrist ow(config);
@@ -245,7 +239,7 @@ int main(int argc, char* argv[]) {
     PdController pd0(0, 0);
     PdController pd1(0, 0);
     PdController pd2(0, 0);
-    // construct filters                        
+    // construct filters
     Butterworth lp_filter0(2, 0.05, Butterworth::Lowpass);
     Butterworth lp_filter1(2, 0.05, Butterworth::Lowpass);
     Butterworth lp_filter2(2, 0.05, Butterworth::Lowpass);
@@ -297,7 +291,7 @@ int main(int argc, char* argv[]) {
         // start watchdog and timer
         q8.watchdog.start();
         Timer timer(milliseconds(T));
-        
+
         // enter control loop
         while (!ctrlc) {
 
@@ -352,7 +346,7 @@ int main(int argc, char* argv[]) {
                     pd1.set_gains(gain_interp * 20, gain_interp * 1.00);
                     pd2.set_gains(gain_interp * 20, gain_interp * 0.25);
                 }
-            } 
+            }
             else {
 
                 // turn on the interaction notification
@@ -366,7 +360,7 @@ int main(int argc, char* argv[]) {
                 if (interaction_mode == 1) {
                     psi.head(m - 1) += psi_delta.head(m - 1);
                 }
-                
+
                 // if we are changing the timing
                 else {
                     // put limits on the timing changes
@@ -385,8 +379,8 @@ int main(int argc, char* argv[]) {
                 }
 
             }
-            
-            // set the controller 
+
+            // set the controller
             double torque0 = pd0.calculate(x_d(0), x[0], x_d(3), x[3]);
             double torque1 = pd1.calculate(x_d(1), x[1], x_d(4), x[4]);
             double torque2 = pd2.calculate(x_d(2), x[2], x_d(5), x[5]);
@@ -408,7 +402,7 @@ int main(int argc, char* argv[]) {
             ms_ow_interaction.write_data(ow_interaction_data);
             ow_time_data[0] = count;
             ms_ow_time.write_data(ow_time_data);
-            
+
             // check limits
             if (ow.any_limit_exceeded())
                 ctrlc = true;
@@ -455,7 +449,7 @@ int main(int argc, char* argv[]) {
 
         // enter control loop
         while (!ctrlc) {
-            
+
             // kick watchdog
             q8.watchdog.kick();
             // update inputs
@@ -532,9 +526,9 @@ int main(int argc, char* argv[]) {
                     pd2.set_gains(gain_interp * 20, gain_interp * 0.25);
                 }
 
-            }            
+            }
 
-            // set the controller 
+            // set the controller
             double torque0 = pd0.calculate(x_d(0), x[0], x_d(3), x[3]);
             double torque1 = pd1.calculate(x_d(1), x[1], x_d(4), x[4]);
             double torque2 = pd2.calculate(x_d(2), x[2], x_d(5), x[5]);
@@ -703,7 +697,7 @@ int main(int argc, char* argv[]) {
             dummy_gamma_d.row(r - 1) = x_d_new.head(3);
             gamma_d = dummy_gamma_d;
 
-            // set the controller 
+            // set the controller
             double torque0 = pd0.calculate(x_d(0), x[0], x_d(3), x[3]);
             double torque1 = pd1.calculate(x_d(1), x[1], x_d(4), x[4]);
             double torque2 = pd2.calculate(x_d(2), x[2], x_d(5), x[5]);
@@ -809,7 +803,7 @@ int main(int argc, char* argv[]) {
                 start_interaction = 1;
             }
 
-            // set the controller 
+            // set the controller
             double torque0 = pd0.calculate(x_d(0), x[0], x_d(3), x[3]);
             double torque1 = pd1.calculate(x_d(1), x[1], x_d(4), x[4]);
             double torque2 = pd2.calculate(x_d(2), x[2], x_d(5), x[5]);

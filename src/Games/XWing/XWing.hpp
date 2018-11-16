@@ -5,7 +5,7 @@
 #include "OpenWrist.hpp"
 #include <MEL/Communications/MelNet.hpp>
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
 #include <MEL/Communications/MelShare.hpp>
 
 

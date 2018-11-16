@@ -1,6 +1,6 @@
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include "OpenWrist.hpp"
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
 #include <MEL/Utility/Options.hpp>
 #include <MEL/Utility/System.hpp>
 #include <MEL/Core/Timer.hpp>
@@ -19,9 +19,6 @@ bool handler(CtrlEvent event) {
 using namespace mel;
 
 int main(int argc, char* argv[]) {
-
-    // initialize MEL logger
-    init_logger();
 
     // register ctrl-c handler
     register_ctrl_handler(handler);
@@ -43,21 +40,20 @@ int main(int argc, char* argv[]) {
     enable_realtime();
 
     // make Q8 USB that's configured for current control with VoltPAQ-X4
-    QOptions qoptions;
-    qoptions.set_update_rate(QOptions::UpdateRate::Fast);
-    qoptions.set_analog_output_mode(0, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
-    qoptions.set_analog_output_mode(1, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
-    qoptions.set_analog_output_mode(2, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    QuanserOptions qoptions;
+    qoptions.set_update_rate(QuanserOptions::UpdateRate::Fast);
+    qoptions.set_analog_output_mode(0, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    qoptions.set_analog_output_mode(1, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    qoptions.set_analog_output_mode(2, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     Q8Usb q8(qoptions);
 
-    VoltPaqX4 vpx4(q8.digital_output[{ 0, 1, 2 }], q8.analog_output[{ 0, 1, 2 }], q8.digital_input[{0, 1, 2}], q8.analog_input[{ 0, 1, 2 }]);
+    VoltPaqX4 vpx4(q8.DO[{ 0, 1, 2 }], q8.AO[{ 0, 1, 2 }], q8.DI[{0, 1, 2}], q8.AI[{ 0, 1, 2 }]);
 
     // create OpenWrist and bind Q8 channels to it
     OwConfiguration config(
         q8,
         q8.watchdog,
         q8.encoder[{ 0, 1, 2 }],
-        q8.velocity[{ 0, 1, 2 }],
         vpx4.amplifiers
     );
     OpenWrist ow(config);

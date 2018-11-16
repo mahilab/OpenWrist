@@ -1,7 +1,7 @@
 #include "HapticGuidance.hpp"
-#include <MEL/Utility/Windows/Keyboard.hpp>
+#include <MEL/Devices/Windows/Keyboard.hpp>
 #include <random>
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
 
 
 //-----------------------------------------------------------------------------

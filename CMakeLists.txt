@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.7)
 
-set(MEL_ROOT "C:/Git/MEL" CACHE FILEPATH "Absolute path to MEL.")
+set(MEL_ROOT     "C:/Git/MEL"               CACHE FILEPATH "Absolute path to MEL.")
 set(QUANSER_ROOT "C:/Program Files/Quanser" CACHE FILEPATH "Absolute path to Quanser installation.")
 set(EIGEN_ROOT   "C:/dev/eigen"             CACHE FILEPATH "Absolute path to Eigen installation.")
-set(SFML_ROOT    "C:/Git/SFML"              CACHE FILEPATH "Absolute path to SFML")
 
 # enable C++11
 set(CMAKE_CXX_STANDARD 11)
@@ -15,11 +14,7 @@ project(OpenWrist)
 set(CMAKE_CONFIGURATION_TYPES Release)
 
 # set binary output location (optional, but recommended)
-if(WIN32)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/windows)
-else()
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/linux)
-endif()
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 # add definitons
 if(WIN32)
@@ -29,46 +24,23 @@ endif()
 # include directories (your includes and MEL's)
 include_directories(
     "src"
-    "../MEII/include"
     "../MEL/include"
-    "C:/dev/myo-sdk-win-0.9.0/include"
-    "${SFML_ROOT}/include"
     ${EIGEN_ROOT}
 )
 
 # link MEL and other libs
 set(LINK_LIBS "")
 if(WIN32)
-    link_directories("${MEL_ROOT}/lib/windows/Release")
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8) # 64-bit
-        link_directories("${QUANSER_ROOT}/QUARC/lib/win64")
-    else()
-        link_directories("${QUANSER_ROOT}/QUARC/lib/windows")
-    endif()
-    link_directories("C:/dev/myo-sdk-win-0.9.0/lib")
-    link_directories("${SFML_ROOT}/lib")
-    link_directories("../MEII/lib/Release")
-    list(APPEND LINK_LIBS
-        MEL
-        ws2_32
-        winmm
-        Pdh
-        Psapi
-        hil
-        quanser_communications
-        quanser_runtime
-        quanser_common
-        bufferoverflowU
-        legacy_stdio_definitions
-        XInput)
+    link_directories("${MEL_ROOT}/lib/Release")
+    list(APPEND LINK_LIBS MEL)
 endif()
 
 # get common files
-
 set(OPENWRIST_SRC
     src/OpenWrist.hpp
-    src/OwConfiguration
-    src/OwParameters
+    src/OwConfiguration.hpp
+    src/OwConfiguration.cpp
+    src/OwParameters.hpp
     src/OpenWrist.cpp
     src/OwConfiguration.cpp)
 
@@ -118,7 +90,7 @@ add_executable(haptic_training ${OPENWRIST_SRC} ${CUFF_SRC}
 target_link_libraries(haptic_training ${LINK_LIBS})
 
 # Myo EMG Control - ELEC 575 2018 Final Project
-# add_executable(myo ${OPENWRIST_SRC} src/Myo/main.cpp src/Myo/MyoBand.cpp src/Myo/MyoBand.hpp)
+# add_executable(myo ${OPENWRIST_SRC} src/Myo/main.cpp)
 # target_link_libraries(myo ${LINK_LIBS} myo64 MEII)
 
 add_executable(xwing ${OPENWRIST_SRC}

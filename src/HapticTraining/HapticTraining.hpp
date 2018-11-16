@@ -1,12 +1,11 @@
 #ifndef MEL_HAPTICTRAINING_HPP
 #define MEL_HAPTICTRAINING_HPP
 
-#include <MEL/Core/PdController.hpp>
+#include <MEL/Mechatronics/PdController.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Utility/StateMachine.hpp>
-#include <MEL/Core/PdController.hpp>
 #include "Cuff/Cuff.hpp"
 #include "FurutaPendulum.hpp"
 #include "MEL/Communications/MelShare.hpp"

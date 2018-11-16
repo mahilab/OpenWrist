@@ -1,5 +1,5 @@
 #include  "OctagonSqueeze.hpp"
-#include <MEL/Utility/Windows/Keyboard.hpp>
+#include <MEL/Devices/Windows/Keyboard.hpp>
 
 OctagonSqueeze::OctagonSqueeze(Q8Usb& ow_daq, OpenWrist& ow, ctrl_bool& stop_flag) :
     StateMachine(4),

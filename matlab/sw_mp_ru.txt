@@ -1,0 +1,32 @@
+Mass properties of RW-SS_fullasm
+     Configuration: Default
+     Coordinate system: {3}
+
+Mass = 0.192063 kilograms
+
+Volume = 0.000152 cubic meters
+
+Surface area = 0.064594 square meters
+
+Center of mass: ( meters )
+    X = 0.049368
+    Y = -0.021117
+    Z = 0.060728
+
+Principal axes of inertia and principal moments of inertia: ( kilograms * square meters )
+Taken at the center of mass.
+     Ix = ( 0.531421,  0.037741, -0.846267)     Px = 0.000197
+     Iy = (-0.461630,  0.850539, -0.251953)     Py = 0.000448
+     Iz = ( 0.710274,  0.524555,  0.469417)     Pz = 0.000531
+
+Moments of inertia: ( kilograms * square meters )
+Taken at the center of mass and aligned with the output coordinate system.
+    Lxx = 0.000419  Lxy = -0.000026 Lxz = -0.000140
+    Lyx = -0.000026 Lyy = 0.000470  Lyz = -0.000029
+    Lzx = -0.000140 Lzy = -0.000029 Lzz = 0.000287
+
+Moments of inertia: ( kilograms * square meters )
+Taken at the output coordinate system.
+    Ixx = 0.001213  Ixy = -0.000226 Ixz = 0.000435
+    Iyx = -0.000226 Iyy = 0.001647  Iyz = -0.000275
+    Izx = 0.000435  Izy = -0.000275 Izz = 0.000840

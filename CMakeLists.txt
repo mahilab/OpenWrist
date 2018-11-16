@@ -118,8 +118,8 @@ add_executable(haptic_training ${OPENWRIST_SRC} ${CUFF_SRC}
 target_link_libraries(haptic_training ${LINK_LIBS})
 
 # Myo EMG Control - ELEC 575 2018 Final Project
-add_executable(myo ${OPENWRIST_SRC} src/Myo/main.cpp src/Myo/MyoBand.cpp src/Myo/MyoBand.hpp)
-target_link_libraries(myo ${LINK_LIBS} myo64 MEII)
+# add_executable(myo ${OPENWRIST_SRC} src/Myo/main.cpp src/Myo/MyoBand.cpp src/Myo/MyoBand.hpp)
+# target_link_libraries(myo ${LINK_LIBS} myo64 MEII)
 
 add_executable(xwing ${OPENWRIST_SRC}
     src/Games/XWing/main.cpp

@@ -1,5 +1,5 @@
 #include <Eigen/Dense>
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
 
 
 using namespace mel;

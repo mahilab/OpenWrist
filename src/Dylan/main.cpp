@@ -18,7 +18,7 @@
 #include <iostream>
 
 //added for keyboard interface
-#include <MEL/Utility/Windows/Keyboard.hpp>
+#include <MEL/Devices/Windows/Keyboard.hpp>
 
 //added for data logging
 #include <MEL/Logging/DataLogger.hpp>

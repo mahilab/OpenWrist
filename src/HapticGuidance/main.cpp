@@ -11,13 +11,12 @@ int main(int argc, char* argv[]) {
 
     // set up options
     mel::Options options("haptic_guidance.exe", "Haptic Guidance Experiment");
-    options.add_options()("s,subj", "Subject Number", value<int>())(
-        "c,cond", "Condition Number", value<int>())(
-        "t,trial", "Start Trial Tag Name", value<std::string>())
-            ("d,debug", "Debug")
-
-            (
-        "h,help", "Print Help Message");
+    options.add_options()
+        ("s,subj", "Subject Number", value<int>())
+        ("c,cond", "Condition Number", value<int>())
+        ("t,trial", "Start Trial Tag Name", value<std::string>())
+        ("d,debug", "Debug")
+        ("h,help", "Print Help Message");
 
     auto input = options.parse(argc, argv);
     if (input.count("help") > 0) {
@@ -43,6 +42,7 @@ int main(int argc, char* argv[]) {
     qoptions.set_analog_output_mode(1, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     qoptions.set_analog_output_mode(2, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     Q8Usb q8(qoptions);
+    q8.open();
 
     VoltPaqX4 vpx4(q8.DO[{ 0, 1, 2 }], q8.AO[{ 0, 1, 2 }], q8.DI[{0, 1, 2}], q8.AI[{ 0, 1, 2 }]);
 
@@ -56,7 +56,6 @@ int main(int argc, char* argv[]) {
         int pos = 0;
         cuff.enable();
         while (!Keyboard::is_key_pressed(Key::Escape)) {
-
             if (Keyboard::is_key_pressed(Key::Up))
                 pos += 1;
             else if (Keyboard::is_key_pressed(Key::Down))
@@ -69,7 +68,6 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    HapticGuidance experiment(q8, ow, cuff, subject_number, condition,
-                              start_trial);
+    HapticGuidance experiment(q8, ow, cuff, subject_number, condition, start_trial);
     experiment.execute();
 }

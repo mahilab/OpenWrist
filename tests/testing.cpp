@@ -1,5 +1,5 @@
 #include <Eigen/Dense>
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
 
 
 using namespace mel;
@@ -15,9 +15,6 @@ int main(int argc, char const* argv[]) {
   V << 1,
        2,
        3;
-
-
-
 
   print(M*2);
   print(V);

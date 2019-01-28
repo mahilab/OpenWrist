@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 
 set(MEL_ROOT     "C:/Git/MEL"               CACHE FILEPATH "Absolute path to MEL.")
-set(QUANSER_ROOT "C:/Program Files/Quanser" CACHE FILEPATH "Absolute path to Quanser installation.")
 set(EIGEN_ROOT   "C:/dev/eigen"             CACHE FILEPATH "Absolute path to Eigen installation.")
 
 # enable C++11

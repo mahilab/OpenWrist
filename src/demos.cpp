@@ -59,11 +59,15 @@ int main(int argc, char* argv[]) {
     // make Q8 USB that's configured for current control with VoltPAQ-X4
     // Hardware
     QuanserOptions qoptions;
-    qoptions.set_update_rate(QuanserOptions::UpdateRate::Fast);
+    //qoptions.set_update_rate(QuanserOptions::UpdateRate::Fast);
     qoptions.set_analog_output_mode(0, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     qoptions.set_analog_output_mode(1, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     qoptions.set_analog_output_mode(2, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     Q8Usb q8(qoptions);
+
+    if (!q8.open()) {
+        LOG(Fatal) << "Unable to open Q8-USB. Aborting OpenWrist demo application.";
+    }
 
     VoltPaqX4 vpx4(q8.DO[{ 0, 1, 2 }], q8.AO[{ 0, 1, 2 }], q8.DI[{0, 1, 2}], q8.AI[{ 0, 1, 2 }]);
 

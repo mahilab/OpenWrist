@@ -20,10 +20,7 @@
 
 #include <MEL/Mechatronics/Amplifier.hpp>
 #include <MEL/Daq/DaqBase.hpp>
-#include <MEL/Daq/Encoder.hpp>
-#include <MEL/Daq/Input.hpp>
-#include <MEL/Daq/Output.hpp>
-#include <MEL/Daq/Watchdog.hpp>
+#include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include <vector>
 
 
@@ -55,12 +52,12 @@ public:
                     const std::vector<DigitalInput::Channel>& fault_channels,
                     const std::vector<double>& sense_gains,
                     const std::vector<AnalogInput::Channel>& sense_channel,
-                    const std::vector<Encoder::Channel>& encoder_channels);
+                    const std::vector<QuanserEncoder::Channel>& encoder_channels);
 
     /// Generic Configuration 2 (given Amplifiers)
     OwConfiguration(DaqBase& daq,
                     Watchdog& watchdog,
-                    const std::vector<Encoder::Channel>& encoder_channels,
+                    const std::vector<QuanserEncoder::Channel>& encoder_channels,
                     const std::vector<Amplifier>& amplifiers);
 
 
@@ -70,7 +67,7 @@ private:
 
     DaqBase& daq_;                                     ///< DAQ controlling the OpenWrist
     Watchdog& watchdog_;                               ///< watchdog the OpenWrist is guarded by
-    std::vector<Encoder::Channel>  encoder_channels_;  ///< encoder channels that measure motor positions
+    std::vector<QuanserEncoder::Channel>  encoder_channels_;  ///< encoder channels that measure motor positions
     std::vector<Amplifier> amplifiers_;                ///< the amplifiers being use to control the OpenWrist's motors
 };
 

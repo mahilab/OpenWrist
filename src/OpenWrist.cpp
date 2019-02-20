@@ -193,7 +193,7 @@ void OpenWrist::calibrate(volatile std::atomic<bool>& stop) {
         config_.daq_.update_output();
 
         // check joint velocity limits
-        if (any_velocity_limit_exceeded() && any_torque_limit_exceeded()) {
+        if (any_velocity_limit_exceeded() || any_torque_limit_exceeded()) {
             stop = true;
             break;
         }

@@ -16,6 +16,7 @@
 #include <atomic>
 #include "Games/Jedi.hpp"
 #include "Games/OctagonSqueeze/OctagonSqueeze.hpp"
+#include "Games/Airplane.hpp"
 #include "HapticGuidance/Pendulum.hpp"
 #include "HapticTraining/BallAndBeam.hpp"
 #include "OpenWrist.hpp"
@@ -44,6 +45,7 @@ int main(int argc, char* argv[]) {
         ("o,octagon", "Runs OctagonSqueeze")
         ("p,pendulum", "Runs OpenWrist Pendulum demo")
         ("b,ballbeam", "Runs OpenWrist Ball and Beam demo")
+		("a,airplane", "Runs the airplane target game demo")
         ("d,debug", "Debug Mode (No Power)")
         ("h,help","Prints this help message");
 
@@ -124,6 +126,14 @@ int main(int argc, char* argv[]) {
         disable_realtime();
         return 0;
     }
+
+	// enter Airplane Demo
+	if (result.count("airplane")) {
+		Airplane game(q8, ow, ctrlc);
+		game.play();
+		disable_realtime();
+		return 0;
+	}
 
     // enter Pendulum demo
     if (result.count("pendulum") > 0) {

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.7)
 
-set(MEL_ROOT     "C:/Git/MEL"               CACHE FILEPATH "Absolute path to MEL.")
+set(MEL_ROOT     "C:/git/MEL"               CACHE FILEPATH "Absolute path to MEL.")
 set(EIGEN_ROOT   "C:/dev/eigen"             CACHE FILEPATH "Absolute path to Eigen installation.")
 
 # enable C++11
@@ -30,7 +30,7 @@ include_directories(
 # link MEL and other libs
 set(LINK_LIBS "")
 if(WIN32)
-    link_directories("${MEL_ROOT}/lib/Release")
+    link_directories("${MEL_ROOT}/build-msvc-x64")
     list(APPEND LINK_LIBS MEL)
 endif()
 
@@ -62,6 +62,8 @@ add_executable(demos ${OPENWRIST_SRC}
     src/Games/Jedi.hpp
     src/Games/OctagonSqueeze/OctagonSqueeze.hpp
     src/Games/OctagonSqueeze/OctagonSqueeze.cpp
+    src/Games/Airplane.cpp
+    src/Games/Airplane.hpp
     src/HapticGuidance/Pendulum.cpp
     src/HapticGuidance/Pendulum.hpp
     src/HapticTraining/BallAndBeam.cpp
@@ -101,5 +103,5 @@ target_link_libraries(xwing ${LINK_LIBS})
 add_executable(testing tests/testing.cpp ${OPENWRIST_SRC})
 target_link_libraries(testing ${LINK_LIBS})
 
-add_executable(dylan src/Dylan/main.cpp ${OPENWRIST_SRC})
-target_link_libraries(dylan ${LINK_LIBS})
+# add_executable(dylan src/Dylan/main.cpp ${OPENWRIST_SRC})
+# target_link_libraries(dylan ${LINK_LIBS})

@@ -18,7 +18,7 @@ OwConfiguration::OwConfiguration(
     const std::vector<DigitalInput::Channel>& fault_channels,
     const std::vector<double>& sense_gains,
     const std::vector<AnalogInput::Channel>& sense_channels,
-    const std::vector<Encoder::Channel>& encoder_channels)
+    const std::vector<QuanserEncoder::Channel>& encoder_channels)
     : daq_(daq),
       watchdog_(watchdog),
       encoder_channels_(encoder_channels) {
@@ -34,7 +34,7 @@ OwConfiguration::OwConfiguration(
 OwConfiguration::OwConfiguration(
     DaqBase& daq,
     Watchdog& watchdog,
-    const std::vector<Encoder::Channel>& encoder_channels,
+    const std::vector<QuanserEncoder::Channel>& encoder_channels,
     const std::vector<Amplifier>& amplifiers)
     : daq_(daq),
       watchdog_(watchdog),

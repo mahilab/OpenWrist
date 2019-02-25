@@ -20,6 +20,7 @@
 #include "HapticGuidance/Pendulum.hpp"
 #include "HapticTraining/BallAndBeam.hpp"
 #include "OpenWrist.hpp"
+#include "Cuff/Cuff.hpp"
 
 ctrl_bool ctrlc(false);
 bool handler(CtrlEvent event) {
@@ -77,6 +78,9 @@ int main(int argc, char* argv[]) {
     OwConfiguration config(q8, q8.watchdog, q8.encoder[{0, 1, 2}], vpx4.amplifiers);
     OpenWrist ow(config);
 
+    //create Cuff object 
+    //Cuff cuff("cuff",4);
+
     // run calibration script
     if (result.count("calibrate") > 0) {
         ow.calibrate(ctrlc);
@@ -129,6 +133,7 @@ int main(int argc, char* argv[]) {
 
 	// enter Airplane Demo
 	if (result.count("airplane")) {
+     //   cuff.enable();
 		Airplane game(q8, ow, ctrlc);
 		game.play();
 		disable_realtime();

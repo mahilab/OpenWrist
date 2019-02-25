@@ -1,38 +1,18 @@
 cmake_minimum_required(VERSION 3.7)
 
-set(MEL_ROOT     "C:/git/MEL"               CACHE FILEPATH "Absolute path to MEL.")
-set(EIGEN_ROOT   "C:/dev/eigen"             CACHE FILEPATH "Absolute path to Eigen installation.")
-
-# enable C++11
-set(CMAKE_CXX_STANDARD 11)
+set(EIGEN_ROOT "C:/dev/eigen" CACHE FILEPATH "Absolute path to Eigen installation.")
 
 # create project
-project(OpenWrist)
-
-# add configurations
-set(CMAKE_CONFIGURATION_TYPES Release)
+project(OpenWrist VERSION 0.1.0 LANGUAGES CXX)
 
 # set binary output location (optional, but recommended)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-# add definitons
-if(WIN32)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_WINSOCK_DEPRECATED_NO_WARNINGS)
-endif()
-
 # include directories (your includes and MEL's)
-include_directories(
-    "src"
-    "../MEL/include"
-    ${EIGEN_ROOT}
-)
+include_directories("src" ${EIGEN_ROOT})
 
-# link MEL and other libs
-set(LINK_LIBS "")
-if(WIN32)
-    link_directories("${MEL_ROOT}/build-msvc-x64")
-    list(APPEND LINK_LIBS MEL)
-endif()
+# find MEL
+find_package(MEL REQUIRED)
 
 # get common files
 set(OPENWRIST_SRC
@@ -68,7 +48,7 @@ add_executable(demos ${OPENWRIST_SRC}
     src/HapticGuidance/Pendulum.hpp
     src/HapticTraining/BallAndBeam.cpp
     src/HapticTraining/BallAndBeam.hpp)
-target_link_libraries(demos ${LINK_LIBS})
+target_link_libraries(demos MEL::quanser)
 
 # Haptics Symposium 2018 Experiments
 add_executable(haptic_guidance ${OPENWRIST_SRC} ${CUFF_SRC}
@@ -77,7 +57,7 @@ add_executable(haptic_guidance ${OPENWRIST_SRC} ${CUFF_SRC}
     src/HapticGuidance/HapticGuidance.cpp
     src/HapticGuidance/Pendulum.hpp
     src/HapticGuidance/Pendulum.cpp)
-target_link_libraries(haptic_guidance ${LINK_LIBS})
+target_link_libraries(haptic_guidance MEL::quanser)
 
 # ToH 2019 Experiments
 add_executable(haptic_training ${OPENWRIST_SRC} ${CUFF_SRC}
@@ -88,20 +68,15 @@ add_executable(haptic_training ${OPENWRIST_SRC} ${CUFF_SRC}
     src/HapticTraining/BallAndBeam.cpp
     src/HapticTraining/HapticTraining.hpp
     src/HapticTraining/HapticTraining.cpp)
-target_link_libraries(haptic_training ${LINK_LIBS})
+target_link_libraries(haptic_training MEL::quanser)
 
-# Myo EMG Control - ELEC 575 2018 Final Project
-# add_executable(myo ${OPENWRIST_SRC} src/Myo/main.cpp)
-# target_link_libraries(myo ${LINK_LIBS} myo64 MEII)
-
+# X-wing
 add_executable(xwing ${OPENWRIST_SRC}
     src/Games/XWing/main.cpp
     src/Games/XWing/XWing.hpp
     src/Games/XWing/XWing.cpp)
-target_link_libraries(xwing ${LINK_LIBS})
+target_link_libraries(xwing MEL::quanser)
 
+# Caz tests
 add_executable(testing tests/testing.cpp ${OPENWRIST_SRC})
-target_link_libraries(testing ${LINK_LIBS})
-
-# add_executable(dylan src/Dylan/main.cpp ${OPENWRIST_SRC})
-# target_link_libraries(dylan ${LINK_LIBS})
+target_link_libraries(testing MEL::quanser)

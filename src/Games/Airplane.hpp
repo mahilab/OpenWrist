@@ -4,6 +4,7 @@
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include <MEL/Core/Console.hpp>
 #include "OpenWrist.hpp"
+#include "Cuff/Cuff.hpp"
 
 using namespace mel;
 
@@ -14,6 +15,9 @@ public:
 		ctrl_bool& stop_flag);
 
 	void play();
+	void update_ow_torques();
+	void update_cuff_torques();
+	void initialize();
 
 private:
 	//-------------------------------------------------------------------------
@@ -21,6 +25,7 @@ private:
 	//-------------------------------------------------------------------------
 	MelShare msstates;
 	MelShare msunity;
+
 
 	std::vector<double> states;
 	std::vector<double> torque;
@@ -32,6 +37,7 @@ private:
 	// HARDWARE
 	Q8Usb& ow_daq_;
 	OpenWrist& ow_;
+	//Cuff& cuff_;
 
 	// STOP FLAG
 	ctrl_bool& stop_flag_;

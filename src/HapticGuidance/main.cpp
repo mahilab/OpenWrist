@@ -60,10 +60,12 @@ int main(int argc, char* argv[]) {
                 pos += 1;
             else if (Keyboard::is_key_pressed(Key::Down))
                 pos -= 1;
+           
             print(pos);
             cuff.set_motor_positions(-pos, pos, true);
             timer.wait();
         }
+    
         cuff.disable();
         return 0;
     }

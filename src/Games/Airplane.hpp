@@ -12,12 +12,15 @@ class Airplane{
 public:
 	Airplane(Q8Usb& ow_daq,
 		OpenWrist& ow,
+		Cuff& cuff,
 		ctrl_bool& stop_flag);
 
 	void play();
 	void update_ow_torques();
 	void update_cuff_torques();
 	void initialize();
+	void cinch_cuff();
+	void release_cuff();
 
 private:
 	//-------------------------------------------------------------------------
@@ -30,6 +33,7 @@ private:
 	std::vector<double> states;
 	std::vector<double> torque;
 	std::vector<double> gravitycomp;
+	std::vector<double> unitydata;
 
 	// HARDWARE TIMER
 	Timer timer_;
@@ -37,10 +41,20 @@ private:
 	// HARDWARE
 	Q8Usb& ow_daq_;
 	OpenWrist& ow_;
-	//Cuff& cuff_;
+	Cuff& cuff_;
 
 	// STOP FLAG
 	ctrl_bool& stop_flag_;
+
+	 // CUFF
+    const short int cuff_normal_force_ = 4;
+	const short int cuff_ff_gain_ = 250;
+    const short int cuff_fb_gain_ = 350;
+    short int offset[2];
+    short int scaling_factor[2];
+
+	short int cuff_ref_pos_1_;
+    short int cuff_ref_pos_2_;
 
 
 	///underdamped pd controllers for air flying

@@ -32,10 +32,10 @@ HapticGuidance::HapticGuidance(Q8Usb& q8_ow, OpenWrist& ow, Cuff& cuff, int subj
     timer_data_(2, 0.0),
     angles_data_(3, 0.0),
     scores_data_(4, 0.0),
-    ow_state_data_(3),
-    main_log_(WriterType::Buffered, true, 100),
-    trial_log_(WriterType::Buffered, true, 180000)
-{
+    ow_state_data_(3)
+    // main_log_(WriterType::Buffered, true, 100),
+    // trial_log_(WriterType::Buffered, true, 180000)
+{   
     // create subject folder
     if (subject_number < 10)
         directory_ = "S0" + stringify(subject_number) + "_C" + stringify(condition);
@@ -572,8 +572,8 @@ void HapticGuidance::sf_stop(const NoEventData*) {
     //     meii_daq_->disable();
     // }
 
-    main_log_.save_data(directory_, directory_, true);
-    main_log_.wait_for_save();
+//     main_log_.save_data(directory_, directory_, true);
+//     main_log_.wait_for_save();
 }
 
 //-----------------------------------------------------------------------------
@@ -581,7 +581,7 @@ void HapticGuidance::sf_stop(const NoEventData*) {
 //-----------------------------------------------------------------------------
 
 void HapticGuidance::init_logs() {
-
+    /*
     main_log_.set_header(
     {
         "Trial No.",
@@ -652,9 +652,12 @@ void HapticGuidance::init_logs() {
         //.add_col("CUFF Act. Motor Position 2")
         //.add_col("CUFF Act. Motor Current 1")
         //.add_col("CUFF ACt. Motor Current 2");
+    
+    */
 }
 
 void HapticGuidance::log_trial() {
+    /*
     std::vector<double> row;
     row.reserve(main_log_.get_col_count());
 
@@ -681,9 +684,11 @@ void HapticGuidance::log_trial() {
     std::string directory = directory_ + "\\_" + all_trial_blocks_[current_trial_index_];
 
     trial_log_.save_and_clear_data(filename, directory, true);
+    */
 }
 
 void HapticGuidance::log_step() {
+    /*
     std::vector<double> row;
     row.reserve(trial_log_.get_col_count());
 
@@ -707,6 +712,7 @@ void HapticGuidance::log_step() {
     //row.push_back(static_cast<double>(cuff_act_current_2_));
 
     trial_log_.buffer(row);
+    */
 }
 
 void HapticGuidance::wait_for_input() {

@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     OpenWrist ow(config);
 
     //create Cuff object 
-    //Cuff cuff("cuff",4);
+    Cuff cuff("cuff",4);
 
     // run calibration script
     if (result.count("calibrate") > 0) {
@@ -133,8 +133,7 @@ int main(int argc, char* argv[]) {
 
 	// enter Airplane Demo
 	if (result.count("airplane")) {
-     //   cuff.enable();
-		Airplane game(q8, ow, ctrlc);
+		Airplane game(q8, ow, cuff, ctrlc);
 		game.play();
 		disable_realtime();
 		return 0;

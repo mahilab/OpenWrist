@@ -47,7 +47,9 @@ add_executable(demos ${OPENWRIST_SRC}
     src/HapticGuidance/Pendulum.cpp
     src/HapticGuidance/Pendulum.hpp
     src/HapticTraining/BallAndBeam.cpp
-    src/HapticTraining/BallAndBeam.hpp)
+    src/HapticTraining/BallAndBeam.hpp
+    ${CUFF_SRC}
+)
 target_link_libraries(demos MEL::quanser)
 
 # Haptics Symposium 2018 Experiments

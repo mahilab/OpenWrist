@@ -4,9 +4,10 @@
 #include <MEL/Core/Device.hpp>
 #include <atomic>
 #include <MEL/Core/Types.hpp>
+#include <MEL/Core/NonCopyable.hpp>
 #include "comm_settings.h"
 
-class Cuff : public mel::Device{
+class Cuff : public mel::NonCopyable, public mel::Device {
 
 public:
 

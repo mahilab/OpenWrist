@@ -15,7 +15,7 @@
 #include <MEL/Utility/Options.hpp>
 #include <MEL/Devices/Windows/XboxController.hpp>
 #include <MEL/Math/Differentiator.hpp>
-#include <MEL/Logging/DataLogger.hpp>
+// #include <MEL/Logging/DataLogger.hpp>
 #include <fstream>
 #include "HapticTraining.hpp"
 
@@ -201,8 +201,8 @@ int main2(int argc, char* argv[]) {
     double cuff_angle = 0.0;
     Cuff cuff("cuff", 4);
 
-    DataLogger log(WriterType::Buffered, false);
-    log.set_header({ "q1", "q2","q1d", "q2d", "q1dd", "q2dd", "tau1", "tau2", "k1", "k2", "u1", "u2" });
+    // DataLogger log(WriterType::Buffered, false);
+    // log.set_header({ "q1", "q2","q1d", "q2d", "q1dd", "q2dd", "tau1", "tau2", "k1", "k2", "u1", "u2" });
 
     if (result.count("cuff")) {
         prompt("Press ENTER to tension CUFF");
@@ -311,18 +311,18 @@ int main2(int argc, char* argv[]) {
 
 
         // record user data when D held
-        if (Keyboard::is_key_pressed(Key::D) && !recording) {
-            log.clear_data();
-            log.buffer(fp.data_state_);
-            recording = true;
-        }
-        else if (Keyboard::is_key_pressed(Key::D) && recording) {
-            log.buffer(fp.data_state_);
-        }
-        else if (recording) {
-            log.save_data("data", ".", true);
-            recording = false;
-        }
+        // if (Keyboard::is_key_pressed(Key::D) && !recording) {
+        //     log.clear_data();
+        //     log.buffer(fp.data_state_);
+        //     recording = true;
+        // }
+        // else if (Keyboard::is_key_pressed(Key::D) && recording) {
+        //     log.buffer(fp.data_state_);
+        // }
+        // else if (recording) {
+        //     log.save_data("data", ".", true);
+        //     recording = false;
+        // }
 
         // CUFF control
         if (result.count("cuff")) {

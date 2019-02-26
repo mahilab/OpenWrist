@@ -7,7 +7,7 @@
 #include "Cuff/Cuff.hpp"
 #include "OpenWrist.hpp"
 #include "Pendulum.hpp"
-#include <MEL/Logging/DataLogger.hpp>
+// #include <MEL/Logging/DataLogger.hpp>
 
 
 //----------------------------------------------------------------------------
@@ -290,8 +290,8 @@ public:
     bool auto_stop_ = false;
 
     // DATA LOGGING
-    DataLogger main_log_;
-    DataLogger trial_log_;
+    // DataLogger main_log_;
+    // DataLogger trial_log_;
     //DataLog main_log_ = DataLog("main_log", true, 100);
     //DataLog trial_log_ = DataLog("trial_log", false, 180000);
     void init_logs();

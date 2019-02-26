@@ -1,7 +1,7 @@
 #include "Cuff/Cuff.hpp"
 #include <MEL/Core/Console.hpp>
 #include <MEL/Communications/MelShare.hpp>
-#include "FurutaPendulum.hpp"
+#include "Simulations/FurutaPendulum.hpp"
 #include <MEL/Mechatronics/PdController.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Logging/Log.hpp>

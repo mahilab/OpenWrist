@@ -38,36 +38,27 @@ set(CUFF_SRC
 # Various Demos and Utilities
 add_executable(demos ${OPENWRIST_SRC}
     src/demos.cpp
-    src/Games/Jedi.cpp
-    src/Games/Jedi.hpp
+    src/Games/Jedi/Jedi.cpp
+    src/Games/Jedi/Jedi.hpp
     src/Games/OctagonSqueeze/OctagonSqueeze.hpp
     src/Games/OctagonSqueeze/OctagonSqueeze.cpp
-    src/Games/Airplane.cpp
-    src/Games/Airplane.hpp
-    src/HapticGuidance/Pendulum.cpp
-    src/HapticGuidance/Pendulum.hpp
-    src/HapticTraining/BallAndBeam.cpp
-    src/HapticTraining/BallAndBeam.hpp
+    src/Games/Airplane/Airplane.cpp
+    src/Games/Airplane/Airplane.hpp
+    src/Simulations/Pendulum.cpp
+    src/Simulations/Pendulum.hpp
+    src/Simulations/BallAndBeam.cpp
+    src/Simulations/BallAndBeam.hpp
     ${CUFF_SRC}
 )
 target_link_libraries(demos MEL::quanser)
 
-# Haptics Symposium 2018 Experiments
-add_executable(haptic_guidance ${OPENWRIST_SRC} ${CUFF_SRC}
-    src/HapticGuidance/main.cpp
-    src/HapticGuidance/HapticGuidance.hpp
-    src/HapticGuidance/HapticGuidance.cpp
-    src/HapticGuidance/Pendulum.hpp
-    src/HapticGuidance/Pendulum.cpp)
-target_link_libraries(haptic_guidance MEL::quanser)
-
 # ToH 2019 Experiments
 add_executable(haptic_training ${OPENWRIST_SRC} ${CUFF_SRC}
     src/HapticTraining/main.cpp
-    src/HapticTraining/FurutaPendulum.hpp
-    src/HapticTraining/FurutaPendulum.cpp
-    src/HapticTraining/BallAndBeam.hpp
-    src/HapticTraining/BallAndBeam.cpp
+    src/Simulations/FurutaPendulum.hpp
+    src/Simulations/FurutaPendulum.cpp
+    src/Simulations/BallAndBeam.hpp
+    src/Simulations/BallAndBeam.cpp
     src/HapticTraining/HapticTraining.hpp
     src/HapticTraining/HapticTraining.cpp)
 target_link_libraries(haptic_training MEL::quanser)

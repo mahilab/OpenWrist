@@ -11,14 +11,14 @@
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Communications/MelShare.hpp>
 #include <MEL/Math/Functions.hpp>
-#include "HapticGuidance/Pendulum.hpp"
-#include "Games/Jedi.hpp"
+#include "Simulations/Pendulum.hpp"
+#include "Games/Jedi/Jedi.hpp"
 #include <atomic>
-#include "Games/Jedi.hpp"
+#include "Games/Jedi/Jedi.hpp"
 #include "Games/OctagonSqueeze/OctagonSqueeze.hpp"
-#include "Games/Airplane.hpp"
-#include "HapticGuidance/Pendulum.hpp"
-#include "HapticTraining/BallAndBeam.hpp"
+#include "Games/Airplane/Airplane.hpp"
+#include "Simulations/Pendulum.hpp"
+#include "Simulations/BallAndBeam.hpp"
 #include "OpenWrist.hpp"
 #include "Cuff/Cuff.hpp"
 

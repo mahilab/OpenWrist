@@ -7,7 +7,7 @@
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Utility/StateMachine.hpp>
 #include "Cuff/Cuff.hpp"
-#include "FurutaPendulum.hpp"
+#include "Simulations/FurutaPendulum.hpp"
 #include "MEL/Communications/MelShare.hpp"
 #include "OpenWrist.hpp"
 

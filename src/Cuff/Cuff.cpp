@@ -16,54 +16,48 @@ Cuff::~Cuff() {
 }
 
 bool Cuff::on_enable() {
-
-    if (!is_enabled()) {
-        std::cout << "Enabling CUFF ...";
-        // attempt to open port
-        open_port();
-        if (port_opened_) {
-            /* attempt to activate communications */
-            char activated = 0;
-            commActivate(&comm_settings_t_, CUFF_ID, 1);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            commGetActivate(&comm_settings_t_, CUFF_ID, &activated);
-            if (activated) {
-                // set initial motor positions
-                short int motpos_zero[2];
-                reference_motor_positions_[0] = 0;
-                reference_motor_positions_[1] = 0;
-                commSetInputs(&comm_settings_t_, CUFF_ID, motpos_zero);
-                // start IO thread
-                poll_io_ = true;
-                io_thread_ = std::thread(&Cuff::io_thread_func, this);
-                std::cout << "Done" << std::endl;
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                return true;
-            }
-            else {
-                std::cout << "Failed. Could not activate communications." << std::endl;
-                return false;
-            }
+    std::cout << "Enabling CUFF ...";
+    // attempt to open port
+    open_port();
+    if (port_opened_) {
+        /* attempt to activate communications */
+        char activated = 0;
+        commActivate(&comm_settings_t_, CUFF_ID, 1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        commGetActivate(&comm_settings_t_, CUFF_ID, &activated);
+        if (activated) {
+            // set initial motor positions
+            short int motpos_zero[2];
+            reference_motor_positions_[0] = 0;
+            reference_motor_positions_[1] = 0;
+            commSetInputs(&comm_settings_t_, CUFF_ID, motpos_zero);
+            // start IO thread
+            poll_io_ = true;
+            io_thread_ = std::thread(&Cuff::io_thread_func, this);
+            std::cout << "Done" << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            return true;
         }
         else {
-            std::cout << "Failed. Could not open port." << std::endl;
+            std::cout << "Failed. Could not activate communications." << std::endl;
             return false;
         }
+    }
+    else {
+        std::cout << "Failed. Could not open port." << std::endl;
+        return false;
     }
 }
 
 bool Cuff::on_disable() {
-    if (is_enabled()) {
-        std::cout << "Disabling CUFF ... ";
-        set_motor_positions(0, 0, false);
-        commActivate(&comm_settings_t_, CUFF_ID, 0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        poll_io_ = false;
-        io_thread_.join();
-        std::cout << "Done" << std::endl;
-        return true;
-    }
-    return false;
+    std::cout << "Disabling CUFF ... ";
+    set_motor_positions(0, 0, false);
+    commActivate(&comm_settings_t_, CUFF_ID, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    poll_io_ = false;
+    io_thread_.join();
+    std::cout << "Done" << std::endl;
+    return true;
 }
 
 void Cuff::open_port() {

@@ -60,7 +60,8 @@ add_executable(haptic_training ${OPENWRIST_SRC} ${CUFF_SRC}
     src/Simulations/BallAndBeam.hpp
     src/Simulations/BallAndBeam.cpp
     src/HapticTraining/HapticTraining.hpp
-    src/HapticTraining/HapticTraining.cpp)
+    src/HapticTraining/HapticTraining.cpp
+    src/HapticTraining/main2.cpp)
 target_link_libraries(haptic_training MEL::quanser)
 
 # X-wing

@@ -159,7 +159,7 @@ public:
     short int cuff_ref_pos_2_;
     const short int cuff_normal_force_ = 3;
     const short int cuff_ff_gain_ = 250;
-    const short int cuff_fb_gain_ = 175;
+    const short int cuff_fb_gain_ = 1600;
     short int offset_[2];
     short int scaling_factor_[2];
     double cuff_angle_ = 0.0;
@@ -178,10 +178,11 @@ public:
     void render_pendulum();
     void render_walls();
     void lock_joints();
+    void cuff_balance();
 
     Time best_up_time = Time::Zero;
 
-    /// MELSHARS
+    /// MELSHARES
     MelShare ms_scores_;
     std::vector<double> data_scores_;
 

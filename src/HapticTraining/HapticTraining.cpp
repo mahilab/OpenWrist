@@ -86,7 +86,7 @@ HapticTraining::HapticTraining(Q8Usb& q8,
     // seed random number generator with subject num
     srand(subject_number);
 
-    // build the experimemnt
+    // build the experiment
     build_experiment();
 
     // set the current trial index
@@ -135,7 +135,7 @@ void HapticTraining::sf_start(const NoEventData*) {
     // enable CUFF
     if (condition_ == OW_CUFF) {
         cuff_.enable();
-        cuff_.pretension(cuff_normal_force_, offset_, scaling_factor_);
+        cuff_.cazpretension(cuff_normal_force_, offset_, scaling_factor_);
         cuff_.set_motor_positions(offset_[0], offset_[1], true);
     }
 
@@ -156,7 +156,7 @@ void HapticTraining::sf_balance(const NoEventData*) {
     fp_.reset(0, 0, 0, 0);
 
     bool balanced = true;
-    Time unblanaced_time = seconds(1.0);
+    Time unbalanced_time = seconds(1.0);
     Clock unbalanced_clock;
 
     Time curr_up_time = Time::Zero;
@@ -170,9 +170,11 @@ void HapticTraining::sf_balance(const NoEventData*) {
         render_walls();
         lock_joints();
 
+        cuff_balance();
+
         // logic
         if (!fp_.upright) {
-            if (unbalanced_clock.get_elapsed_time() > unblanaced_time)
+            if (unbalanced_clock.get_elapsed_time() > unbalanced_time)
                 balanced = false;
             up_time_clock.restart();
         }
@@ -314,10 +316,13 @@ void HapticTraining::sf_reset(const NoEventData*) {
 
 void HapticTraining::sf_stop(const NoEventData*) {
     LOG(Info) << "Stopping Experiment";
+    cuff_.disable();
+    ow_.disable();
+    q8_.disable();
 }
 
 //==============================================================================
-// FUNCTIONS
+// OPENWRIST FUNCTIONS
 //==============================================================================
 
 void HapticTraining::render_pendulum() {
@@ -351,3 +356,22 @@ void HapticTraining::lock_joints() {
         0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
 }
 
+//==============================================================================
+// CUFF FUNCTIONS
+//==============================================================================
+void HapticTraining::cuff_balance() {
+            
+    if (fp_.upright) {
+        cuff_angle_ = -(-1.0 * fp_.q1 + 4.6172 * fp_.q2 - 0.9072 * fp_.q1d + 1.2218 * fp_.q2d) * cuff_fb_gain_;
+        }
+    else
+        cuff_angle_ = 0.0;
+           
+    cuff_ref_pos_1_ = offset_[0] - cuff_angle_;
+    cuff_ref_pos_2_ = offset_[1] - cuff_angle_;
+
+    //cuff_ref_pos_1_ = saturate(cuff_ref_pos_1_, -5000-offset_[0], 5000-offset_[0]);
+    //cuff_ref_pos_2_ = saturate(cuff_ref_pos_2_, -5000-offset_[1], 5000-offset_[1]);
+
+    cuff_.set_motor_positions(cuff_ref_pos_1_, cuff_ref_pos_2_, true);
+}

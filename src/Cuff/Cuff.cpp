@@ -138,7 +138,7 @@ void Cuff::pretension(int force_newtons, short int* motpos_zero, short int* scal
 	motpos_zero[1] = 0;
 
 	tstart = std::chrono::high_resolution_clock::now();
-
+   
 	for (int i = 0; i < 80; i++) {
         get_motor_currents(act_mot_cur_0, act_mot_cur_1, false);
 		motpos_zero[0] = motpos_zero[0] - (10 * (50 - act_mot_cur_0));
@@ -151,6 +151,7 @@ void Cuff::pretension(int force_newtons, short int* motpos_zero, short int* scal
 		std::this_thread::sleep_for(std::chrono::microseconds (50000 - elapsed_time_us));
 		tstart = std::chrono::high_resolution_clock::now();
 	}
+
 	std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
 	stepmot = 0;
@@ -183,6 +184,84 @@ void Cuff::pretension(int force_newtons, short int* motpos_zero, short int* scal
     motpos_zero[0] = motpos_zero[0] - (0.1138*pow(force_newtons, 3) - 5.204*pow(force_newtons, 2) + 89.22*force_newtons + 0) * scaling_factor[0];
     motpos_zero[1] = motpos_zero[1] + (0.1138*pow(force_newtons, 3) - 5.204*pow(force_newtons, 2) + 89.22*force_newtons + 0) * scaling_factor[1];
     set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+    std::cout << "Done" << std::endl;
+}
+
+void Cuff::cazpretension(int force_newtons, short int* motpos_zero, short int* scaling_factor) {
+
+    std::cout << "Pretensioning CUFF ... ";
+    short int act_mot_pos_0, act_mot_pos_1, act_mot_cur_0, act_mot_cur_1;//true values to read
+    int MAX_VAL_CAR_0 = 570;
+    int MAX_VAL_CAR_1 = 570;
+
+	motpos_zero[0] = 0;
+	motpos_zero[1] = 0;
+
+    get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+    while(act_mot_cur_0<50 || act_mot_cur_1> -50) {//start with increments of 600
+            get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+            if(act_mot_cur_0<50)
+            motpos_zero[0] = motpos_zero[0] - 600;
+            if(act_mot_cur_1>-50)
+            motpos_zero[1] = motpos_zero[1] + 600;
+
+           // std::cout << act_mot_cur_0 << '\t' << act_mot_cur_1 << '\t' << motpos_zero[0] << '\t' << motpos_zero[1] << '\n';
+            set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        motpos_zero[0] = motpos_zero[0] + 1200;//back up a bit
+        motpos_zero[1] = motpos_zero[1] - 1200;
+        set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+	while(act_mot_cur_0<50 || act_mot_cur_1> -50) {//then do increments of 300
+        get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+        if(act_mot_cur_0<50)
+		motpos_zero[0] = motpos_zero[0] - 300;
+        if(act_mot_cur_1>-50)
+		motpos_zero[1] = motpos_zero[1] + 300;
+
+       // std::cout << act_mot_cur_0 << '\t' << act_mot_cur_1 << '\t' << motpos_zero[0] << '\t' << motpos_zero[1] << '\n';
+        set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+    motpos_zero[0] = motpos_zero[0] + 600;//back up a bit
+	motpos_zero[1] = motpos_zero[1] - 600;
+    set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+    while(act_mot_cur_0<50 || act_mot_cur_1> -50) {//now go with increments of 100
+        get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+        if(act_mot_cur_0<50)
+		motpos_zero[0] = motpos_zero[0] - 100;
+        if(act_mot_cur_1>-50)
+		motpos_zero[1] = motpos_zero[1] + 100;
+
+       // std::cout << act_mot_cur_0 << '\t' << act_mot_cur_1 << '\t' << motpos_zero[0] << '\t' << motpos_zero[1] << '\n';
+        set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
+    short int motpos[2];
+    //motpos[0] = motpos_zero[0] - 20000;
+    //motpos[1] = motpos_zero[1] + 20000;
+    //set_motor_positions(motpos[0], motpos[1], false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    get_motor_currents(act_mot_pos_0, act_mot_pos_1, false);
+    scaling_factor[0] = abs((act_mot_pos_0 - motpos_zero[0]) / MAX_VAL_CAR_0);
+    scaling_factor[1] = abs((act_mot_pos_1 - motpos_zero[1]) / MAX_VAL_CAR_1);
+    //set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
+    //motpos_zero[0] = motpos_zero[0] - (0.1138*pow(force_newtons, 3) - 5.204*pow(force_newtons, 2) + 89.22*force_newtons + 0) * scaling_factor[0];
+    //motpos_zero[1] = motpos_zero[1] + (0.1138*pow(force_newtons, 3) - 5.204*pow(force_newtons, 2) + 89.22*force_newtons + 0) * scaling_factor[1];
+    //set_motor_positions(motpos_zero[0], motpos_zero[1], false);
     std::cout << "Done" << std::endl;
 }
 

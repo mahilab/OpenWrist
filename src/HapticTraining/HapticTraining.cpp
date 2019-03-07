@@ -145,7 +145,7 @@ void HapticTraining::sf_start(const NoEventData*) {
         ow_.enable();
         q8_.watchdog.start();
     }
-
+    
     // transition to next state
     event(ST_RESET);
 }
@@ -173,7 +173,7 @@ void HapticTraining::sf_balance(const NoEventData*) {
         cuff_balance();
 
         // logic
-        if (!fp_.upright) {
+        if (!fp_.balance_upright) {
             if (unbalanced_clock.get_elapsed_time() > unbalanced_time)
                 balanced = false;
             up_time_clock.restart();
@@ -187,8 +187,8 @@ void HapticTraining::sf_balance(const NoEventData*) {
         }
         data_scores_[0] = 0.0;
         data_scores_[1] = data_scores_[1];
-        data_scores_[2] = 0.05 * curr_up_time.as_seconds() / (1 + 0.05 * curr_up_time.as_seconds());
-        data_scores_[3] = 0.05 * best_up_time.as_seconds() / (1 + 0.05 * best_up_time.as_seconds());
+        data_scores_[2] = 0.05 * curr_up_time.as_seconds();// / (1 + 0.05 * curr_up_time.as_seconds());
+        data_scores_[3] = 0.05 * best_up_time.as_seconds();// / (1 + 0.05 * best_up_time.as_seconds());
         ms_scores_.write_data(data_scores_);
 
         // check limits
@@ -289,6 +289,12 @@ void HapticTraining::sf_reset(const NoEventData*) {
         timer_.wait();
     }
 
+    change_pendulum(trial);//swap pend every trial
+    trial++;
+    if(trial>3)
+        trial=1;
+
+
     while (!ctrlc && timer_.get_elapsed_time() < seconds(2.0)) {
         q8_.watchdog.kick();
         q8_.update_input();
@@ -356,12 +362,27 @@ void HapticTraining::lock_joints() {
         0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
 }
 
+void HapticTraining::change_pendulum(int difficulty){//1-easy 2-medium 3-hard
+    if(difficulty==1)
+        fp_.l2 = 1.4;
+    if(difficulty==2)
+        fp_.l2 = 1;
+    if(difficulty==3)
+        fp_.l2 = 0.5;
+    fp_.reset();
+    fp_.update_properties();
+    fp_.write_properties();
+
+
+    
+}
+
 //==============================================================================
 // CUFF FUNCTIONS
 //==============================================================================
 void HapticTraining::cuff_balance() {
             
-    if (fp_.upright) {
+    if (fp_.balance_upright) {
         cuff_angle_ = -(-1.0 * fp_.q1 + 4.6172 * fp_.q2 - 0.9072 * fp_.q1d + 1.2218 * fp_.q2d) * cuff_fb_gain_;
         }
     else

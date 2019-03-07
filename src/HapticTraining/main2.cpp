@@ -261,7 +261,7 @@ int main2(int argc, char* argv[]) {
         // CUFF control
         if (result.count("cuff")) {
             if (result.count("up")) {
-                if (fp.upright) {
+                if (fp.invert_upright) {
                     cuff_angle = -(-1.0 * fp.q1 + 4.6172 * fp.q2 - 0.9072 * fp.q1d + 1.2218 * fp.q2d) * 5000;
                 }
             }
@@ -285,7 +285,7 @@ int main2(int argc, char* argv[]) {
 
         // Track time
         if (result.count("up")) {
-            if (fp.upright) {
+            if (fp.invert_upright) {
                 curr_up_time = up_time_clock.get_elapsed_time();
                 if (curr_up_time > best_up_time) {
                     best_up_time = curr_up_time;

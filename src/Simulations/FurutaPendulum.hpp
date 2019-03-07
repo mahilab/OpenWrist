@@ -23,6 +23,9 @@ public:
     /// Reads properties from external applications (Unity)
     void read_properties();
 
+    /// Writes properties to external applications (Unity)
+    void write_properties();
+
     /// Write state
     void write_state();
 
@@ -54,7 +57,9 @@ public:
 
     std::vector<double> data_props_, data_state_;
 
-    bool upright;
+    bool invert_upright;
+
+    bool balance_upright;
 
 private:
 

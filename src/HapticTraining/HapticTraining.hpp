@@ -163,6 +163,7 @@ public:
     short int offset_[2];
     short int scaling_factor_[2];
     double cuff_angle_ = 0.0;
+    short int trial=1;
 
     /// PENDULUM
     FurutaPendulum fp_;
@@ -179,6 +180,7 @@ public:
     void render_walls();
     void lock_joints();
     void cuff_balance();
+    void change_pendulum(int);
 
     Time best_up_time = Time::Zero;
 

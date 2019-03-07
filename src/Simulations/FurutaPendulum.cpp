@@ -7,16 +7,7 @@ FurutaPendulum::FurutaPendulum() :
     data_state_(12)
 {
     if (ms_props_.read_data().size() != 9) {
-        data_props_[0] = g;
-        data_props_[1] = rho_link;
-        data_props_[2] = rho_mass;
-        data_props_[3] = r_link;
-        data_props_[4] = r_mass;
-        data_props_[5] = l1;
-        data_props_[6] = l2;
-        data_props_[7] = b1;
-        data_props_[8] = b2;
-        ms_props_.write_data(data_props_);
+        write_properties();
     }
     else {
         read_properties();
@@ -91,6 +82,19 @@ void FurutaPendulum::read_properties() {
     b2 = data_props_[8];
 }
 
+void FurutaPendulum::write_properties() {
+    data_props_[0] = g;
+    data_props_[1] = rho_link;
+    data_props_[2] = rho_mass;
+    data_props_[3] = r_link;
+    data_props_[4] = r_mass;
+    data_props_[5] = l1;
+    data_props_[6] = l2;
+    data_props_[7] = b1;
+    data_props_[8] = b2;
+    ms_props_.write_data(data_props_);
+}
+
 void FurutaPendulum::write_state() {
     data_state_[0] = q1;
     data_state_[1] = q2;
@@ -109,10 +113,17 @@ void FurutaPendulum::write_state() {
 
 void FurutaPendulum::determine_upright() {
     if (u2 > 0.9 *c2*g*m2 && k2 < 0.05) {
-        upright = true;
+        invert_upright = true;
     }
     else {
-        upright = false;
+        invert_upright = false;
+    }
+
+    if (u2 > 0.9 *c2*g*m2 && k2 < 0.1) {
+        balance_upright = true;
+    }
+    else {
+        balance_upright = false;
     }
 }
 

@@ -76,11 +76,9 @@ int main(int argc, char* argv[]) {
         short int pos = 0;
         cuff.enable();
 
-        const short int cuff_normal_force = 3;
         short int offset[2];
-        short int scaling_factor[2];
 
-        cuff.cazpretension(cuff_normal_force,offset,scaling_factor);
+        cuff.pretension(offset);
         
         while (!Keyboard::is_key_pressed(Key::Escape)) {
 
@@ -93,6 +91,7 @@ int main(int argc, char* argv[]) {
             timer.wait();
         }
         cuff.disable();
+       
     }
 
     if(!input.count("debug")){

@@ -94,7 +94,7 @@ HapticTraining::HapticTraining(Q8Usb& q8,
         if (start_trial == all_trial_tags_[i])
             current_trial_index_ = i - 1;
     }
-
+    
     LOG(Info) << "Starting Experiment";
     LOG(Info) << "Subject Number: " << subject_number;
     LOG(Info) << "Condition: " << condition_;
@@ -121,10 +121,13 @@ void HapticTraining::build_experiment() {
         }
     }
 
-    // // print results of build
-    // for (int i = 0; i < num_trials_total_; ++i) {
-    //     print(all_trial_tags_[i] + " " + all_trial_blocks_[i]);
-    // }
+     //// print results of build
+     //for (int i = 0; i < num_trials_total_; ++i) {
+     //    print(all_trial_tags_[i] + " " + all_trial_blocks_[i]);
+     //}
+
+
+
 }
 
 void HapticTraining::sf_start(const NoEventData*) {
@@ -135,7 +138,7 @@ void HapticTraining::sf_start(const NoEventData*) {
     // enable CUFF
     if (condition_ == OW_CUFF) {
         cuff_.enable();
-        cuff_.cazpretension(cuff_normal_force_, offset_, scaling_factor_);
+        cuff_.pretension(offset_);
         cuff_.set_motor_positions(offset_[0], offset_[1], true);
     }
 
@@ -153,7 +156,8 @@ void HapticTraining::sf_start(const NoEventData*) {
 void HapticTraining::sf_balance(const NoEventData*) {
 
     // reset pendulum
-    fp_.reset(0, 0, 0, 0);
+    double pert = (double)rand()/(double)RAND_MAX*0.04-0.02;
+    fp_.reset(0,0,0,pert);//gives small random perturbation to joint 2
 
     bool balanced = true;
     Time unbalanced_time = seconds(1.0);
@@ -187,8 +191,8 @@ void HapticTraining::sf_balance(const NoEventData*) {
         }
         data_scores_[0] = 0.0;
         data_scores_[1] = data_scores_[1];
-        data_scores_[2] = 0.05 * curr_up_time.as_seconds();// / (1 + 0.05 * curr_up_time.as_seconds());
-        data_scores_[3] = 0.05 * best_up_time.as_seconds();// / (1 + 0.05 * best_up_time.as_seconds());
+        data_scores_[2] = 0.05 * curr_up_time.as_seconds();
+        data_scores_[3] = 0.05 * best_up_time.as_seconds();
         ms_scores_.write_data(data_scores_);
 
         // check limits
@@ -288,11 +292,11 @@ void HapticTraining::sf_reset(const NoEventData*) {
         q8_.update_output();
         timer_.wait();
     }
-
-    change_pendulum(trial);//swap pend every trial
+    
+    difficulty=rand()% 3 + 1;
+    change_pendulum(difficulty);//swap pend every trial randomly
     trial++;
-    if(trial>3)
-        trial=1;
+    LOG(Info) << "Trial:"<<trial << " Difficulty:"<<difficulty<< " Score:" << score2;
 
 
     while (!ctrlc && timer_.get_elapsed_time() < seconds(2.0)) {
@@ -333,6 +337,7 @@ void HapticTraining::sf_stop(const NoEventData*) {
 
 void HapticTraining::render_pendulum() {
     tau_ = K_player_ * (ow_[1].get_position() - fp_.q1) + B_player_ * (ow_[1].get_velocity() - fp_.q1d);
+ 
     fp_.update(timer_.get_elapsed_time(), tau_);
     ow_[1].set_torque(-fp_.tau1);
 }
@@ -362,12 +367,12 @@ void HapticTraining::lock_joints() {
         0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
 }
 
-void HapticTraining::change_pendulum(int difficulty){//1-easy 2-medium 3-hard
-    if(difficulty==1)
+void HapticTraining::change_pendulum(int difficulty_){//1-easy 2-medium 3-hard
+    if(difficulty_==1)
         fp_.l2 = 1.4;
-    if(difficulty==2)
+    if(difficulty_==2)
         fp_.l2 = 1;
-    if(difficulty==3)
+    if(difficulty_==3)
         fp_.l2 = 0.5;
     fp_.reset();
     fp_.update_properties();
@@ -383,7 +388,7 @@ void HapticTraining::change_pendulum(int difficulty){//1-easy 2-medium 3-hard
 void HapticTraining::cuff_balance() {
             
     if (fp_.balance_upright) {
-        cuff_angle_ = -(-1.0 * fp_.q1 + 4.6172 * fp_.q2 - 0.9072 * fp_.q1d + 1.2218 * fp_.q2d) * cuff_fb_gain_;
+        cuff_angle_ = -(lqr_gains[difficulty-1][0]*fp_.q1 + lqr_gains[difficulty-1][1]*fp_.q2 + lqr_gains[difficulty-1][2]*fp_.q1d + lqr_gains[difficulty-1][3]*fp_.q2d)*cuff_fb_gain_;
         }
     else
         cuff_angle_ = 0.0;

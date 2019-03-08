@@ -127,11 +127,9 @@ int main2(int argc, char* argv[]) {
     // init cuff
     short int cuff_ref_pos_1_;
     short int cuff_ref_pos_2_;
-    const short int cuff_normal_force_ = 2.5;
     const short int cuff_ff_gain_ = 250;
     const short int cuff_fb_gain_ = 175;
     short int offset[2];
-    short int scaling_factor[2];
     double cuff_angle = 0.0;
     Cuff cuff("cuff", 4);
 
@@ -141,7 +139,7 @@ int main2(int argc, char* argv[]) {
     if (result.count("cuff")) {
         prompt("Press ENTER to tension CUFF");
         cuff.enable();
-        cuff.pretension(cuff_normal_force_, offset, scaling_factor);
+        cuff.pretension(offset);
         cuff.set_motor_positions(offset[0], offset[1], true);
     }
 

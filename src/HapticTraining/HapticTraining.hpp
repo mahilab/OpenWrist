@@ -128,7 +128,7 @@ public:
     std::array<int, 5> num_blocks_ = {0, 0, 0, 0, 0};
 
     // NUMBER OF TRIALS PER BLOCK TYPE PER BLOCK NUMBER (SET MANUALLY)
-    // [ FAMILIARIZATION, TRAINING, BREAK, GENERALIZATION ]
+    // [ FAMILIARIZATION, EVALUATION, TRAINING, BREAK, GENERALIZATION ]
     const std::array<int, 5> num_trials_ = {1, 3, 12, 1, 12};
 
     // EXPERIMENT TRIAL ORDERING
@@ -155,15 +155,20 @@ public:
     PdController pd1_;
     PdController pd2_;
 
-    short int cuff_ref_pos_1_;
-    short int cuff_ref_pos_2_;
-    const short int cuff_normal_force_ = 3;
+    const double lqr_gains[3][4] = {//numbers taken from matlab lqr script
+        {-1.00, 5.5835, -1.0031, 1.7767},//easy k1-k4
+        {-1.00, 4.6172, -0.9072, 1.2218},//med k1-k4
+        {-1.00, 3.4889, -0.7811, 0.6137}//hard k1-k4
+    };
     const short int cuff_ff_gain_ = 250;
     const short int cuff_fb_gain_ = 1600;
+    short int cuff_ref_pos_1_;
+    short int cuff_ref_pos_2_;
     short int offset_[2];
-    short int scaling_factor_[2];
     double cuff_angle_ = 0.0;
-    short int trial=1;
+    
+    short int trial=0;
+    short int difficulty=1;
 
     /// PENDULUM
     FurutaPendulum fp_;

@@ -77,7 +77,7 @@ void Airplane::initialize(){
 	cuff_.enable();
 
 	//constrict cuff to user's forearm
-	cuff_.pretension(cuff_normal_force_,offset,scaling_factor);
+	cuff_.pretension(offset);
 
 	release_cuff();
 

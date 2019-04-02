@@ -6,6 +6,7 @@
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include <MEL/Devices/VoltPaqX4.hpp>
 #include <MEL/Utility/StateMachine.hpp>
+#include <MEL/Logging/Csv.hpp>
 #include "Cuff/Cuff.hpp"
 #include "Simulations/FurutaPendulum.hpp"
 #include "MEL/Communications/MelShare.hpp"
@@ -165,6 +166,7 @@ public:
     short int cuff_ref_pos_1_;
     short int cuff_ref_pos_2_;
     short int offset_[2];
+    double opt_torque_ = 0.0;
     double cuff_angle_ = 0.0;
     
     short int trial=0;
@@ -186,14 +188,19 @@ public:
     void lock_joints();
     void cuff_balance();
     void change_pendulum(int);
+    void write_to_log();
 
     Time best_up_time = Time::Zero;
 
     /// MELSHARES
     MelShare ms_scores_;
     std::vector<double> data_scores_;
-
     MelShare ms_active;
+
+    //LOGGING
+    Csv logcsv;
+    std::vector<double> logdata;
+    const int loops_per_log = 10;
 
 
 };

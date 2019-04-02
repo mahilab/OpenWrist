@@ -1,9 +1,11 @@
 #include "HapticTraining.hpp"
 #include <MEL/Logging/Log.hpp>
+#include <MEL/Logging/Csv.hpp>
 #include <MEL/Core/Console.hpp>
 #include <random>
 #include <fstream>
 #include <MEL/Devices/Windows/Keyboard.hpp>
+
 
 bool read_csv(std::string filename, std::string directory, int row_offset, std::vector<std::vector<double>>& output) {
     output.clear();
@@ -70,6 +72,8 @@ HapticTraining::HapticTraining(Q8Usb& q8,
       timer_(hertz(1000)),
       ms_scores_("scores"),
       ms_active("active"),
+      logcsv("haptictraininglog.csv"),
+      logdata(8),
       data_scores_(4, 0.0)
 {
     // register ctrl-c handler
@@ -94,6 +98,9 @@ HapticTraining::HapticTraining(Q8Usb& q8,
         if (start_trial == all_trial_tags_[i])
             current_trial_index_ = i - 1;
     }
+
+    // create data logger
+    logcsv.write_row("trial", "difficulty","score", "q1", "q2", "q1d","q2d","optimal torque");
     
     LOG(Info) << "Starting Experiment";
     LOG(Info) << "Subject Number: " << subject_number;
@@ -159,6 +166,8 @@ void HapticTraining::sf_balance(const NoEventData*) {
     double pert = (double)rand()/(double)RAND_MAX*0.04-0.02;
     fp_.reset(0,0,0,pert);//gives small random perturbation to joint 2
 
+    int loop_count = loops_per_log;//start at max so that log is recorded on first frame
+
     bool balanced = true;
     Time unbalanced_time = seconds(1.0);
     Clock unbalanced_clock;
@@ -194,6 +203,12 @@ void HapticTraining::sf_balance(const NoEventData*) {
         data_scores_[2] = 0.05 * curr_up_time.as_seconds();
         data_scores_[3] = 0.05 * best_up_time.as_seconds();
         ms_scores_.write_data(data_scores_);
+
+        if(loop_count>=loops_per_log){
+            loop_count=1;
+            write_to_log();
+        }
+        loop_count++;
 
         // check limits
         if (ow_.any_torque_limit_exceeded()) {
@@ -264,6 +279,8 @@ void HapticTraining::sf_reset(const NoEventData*) {
     double score2 = data_scores_[2];
     double t = 0.0;
 
+    LOG(Info) << "Trial:"<<trial << " Difficulty:"<<difficulty<< " Score:" << score2/0.05;
+
     timer_.restart();
     while (!ctrlc && timer_.get_elapsed_time() < reset_time) {
         q8_.watchdog.kick();
@@ -296,7 +313,7 @@ void HapticTraining::sf_reset(const NoEventData*) {
     difficulty=rand()% 3 + 1;
     change_pendulum(difficulty);//swap pend every trial randomly
     trial++;
-    LOG(Info) << "Trial:"<<trial << " Difficulty:"<<difficulty<< " Score:" << score2;
+ 
 
 
     while (!ctrlc && timer_.get_elapsed_time() < seconds(2.0)) {
@@ -388,7 +405,8 @@ void HapticTraining::change_pendulum(int difficulty_){//1-easy 2-medium 3-hard
 void HapticTraining::cuff_balance() {
             
     if (fp_.balance_upright) {
-        cuff_angle_ = -(lqr_gains[difficulty-1][0]*fp_.q1 + lqr_gains[difficulty-1][1]*fp_.q2 + lqr_gains[difficulty-1][2]*fp_.q1d + lqr_gains[difficulty-1][3]*fp_.q2d)*cuff_fb_gain_;
+        opt_torque_ = -(lqr_gains[difficulty-1][0]*fp_.q1 + lqr_gains[difficulty-1][1]*fp_.q2 + lqr_gains[difficulty-1][2]*fp_.q1d + lqr_gains[difficulty-1][3]*fp_.q2d);
+        cuff_angle_=(2000*log(2*mel::abs(opt_torque_)+0.5)+1400)*sign(opt_torque_);
         }
     else
         cuff_angle_ = 0.0;
@@ -400,4 +418,21 @@ void HapticTraining::cuff_balance() {
     //cuff_ref_pos_2_ = saturate(cuff_ref_pos_2_, -5000-offset_[1], 5000-offset_[1]);
 
     cuff_.set_motor_positions(cuff_ref_pos_1_, cuff_ref_pos_2_, true);
+}
+
+//==============================================================================
+// MISC FUNCTIONS
+//==============================================================================
+
+void HapticTraining::write_to_log(){
+    logdata[0]=trial;
+    logdata[1]=difficulty;
+    logdata[2]=data_scores_[2]/0.05;
+    logdata[3]=fp_.q1;
+    logdata[4]=fp_.q2;
+    logdata[5]=fp_.q1d;
+    logdata[6]=fp_.q2d;
+    logdata[7]=opt_torque_;
+
+    logcsv.write_row(logdata);
 }

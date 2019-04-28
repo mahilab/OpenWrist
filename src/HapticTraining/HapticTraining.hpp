@@ -11,6 +11,7 @@
 #include "Simulations/FurutaPendulum.hpp"
 #include "MEL/Communications/MelShare.hpp"
 #include "OpenWrist.hpp"
+#include "PerlinNoise.hpp"
 
 // =============================================================================
 // Haptic Training Experiments
@@ -130,7 +131,7 @@ public:
 
     // NUMBER OF TRIALS PER BLOCK TYPE PER BLOCK NUMBER (SET MANUALLY)
     // [ FAMILIARIZATION, EVALUATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<int, 5> num_trials_ = {1, 3, 12, 1, 12};
+    const std::array<int, 5> num_trials_ = {1,1, 1, 1, 3};//1 3 12 1 12
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();
@@ -139,6 +140,7 @@ public:
     std::vector<std::string> all_trial_blocks_;
     std::vector<std::string> all_trial_tags_;
     std::vector<std::string> all_trial_names_;
+    std::vector<int> all_trial_difficulty_;
     int num_trials_total_ = 0;
     bool trials_started_  = false;
 
@@ -146,6 +148,7 @@ public:
     std::string directory_;
 
     Timer timer_;
+    Timer perlintimer_;
 
     /// Hardware
     Q8Usb& q8_;
@@ -156,6 +159,7 @@ public:
     PdController pd1_;
     PdController pd2_;
 
+    //CUFF 
     const double lqr_gains[3][4] = {//numbers taken from matlab lqr script
         {-1.00, 5.5835, -1.0031, 1.7767},//easy k1-k4
         {-1.00, 4.6172, -0.9072, 1.2218},//med k1-k4
@@ -168,6 +172,7 @@ public:
     short int offset_[2];
     double opt_torque_ = 0.0;
     double cuff_angle_ = 0.0;
+    bool cuff_active = true;
     
     short int trial=0;
     short int difficulty=1;
@@ -189,6 +194,8 @@ public:
     void cuff_balance();
     void change_pendulum(int);
     void write_to_log();
+    void save_log();
+    void take_a_break();
 
     Time best_up_time = Time::Zero;
 
@@ -196,11 +203,18 @@ public:
     MelShare ms_scores_;
     std::vector<double> data_scores_;
     MelShare ms_active;
+    MelShare ms_noise;
 
     //LOGGING
-    Csv logcsv;
     std::vector<double> logdata;
+    std::vector<std::vector<double> > trialdata;
     const int loops_per_log = 10;
+    std::vector<std::string> logheader = {"trial","difficulty","time_bal","q1","q2","q3","q4","opt_torque"};
+
+    //NOISE
+    siv::PerlinNoise pnoise;
+    double ball_perturb = 0;
+    const double noise_gain = 0.5;
 
 
 };

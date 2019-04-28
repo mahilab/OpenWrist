@@ -17,6 +17,9 @@ public:
     /// Steps the pendulum simulation
     void update(mel::Time time, double tau);
 
+    /// Steps the pendulum simulation with added noise
+    void update(mel::Time time, double tau, double ball_accel_noise);
+
     /// Resets the pendulum integrators
     void reset(double q1_0 = 0.0, double q2_0 = mel::PI, double q1d_0 = 0.0, double q2d_0 = 0.0);
 

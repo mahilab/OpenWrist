@@ -18,6 +18,7 @@
 // #include <MEL/Logging/DataLogger.hpp>
 #include <fstream>
 #include "HapticTraining.hpp"
+#include "PerlinNoise.hpp"
 
 using namespace mel;
 
@@ -72,25 +73,24 @@ int main(int argc, char* argv[]) {
     Cuff cuff("cuff", 4);
 
     if (input.count("debug")) {
-        Timer timer(hertz(100));
-        short int pos = 0;
-        cuff.enable();
+        Timer timer(hertz(1000));
+    
+       //std::vector<int> list1 = {1,1,1,1};
+       //std::vector<int> list2 = {2,2,2,2,2};
+       //std::vector<int> list3 = {3,3,3,3,3};
+       //std::vector<int> list4;
 
-        short int offset[2];
+       //list4.insert(list4.end(),list1.begin(),list1[2]);
+       //list4.insert(list4.end(),list2.begin(),5);
+       //list4.insert(list4.end(),list3.begin(),5);
+       //std::shuffle(std::begin(list4),std::end(list4),std::default_random_engine(46768));
+       //print(list4);
+       
 
-        cuff.pretension(offset);
-        
-        while (!Keyboard::is_key_pressed(Key::Escape)) {
-
-            if (Keyboard::is_key_pressed(Key::Up))
-                pos += 100;
-            else if (Keyboard::is_key_pressed(Key::Down))
-                pos -= 100;
-            print(pos);
-            cuff.set_motor_positions(offset[0]+pos, offset[1]+pos, true);
-            timer.wait();
-        }
-        cuff.disable();
+        //while (!Keyboard::is_key_pressed(Key::Escape)) {  
+        //    timer.wait();
+        //}
+       
        
     }
 

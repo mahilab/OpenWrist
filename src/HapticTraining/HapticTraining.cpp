@@ -5,6 +5,7 @@
 #include <random>
 #include <fstream>
 #include <MEL/Devices/Windows/Keyboard.hpp>
+#include "PerlinNoise.hpp"
 
 
 bool read_csv(std::string filename, std::string directory, int row_offset, std::vector<std::vector<double>>& output) {
@@ -70,9 +71,10 @@ HapticTraining::HapticTraining(Q8Usb& q8,
       pd1_(60.0, 1.0),
       pd2_(40.0, 0.5),
       timer_(hertz(1000)),
+      perlintimer_(hertz(1000)),
       ms_scores_("scores"),
       ms_active("active"),
-      logcsv("haptictraininglog.csv"),
+      ms_noise("noise"),
       logdata(8),
       data_scores_(4, 0.0)
 {
@@ -99,9 +101,6 @@ HapticTraining::HapticTraining(Q8Usb& q8,
             current_trial_index_ = i - 1;
     }
 
-    // create data logger
-    logcsv.write_row("trial", "difficulty","score", "q1", "q2", "q1d","q2d","optimal torque");
-    
     LOG(Info) << "Starting Experiment";
     LOG(Info) << "Subject Number: " << subject_number;
     LOG(Info) << "Condition: " << condition_;
@@ -113,6 +112,26 @@ void HapticTraining::build_experiment() {
     for (auto it = block_order_.begin(); it != block_order_.end(); ++it) {
         // increment the number of blocks of this type of block
         num_blocks_[*it]++;
+
+        //create variable for difficulty to be shuffled for each trial
+        std::vector<int> block_diff_shuffle_(num_trials_[*it]);
+        block_diff_shuffle_.clear();
+        if((num_trials_[*it] % 3)==0){//if divisible by 3
+            for(int i=0; i<num_trials_[*it]/3;i++){//for large trials per block (training,eval,general)
+                block_diff_shuffle_.push_back(1);
+                block_diff_shuffle_.push_back(2);
+                block_diff_shuffle_.push_back(3);
+            }
+        }
+        else{
+            for(int i=0; i<num_trials_[*it];i++){//for small trials per block (famil, break)
+                block_diff_shuffle_.push_back(1);//give placeholder of 1    
+            }
+        }
+        //add difficulty to overall trial difficulty list
+        std::shuffle(std::begin(block_diff_shuffle_),std::end(block_diff_shuffle_),std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
+        all_trial_difficulty_.insert(all_trial_difficulty_.end(),block_diff_shuffle_.begin(),block_diff_shuffle_.end());
+        
 
         // for each trial in this block type
         for (int i = 0; i < num_trials_[*it]; i++) {
@@ -128,10 +147,12 @@ void HapticTraining::build_experiment() {
         }
     }
 
-     //// print results of build
-     //for (int i = 0; i < num_trials_total_; ++i) {
-     //    print(all_trial_tags_[i] + " " + all_trial_blocks_[i]);
-     //}
+      //print results of build
+     for (int i = 0; i < num_trials_total_; ++i) {
+         print(all_trial_tags_[i] + " " + all_trial_blocks_[i]);
+         print(all_trial_difficulty_[i]);
+               
+     }
 
 
 
@@ -182,7 +203,6 @@ void HapticTraining::sf_balance(const NoEventData*) {
         render_pendulum();
         render_walls();
         lock_joints();
-
         cuff_balance();
 
         // logic
@@ -279,7 +299,13 @@ void HapticTraining::sf_reset(const NoEventData*) {
     double score2 = data_scores_[2];
     double t = 0.0;
 
-    LOG(Info) << "Trial:"<<trial << " Difficulty:"<<difficulty<< " Score:" << score2/0.05;
+    
+    //SAVE RESULTS OF LAST TRIAL
+    if(trial>0){ //trial has already been incremented, so expect to see (trial-1)
+        LOG(Info) << "Trial:"<<trial-1 << " Difficulty:"<< difficulty << " Score:" << score2/0.05;
+        save_log();
+    }
+
 
     timer_.restart();
     while (!ctrlc && timer_.get_elapsed_time() < reset_time) {
@@ -310,12 +336,51 @@ void HapticTraining::sf_reset(const NoEventData*) {
         timer_.wait();
     }
     
-    difficulty=rand()% 3 + 1;
-    change_pendulum(difficulty);//swap pend every trial randomly
-    trial++;
+       //CHOOSE PARAMETERS BASED ON BLOCK
+     if(0==all_trial_tags_[trial].compare(0,1,"F")){//familiarization
+        if(condition_==2)//check for cuff or control
+            cuff_active=true;
+        else
+            cuff_active=false;        
+        }
+     else if(0==all_trial_tags_[trial].compare(0,1,"E")){//evaluation
+        cuff_active = false; 
+        }
+     else if(0==all_trial_tags_[trial].compare(0,1,"T")){//training
+        if(condition_==2)//check for cuff or control
+            cuff_active=true;
+        else
+            cuff_active=false;        
+        }
+     else if(0==all_trial_tags_[trial].compare(0,1,"B")){//break
+        cuff_active = false;
+        //take_a_break();
+        }
+     else if(0==all_trial_tags_[trial].compare(0,1,"G")){//generalization
+        cuff_active=false;   
+        //NEED TO ADD GENERALIZATION     
+        }
+    else{
+        cuff_active = false;
+        }
+    
+    //BEGIN NEXT TRIAL
+    if(trial >= num_trials_total_){
+        LOG(Info) << "Stopping Experiment";
+        cuff_.disable();
+        ow_.disable();
+        q8_.disable();
+        event(ST_STOP);//end experiment
+        return;
+    }
+    else{
+        print(all_trial_tags_[trial] + " " + all_trial_blocks_[trial]);
+        print(all_trial_difficulty_[trial]);
+        change_pendulum(all_trial_difficulty_[trial]);//swap pend every trial
+        trial++;
+    }
  
-
-
+  
     while (!ctrlc && timer_.get_elapsed_time() < seconds(2.0)) {
         q8_.watchdog.kick();
         q8_.update_input();
@@ -355,7 +420,12 @@ void HapticTraining::sf_stop(const NoEventData*) {
 void HapticTraining::render_pendulum() {
     tau_ = K_player_ * (ow_[1].get_position() - fp_.q1) + B_player_ * (ow_[1].get_velocity() - fp_.q1d);
  
-    fp_.update(timer_.get_elapsed_time(), tau_);
+    ball_perturb = noise_gain * data_scores_[2] * pnoise.octaveNoise(perlintimer_.get_elapsed_time().as_seconds()/3,3);
+    std::vector<double> noises(1);
+    noises[0] = ball_perturb;
+    ms_noise.write_data(noises);
+
+    fp_.update(timer_.get_elapsed_time(), tau_,ball_perturb);
     ow_[1].set_torque(-fp_.tau1);
 }
 
@@ -404,7 +474,7 @@ void HapticTraining::change_pendulum(int difficulty_){//1-easy 2-medium 3-hard
 //==============================================================================
 void HapticTraining::cuff_balance() {
             
-    if (fp_.balance_upright) {
+    if (fp_.balance_upright && cuff_active) {
         opt_torque_ = -(lqr_gains[difficulty-1][0]*fp_.q1 + lqr_gains[difficulty-1][1]*fp_.q2 + lqr_gains[difficulty-1][2]*fp_.q1d + lqr_gains[difficulty-1][3]*fp_.q2d);
         cuff_angle_=(2000*log(2*mel::abs(opt_torque_)+0.5)+1400)*sign(opt_torque_);
         }
@@ -425,6 +495,7 @@ void HapticTraining::cuff_balance() {
 //==============================================================================
 
 void HapticTraining::write_to_log(){
+    logdata.clear();
     logdata[0]=trial;
     logdata[1]=difficulty;
     logdata[2]=data_scores_[2]/0.05;
@@ -434,5 +505,44 @@ void HapticTraining::write_to_log(){
     logdata[6]=fp_.q2d;
     logdata[7]=opt_torque_;
 
-    logcsv.write_row(logdata);
+    trialdata.push_back(logdata);
+}
+
+void HapticTraining::save_log(){
+    std::string filepath = "C:/Git/OpenWrist/bin/experimentdata/" + directory_ + "/" + all_trial_tags_[trial-1] + ".csv";
+    print(filepath);
+    //csv_write_row(filepath,logheader);
+    //csv_write_rows(filepath,trialdata);
+    //trialdata.clear();
+
+}
+
+void HapticTraining::take_a_break(){//DOESNT WORK - TRIGGERS WATCHDOG
+
+cuff_.disable();
+        print("~~~~~~~BREAK TIME~~~~~~~");
+        print("~press Escape to resume~");
+        timer_.restart();
+        while(!Keyboard::is_key_pressed(Key::Escape))
+        {
+            q8_.watchdog.kick();
+            q8_.update_input();
+
+            ow_[1].set_torque(pd1_.move_to_hold(0, ow_[1].get_position(),
+            60 * mel::DEG2RAD, ow_[1].get_velocity(),
+            0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
+            lock_joints();
+
+            q8_.update_output();
+            timer_.wait();
+        }
+        if(condition_ == OW_CUFF)
+            {
+                cuff_.enable(); 
+            }
+        timer_.restart();
+        q8_.watchdog.kick();
+        trial++;
+        event(ST_RESET);
+
 }

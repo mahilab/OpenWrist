@@ -64,6 +64,7 @@ public:
         ST_INVERT,
         ST_RESET,
         ST_STOP,
+        ST_FAMILIAR,
         ST_NUM_STATES
     };
 
@@ -73,6 +74,7 @@ public:
     void sf_invert(const NoEventData*);
     void sf_reset(const NoEventData*);
     void sf_stop(const NoEventData*);
+    void sf_familiar(const NoEventData*);
 
     /// STATE ACTIONS
     StateAction<HapticTraining, NoEventData, &HapticTraining::sf_start> sa_start;
@@ -80,6 +82,7 @@ public:
     StateAction<HapticTraining, NoEventData, &HapticTraining::sf_invert> sa_invert;
     StateAction<HapticTraining, NoEventData, &HapticTraining::sf_reset> sa_reset;
     StateAction<HapticTraining, NoEventData, &HapticTraining::sf_stop> sa_stop;
+    StateAction<HapticTraining, NoEventData, &HapticTraining::sf_familiar> sa_familiar;
 
     /// STATE MAP
     virtual const StateMapRow* get_state_map() {
@@ -89,6 +92,7 @@ public:
             &sa_invert,
             &sa_reset,
             &sa_stop,
+            &sa_familiar,
         };
         return &STATE_MAP[0];
     }
@@ -131,7 +135,7 @@ public:
 
     // NUMBER OF TRIALS PER BLOCK TYPE PER BLOCK NUMBER (SET MANUALLY)
     // [ FAMILIARIZATION, EVALUATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<int, 5> num_trials_ = {1,1, 1, 1, 3};//1 3 12 1 12
+    const std::array<int, 5> num_trials_ = {1,1, 3, 1, 3};//1 3 12 1 12
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();
@@ -206,8 +210,8 @@ public:
     MelShare ms_noise;
 
     //LOGGING
-    std::vector<double> logdata;
-    std::vector<std::vector<double> > trialdata;
+    std::array<double,8> logdata;
+    std::vector<std::array<double,8>> trialdata;
     const int loops_per_log = 10;
     std::vector<std::string> logheader = {"trial","difficulty","time_bal","q1","q2","q3","q4","opt_torque"};
 

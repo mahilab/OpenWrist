@@ -75,7 +75,6 @@ HapticTraining::HapticTraining(Q8Usb& q8,
       ms_scores_("scores"),
       ms_active("active"),
       ms_noise("noise"),
-      logdata(8),
       data_scores_(4, 0.0)
 {
     // register ctrl-c handler
@@ -125,7 +124,7 @@ void HapticTraining::build_experiment() {
         }
         else{
             for(int i=0; i<num_trials_[*it];i++){//for small trials per block (famil, break)
-                block_diff_shuffle_.push_back(1);//give placeholder of 1    
+                block_diff_shuffle_.push_back(2);//give placeholder of 2    
             }
         }
         //add difficulty to overall trial difficulty list
@@ -285,6 +284,38 @@ void HapticTraining::sf_invert(const NoEventData*) {
 
 }
 
+void HapticTraining::sf_familiar(const NoEventData*) {
+    // reset pendulum
+    fp_.reset(0, PI, 0, 0);
+    timer_.restart();
+    while (!ctrlc && timer_.get_elapsed_time() < seconds(3)) {
+        q8_.watchdog.kick();
+        q8_.update_input();
+        render_pendulum();
+        render_walls();
+        lock_joints();
+
+        // check limits
+        if (ow_.any_torque_limit_exceeded()) {
+            event(ST_STOP);
+            return;
+        }
+        data_scores_[0] = (1.0 - timer_.get_elapsed_time().as_seconds() / 10.0);
+        data_scores_[1] = data_scores_[1];
+        data_scores_[2] = 0.0;
+        data_scores_[3] = data_scores_[3];
+        ms_scores_.write_data(data_scores_);
+        // update output
+        q8_.update_output();
+        timer_.wait();
+    }
+    if (ctrlc)
+        event(ST_STOP);
+    else
+        event(ST_RESET);
+
+}
+
 void HapticTraining::sf_reset(const NoEventData*) {
 
     ms_active.write_message("inactive");
@@ -338,10 +369,7 @@ void HapticTraining::sf_reset(const NoEventData*) {
     
        //CHOOSE PARAMETERS BASED ON BLOCK
      if(0==all_trial_tags_[trial].compare(0,1,"F")){//familiarization
-        if(condition_==2)//check for cuff or control
-            cuff_active=true;
-        else
-            cuff_active=false;        
+        cuff_active=false;        
         }
      else if(0==all_trial_tags_[trial].compare(0,1,"E")){//evaluation
         cuff_active = false; 
@@ -354,7 +382,7 @@ void HapticTraining::sf_reset(const NoEventData*) {
         }
      else if(0==all_trial_tags_[trial].compare(0,1,"B")){//break
         cuff_active = false;
-        //take_a_break();
+        take_a_break();
         }
      else if(0==all_trial_tags_[trial].compare(0,1,"G")){//generalization
         cuff_active=false;   
@@ -401,6 +429,8 @@ void HapticTraining::sf_reset(const NoEventData*) {
 
     if (ctrlc)
         event(ST_STOP);
+    else if(trial==1)
+        event(ST_FAMILIAR);
     else
         event(ST_BALANCE);
 
@@ -495,8 +525,7 @@ void HapticTraining::cuff_balance() {
 //==============================================================================
 
 void HapticTraining::write_to_log(){
-    logdata.clear();
-    logdata[0]=trial;
+    logdata[0]=trial-1;
     logdata[1]=difficulty;
     logdata[2]=data_scores_[2]/0.05;
     logdata[3]=fp_.q1;
@@ -509,31 +538,29 @@ void HapticTraining::write_to_log(){
 }
 
 void HapticTraining::save_log(){
-    std::string filepath = "C:/Git/OpenWrist/bin/experimentdata/" + directory_ + "/" + all_trial_tags_[trial-1] + ".csv";
+    std::string filepath = "experimentdata/" + directory_ + "/" + all_trial_tags_[trial-1] + ".csv";
+    //filepath = "/exper/help/data1.csv";
     print(filepath);
-    //csv_write_row(filepath,logheader);
-    //csv_write_rows(filepath,trialdata);
-    //trialdata.clear();
+    csv_write_row(filepath,logheader);
+    csv_append_rows(filepath,trialdata);
+    trialdata.clear();
 
 }
 
 void HapticTraining::take_a_break(){//DOESNT WORK - TRIGGERS WATCHDOG
 
-cuff_.disable();
+
         print("~~~~~~~BREAK TIME~~~~~~~");
         print("~press Escape to resume~");
         timer_.restart();
+
+        cuff_.disable();
+        ow_.disable();
+        q8_.watchdog.stop();
+        q8_.disable();
+
         while(!Keyboard::is_key_pressed(Key::Escape))
         {
-            q8_.watchdog.kick();
-            q8_.update_input();
-
-            ow_[1].set_torque(pd1_.move_to_hold(0, ow_[1].get_position(),
-            60 * mel::DEG2RAD, ow_[1].get_velocity(),
-            0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
-            lock_joints();
-
-            q8_.update_output();
             timer_.wait();
         }
         if(condition_ == OW_CUFF)
@@ -541,6 +568,9 @@ cuff_.disable();
                 cuff_.enable(); 
             }
         timer_.restart();
+        q8_.enable();
+        q8_.watchdog.start();
+        ow_.enable();
         q8_.watchdog.kick();
         trial++;
         event(ST_RESET);

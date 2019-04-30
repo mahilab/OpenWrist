@@ -135,11 +135,10 @@ public:
 
     // NUMBER OF TRIALS PER BLOCK TYPE PER BLOCK NUMBER (SET MANUALLY)
     // [ FAMILIARIZATION, EVALUATION, TRAINING, BREAK, GENERALIZATION ]
-    const std::array<int, 5> num_trials_ = {1,1, 3, 1, 3};//1 3 12 1 12
+    const std::array<int, 5> num_trials_ = {1,6, 36, 1, 36};//1 3 12 1 12
 
     // EXPERIMENT TRIAL ORDERING
     void build_experiment();
-    int current_trial_index_ = 0;
     std::vector<BlockType> trials_block_types_;
     std::vector<std::string> all_trial_blocks_;
     std::vector<std::string> all_trial_tags_;
@@ -208,6 +207,7 @@ public:
     std::vector<double> data_scores_;
     MelShare ms_active;
     MelShare ms_noise;
+    MelShare ms_text;
 
     //LOGGING
     std::array<double,8> logdata;

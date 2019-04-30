@@ -66,7 +66,6 @@ HapticTraining::HapticTraining(Q8Usb& q8,
       cuff_(cuff),
       subject_number_(subject_number),
       condition_(static_cast<Condition>(condition)),
-      current_trial_index_(0),
       pd0_(60.0, 1.0),
       pd1_(60.0, 1.0),
       pd2_(40.0, 0.5),
@@ -75,6 +74,7 @@ HapticTraining::HapticTraining(Q8Usb& q8,
       ms_scores_("scores"),
       ms_active("active"),
       ms_noise("noise"),
+      ms_text("text"),
       data_scores_(4, 0.0)
 {
     // register ctrl-c handler
@@ -97,13 +97,13 @@ HapticTraining::HapticTraining(Q8Usb& q8,
     // set the current trial index
     for (int i = 0; i < all_trial_tags_.size(); ++i) {
         if (start_trial == all_trial_tags_[i])
-            current_trial_index_ = i - 1;
+            trial = i;
     }
 
     LOG(Info) << "Starting Experiment";
     LOG(Info) << "Subject Number: " << subject_number;
     LOG(Info) << "Condition: " << condition_;
-    LOG(Info) << "Start Trial: " << all_trial_tags_[current_trial_index_ + 1];
+    LOG(Info) << "Start Trial: " << all_trial_tags_[trial];
 }
 
 void HapticTraining::build_experiment() {
@@ -128,7 +128,7 @@ void HapticTraining::build_experiment() {
             }
         }
         //add difficulty to overall trial difficulty list
-        std::shuffle(std::begin(block_diff_shuffle_),std::end(block_diff_shuffle_),std::default_random_engine(std::chrono::system_clock::now().time_since_epoch().count()));
+        std::shuffle(std::begin(block_diff_shuffle_),std::end(block_diff_shuffle_),std::default_random_engine(rand()));
         all_trial_difficulty_.insert(all_trial_difficulty_.end(),block_diff_shuffle_.begin(),block_diff_shuffle_.end());
         
 
@@ -240,6 +240,14 @@ void HapticTraining::sf_balance(const NoEventData*) {
         timer_.wait();
     }
 
+    //SAVE RESULTS OF LAST TRIAL
+    if(trial>0){ 
+        LOG(Info) << "Trial:"<<trial << " Difficulty:"<< difficulty << " Score:" << data_scores_[2]/0.05;
+        save_log();
+    }
+
+    trial++;
+
     if (ctrlc)
         event(ST_STOP);
     else
@@ -288,7 +296,7 @@ void HapticTraining::sf_familiar(const NoEventData*) {
     // reset pendulum
     fp_.reset(0, PI, 0, 0);
     timer_.restart();
-    while (!ctrlc && timer_.get_elapsed_time() < seconds(3)) {
+    while (!ctrlc && timer_.get_elapsed_time() < seconds(90)) {
         q8_.watchdog.kick();
         q8_.update_input();
         render_pendulum();
@@ -300,7 +308,7 @@ void HapticTraining::sf_familiar(const NoEventData*) {
             event(ST_STOP);
             return;
         }
-        data_scores_[0] = (1.0 - timer_.get_elapsed_time().as_seconds() / 10.0);
+        data_scores_[0] = (1.0 - timer_.get_elapsed_time().as_seconds() / 90);
         data_scores_[1] = data_scores_[1];
         data_scores_[2] = 0.0;
         data_scores_[3] = data_scores_[3];
@@ -309,6 +317,8 @@ void HapticTraining::sf_familiar(const NoEventData*) {
         q8_.update_output();
         timer_.wait();
     }
+
+    trial++;
     if (ctrlc)
         event(ST_STOP);
     else
@@ -317,8 +327,15 @@ void HapticTraining::sf_familiar(const NoEventData*) {
 }
 
 void HapticTraining::sf_reset(const NoEventData*) {
-
+    
     ms_active.write_message("inactive");
+
+    if(trial==0){
+        ms_text.write_message(all_trial_blocks_[trial]);
+    }
+    else if(all_trial_blocks_[trial].compare(all_trial_blocks_[trial-1])){
+        ms_text.write_message(all_trial_blocks_[trial]);
+    }
 
     Time reset_time = seconds(1.0);
 
@@ -329,14 +346,6 @@ void HapticTraining::sf_reset(const NoEventData*) {
     double score1 = data_scores_[0];
     double score2 = data_scores_[2];
     double t = 0.0;
-
-    
-    //SAVE RESULTS OF LAST TRIAL
-    if(trial>0){ //trial has already been incremented, so expect to see (trial-1)
-        LOG(Info) << "Trial:"<<trial-1 << " Difficulty:"<< difficulty << " Score:" << score2/0.05;
-        save_log();
-    }
-
 
     timer_.restart();
     while (!ctrlc && timer_.get_elapsed_time() < reset_time) {
@@ -366,33 +375,8 @@ void HapticTraining::sf_reset(const NoEventData*) {
         q8_.update_output();
         timer_.wait();
     }
-    
-       //CHOOSE PARAMETERS BASED ON BLOCK
-     if(0==all_trial_tags_[trial].compare(0,1,"F")){//familiarization
-        cuff_active=false;        
-        }
-     else if(0==all_trial_tags_[trial].compare(0,1,"E")){//evaluation
-        cuff_active = false; 
-        }
-     else if(0==all_trial_tags_[trial].compare(0,1,"T")){//training
-        if(condition_==2)//check for cuff or control
-            cuff_active=true;
-        else
-            cuff_active=false;        
-        }
-     else if(0==all_trial_tags_[trial].compare(0,1,"B")){//break
-        cuff_active = false;
-        take_a_break();
-        }
-     else if(0==all_trial_tags_[trial].compare(0,1,"G")){//generalization
-        cuff_active=false;   
-        //NEED TO ADD GENERALIZATION     
-        }
-    else{
-        cuff_active = false;
-        }
-    
-    //BEGIN NEXT TRIAL
+
+       //END EXPERIMENT IF TRIALS UP
     if(trial >= num_trials_total_){
         LOG(Info) << "Stopping Experiment";
         cuff_.disable();
@@ -401,12 +385,41 @@ void HapticTraining::sf_reset(const NoEventData*) {
         event(ST_STOP);//end experiment
         return;
     }
+    
+       //CHOOSE PARAMETERS BASED ON BLOCK
+     if(0==all_trial_tags_[trial].compare(0,1,"F")){//familiarization
+        cuff_active=false;
+        change_pendulum(all_trial_difficulty_[trial]);     
+        }
+     else if(0==all_trial_tags_[trial].compare(0,1,"E")){//evaluation
+        cuff_active = false;
+        change_pendulum(all_trial_difficulty_[trial]);
+        }
+     else if(0==all_trial_tags_[trial].compare(0,1,"T")){//training
+        if(condition_==2){//check for cuff or control
+            cuff_active=true;
+            change_pendulum(all_trial_difficulty_[trial]);}
+        else{
+            cuff_active=false;
+            change_pendulum(all_trial_difficulty_[trial]);  }  
+        }
+     else if(0==all_trial_tags_[trial].compare(0,1,"B")){//break
+        cuff_active = false;
+        take_a_break();
+        }
+     else if(0==all_trial_tags_[trial].compare(0,1,"G")){//generalization
+        cuff_active=false;
+        change_pendulum(all_trial_difficulty_[trial]+3);//use different pendulum for generalization    
+        }
     else{
-        print(all_trial_tags_[trial] + " " + all_trial_blocks_[trial]);
-        print(all_trial_difficulty_[trial]);
-        change_pendulum(all_trial_difficulty_[trial]);//swap pend every trial
-        trial++;
-    }
+        cuff_active = false;
+        }
+    
+
+     //BEGIN NEXT TRIAL
+    print(all_trial_tags_[trial] + " " + all_trial_blocks_[trial]);
+    //print(all_trial_difficulty_[trial]);
+    
  
   
     while (!ctrlc && timer_.get_elapsed_time() < seconds(2.0)) {
@@ -425,11 +438,12 @@ void HapticTraining::sf_reset(const NoEventData*) {
         timer_.wait();
     }
 
+    ms_text.write_message(" ");
     ms_active.write_message("active");
 
     if (ctrlc)
         event(ST_STOP);
-    else if(trial==1)
+    else if(trial==0)
         event(ST_FAMILIAR);
     else
         event(ST_BALANCE);
@@ -484,13 +498,31 @@ void HapticTraining::lock_joints() {
         0.001, mel::DEG2RAD, 10 * mel::DEG2RAD));
 }
 
-void HapticTraining::change_pendulum(int difficulty_){//1-easy 2-medium 3-hard
-    if(difficulty_==1)
+void HapticTraining::change_pendulum(int difficulty_){//1-easy 2-medium 3-hard   4-easy+ 5-med+ 6-hard+
+    if(difficulty_==1){//easy
         fp_.l2 = 1.4;
-    if(difficulty_==2)
+        fp_.r_mass=0.1;
+    }
+    if(difficulty_==2){//med
         fp_.l2 = 1;
-    if(difficulty_==3)
+        fp_.r_mass=0.1;
+    }
+    if(difficulty_==3){//hard
         fp_.l2 = 0.5;
+        fp_.r_mass=0.1;
+    }
+    if(difficulty_==4){//easy+
+        fp_.l2 = 1.4;
+        fp_.r_mass=0.12;
+    }
+    if(difficulty_==5){//med+
+        fp_.l2 = 1;
+        fp_.r_mass=0.12;
+    }
+    if(difficulty_==6){//hard+
+        fp_.l2 = 0.5;
+        fp_.r_mass=0.12;
+    }
     fp_.reset();
     fp_.update_properties();
     fp_.write_properties();
@@ -538,7 +570,7 @@ void HapticTraining::write_to_log(){
 }
 
 void HapticTraining::save_log(){
-    std::string filepath = "experimentdata/" + directory_ + "/" + all_trial_tags_[trial-1] + ".csv";
+    std::string filepath = "experimentdata/" + directory_ + "/" + all_trial_tags_[trial] + ".csv";
     //filepath = "/exper/help/data1.csv";
     print(filepath);
     csv_write_row(filepath,logheader);
@@ -563,16 +595,17 @@ void HapticTraining::take_a_break(){//DOESNT WORK - TRIGGERS WATCHDOG
         {
             timer_.wait();
         }
-        if(condition_ == OW_CUFF)
-            {
-                cuff_.enable(); 
-            }
+        if(condition_==OW_CUFF)
+        cuff_active=true;
+
+        cuff_.enable(); 
+        cuff_.pretension(offset_);
         timer_.restart();
         q8_.enable();
-        q8_.watchdog.start();
         ow_.enable();
-        q8_.watchdog.kick();
         trial++;
+        q8_.watchdog.start();
+        q8_.watchdog.kick();
         event(ST_RESET);
 
 }

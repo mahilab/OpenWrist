@@ -164,7 +164,7 @@ void FurutaPendulum::determine_upright() {
         invert_upright = false;
     }
 
-    if (u2 > 0.8 *c2*g*m2 && k2 < 0.15) {
+    if (u2 > 0.9 *c2*g*m2 && k2 < 0.2) {
         balance_upright = true;
     }
     else {

@@ -210,10 +210,10 @@ public:
     MelShare ms_text;
 
     //LOGGING
-    std::array<double,8> logdata;
-    std::vector<std::array<double,8>> trialdata;
+    std::array<double,11> logdata;
+    std::vector<std::array<double,11>> trialdata;
     const int loops_per_log = 10;
-    std::vector<std::string> logheader = {"trial","difficulty","time_bal","q1","q2","q3","q4","opt_torque"};
+    std::vector<std::string> logheader = {"trial","difficulty","time_bal","q1","q2","q3","q4","opt_torque","ow_pos","ow_vel","pernoise"};
 
     //NOISE
     siv::PerlinNoise pnoise;

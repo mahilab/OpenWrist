@@ -565,6 +565,9 @@ void HapticTraining::write_to_log(){
     logdata[5]=fp_.q1d;
     logdata[6]=fp_.q2d;
     logdata[7]=opt_torque_;
+    logdata[8]=ow_[1].get_position();
+    logdata[9]=ow_[1].get_velocity();
+    logdata[10]=ball_perturb;
 
     trialdata.push_back(logdata);
 }

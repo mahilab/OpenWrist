@@ -296,7 +296,7 @@ void HapticTraining::sf_familiar(const NoEventData*) {
     // reset pendulum
     fp_.reset(0, PI, 0, 0);
     timer_.restart();
-    while (!ctrlc && timer_.get_elapsed_time() < seconds(90)) {
+    while (!ctrlc && timer_.get_elapsed_time() < seconds(45)) {
         q8_.watchdog.kick();
         q8_.update_input();
         render_pendulum();
@@ -308,7 +308,7 @@ void HapticTraining::sf_familiar(const NoEventData*) {
             event(ST_STOP);
             return;
         }
-        data_scores_[0] = (1.0 - timer_.get_elapsed_time().as_seconds() / 90);
+        data_scores_[0] = (1.0 - timer_.get_elapsed_time().as_seconds() / 45);
         data_scores_[1] = data_scores_[1];
         data_scores_[2] = 0.0;
         data_scores_[3] = data_scores_[3];
@@ -575,7 +575,7 @@ void HapticTraining::write_to_log(){
 void HapticTraining::save_log(){
     std::string filepath = "experimentdata/" + directory_ + "/" + all_trial_tags_[trial] + ".csv";
     //filepath = "/exper/help/data1.csv";
-    print(filepath);
+    //print(filepath);
     csv_write_row(filepath,logheader);
     csv_append_rows(filepath,trialdata);
     trialdata.clear();

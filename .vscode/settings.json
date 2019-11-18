@@ -67,6 +67,13 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp",
-        "numeric": "cpp"
+        "numeric": "cpp",
+        "mutex": "cpp",
+        "concepts": "cpp",
+        "deque": "cpp",
+        "optional": "cpp",
+        "queue": "cpp",
+        "set": "cpp",
+        "variant": "cpp"
     }
 }

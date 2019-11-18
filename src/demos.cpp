@@ -48,6 +48,7 @@ int main(int argc, char* argv[]) {
         ("b,ballbeam", "Runs OpenWrist Ball and Beam demo")
 		("a,airplane", "Runs the airplane target game demo")
         ("d,debug", "Debug Mode (No Power)")
+        ("k,cuff","Tests CUFF Power and Output")
         ("h,help","Prints this help message");
 
     auto result = options.parse(argc, argv);
@@ -66,6 +67,7 @@ int main(int argc, char* argv[]) {
     qoptions.set_analog_output_mode(0, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     qoptions.set_analog_output_mode(1, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     qoptions.set_analog_output_mode(2, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    qoptions.set_analog_output_mode(3, QuanserOptions::AoMode::VoltageMode,0,0,0,0,0,0,0);
     Q8Usb q8(qoptions);
 
     if (!q8.open()) {
@@ -78,8 +80,17 @@ int main(int argc, char* argv[]) {
     OwConfiguration config(q8, q8.watchdog, q8.encoder[{0, 1, 2}], vpx4.amplifiers);
     OpenWrist ow(config);
 
-    //create Cuff object 
-    Cuff cuff("cuff",4);
+    
+     // run cuff script
+    if (result.count("k") > 0) {
+        CuffVoltPaq cuff("cuff",3,q8.DO[3],q8.AO[3]);
+        q8.enable();
+        cuff.enable();
+        sleep(seconds(10));
+        cuff.disable();
+
+        return 0;
+    }
 
     // run calibration script
     if (result.count("calibrate") > 0) {
@@ -133,6 +144,7 @@ int main(int argc, char* argv[]) {
 
 	// enter Airplane Demo
 	if (result.count("airplane")) {
+        Cuff cuff("cuff",3);
 		Airplane game(q8, ow, cuff, ctrlc);
 		game.play();
 		disable_realtime();

@@ -4,6 +4,7 @@
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include <MEL/Core/Console.hpp>
 #include <MEL/Utility/StateMachine.hpp>
+#include <MEL/Math/Butterworth.hpp>
 #include "OpenWrist.hpp"
 
 using namespace mel;
@@ -74,4 +75,6 @@ private:
     std::vector<double> real_state_;
     std::vector<double> virt_state_;
     std::vector<double> force_torque_data_;
+
+    std::vector<Butterworth> filters_;
 };

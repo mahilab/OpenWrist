@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
         vpx4.amplifiers
     );
     OpenWrist ow(config);
-    Cuff cuff("cuff", 4);
+    Cuff cuff("cuff", 3);
 
     if (input.count("debug")) {
         Timer timer(hertz(1000));

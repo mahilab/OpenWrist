@@ -74,3 +74,10 @@ target_link_libraries(xwing MEL::quanser)
 # Caz tests
 add_executable(testing tests/testing.cpp ${OPENWRIST_SRC})
 target_link_libraries(testing MEL::quanser)
+
+# GUI Demo Launcher
+find_package(carnot)
+if (carnot_FOUND)
+    add_executable(demo-gui src/GUI/demo.cpp ${OPENWRIST_SRC})
+    target_link_libraries(demo-gui MEL::quanser carnot)
+endif()

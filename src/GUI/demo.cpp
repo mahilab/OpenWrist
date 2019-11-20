@@ -80,7 +80,6 @@ class DemoGui : public GameObject {
             if (ImGui::Button("Transparency Mode")){
                 carnot::print("transparency");
                 demos.launch("-t");
-                //ShellExecute(NULL,"open","demos.exe","-t",NULL,SW_SHOWDEFAULT);
                 stop=true;
                 destroy();              
             }
@@ -108,7 +107,7 @@ class DemoGui : public GameObject {
             if (ImGui::Button("Aerial Target Flying")){
                 carnot::print("airplane");
                 demos.launch("-a");
-                //airplane_unity.launch();
+                airplane_unity.launch();
                 stop=true;
                 destroy();
             }

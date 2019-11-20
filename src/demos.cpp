@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
 	// enter Airplane Demo
 	if (result.count("airplane")) {
         Cuff cuff("cuff",3);
-		Airplane game(q8, ow, cuff, ctrlc);
+		Airplane game(q8, ow, cuff, ctrlc,false);
 		game.play();
 		disable_realtime();
 		return 0;

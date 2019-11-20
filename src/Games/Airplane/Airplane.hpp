@@ -13,7 +13,8 @@ public:
 	Airplane(Q8Usb& ow_daq,
 		OpenWrist& ow,
 		Cuff& cuff,
-		ctrl_bool& stop_flag);
+		ctrl_bool& stop_flag,
+		bool cuff_active );
 
 	void play();
 	void update_ow_torques();
@@ -47,6 +48,7 @@ private:
 	ctrl_bool& stop_flag_;
 
 	 // CUFF
+	bool cuff_active_;
     const short int cuff_normal_force_ = 4;
 	const short int cuff_ff_gain_ = 250;
     const short int cuff_fb_gain_ = 350;

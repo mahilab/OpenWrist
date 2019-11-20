@@ -5,7 +5,7 @@
 
 using namespace mel;
 
-Airplane::Airplane(Q8Usb& ow_daq, OpenWrist& ow, Cuff& cuff, ctrl_bool& stop_flag) :
+Airplane::Airplane(Q8Usb& ow_daq, OpenWrist& ow, Cuff& cuff, ctrl_bool& stop_flag, bool cuff_active) :
 	timer_(hertz(1000)),
 	ow_daq_(ow_daq),
 	ow_(ow),
@@ -15,7 +15,8 @@ Airplane::Airplane(Q8Usb& ow_daq, OpenWrist& ow, Cuff& cuff, ctrl_bool& stop_fla
 	msunity("unity"),
 	states(6),
 	gravitycomp(3),
-	torque(3)
+	torque(3),
+	cuff_active_(cuff_active)
 {
 
 }
@@ -41,8 +42,8 @@ void Airplane::play() {
 		msstates.write_data(states);
 
 		update_ow_torques();
-
-		update_cuff_torques();
+		if(cuff_active_)
+			update_cuff_torques();
 
 		// check for stop conditions
 		if (stop_flag_ ||
@@ -73,18 +74,20 @@ void Airplane::initialize(){
 	timer_.restart();
 	ow_.enable();
 
-	//enable cuff
-	cuff_.enable();
+	if(cuff_active_){
+		//enable cuff
+		cuff_.enable();
 
-	//constrict cuff to user's forearm
-	cuff_.pretension(offset);
+		//constrict cuff to user's forearm
+		cuff_.pretension(offset);
 
-	release_cuff();
+		release_cuff();
 
-	while(!Keyboard::is_key_pressed(Key::Space))
-	{	}
+		while(!Keyboard::is_key_pressed(Key::Space))
+		{	}
 
-	cinch_cuff();
+		cinch_cuff();
+	}
 
 	//start watchdog
 	ow_daq_.watchdog.set_timeout(milliseconds(100));

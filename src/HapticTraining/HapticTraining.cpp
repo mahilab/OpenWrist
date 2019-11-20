@@ -242,7 +242,7 @@ void HapticTraining::sf_balance(const NoEventData*) {
 
     //SAVE RESULTS OF LAST TRIAL
     if(trial>0){ 
-        LOG(Info) << "Trial:"<<trial << " Difficulty:"<< difficulty << " Score:" << data_scores_[2]/0.05;
+        LOG(Info) << "Trial:"<<trial << " Difficulty:"<< all_trial_difficulty_[trial] << " Score:" << data_scores_[2]/0.05;
         save_log();
     }
 
@@ -558,7 +558,7 @@ void HapticTraining::cuff_balance() {
 
 void HapticTraining::write_to_log(){
     logdata[0]=trial-1;
-    logdata[1]=difficulty;
+    logdata[1]=all_trial_difficulty_[trial];
     logdata[2]=data_scores_[2]/0.05;
     logdata[3]=fp_.q1;
     logdata[4]=fp_.q2;

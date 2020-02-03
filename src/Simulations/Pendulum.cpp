@@ -1,5 +1,13 @@
 #include "Pendulum.hpp"
 
+
+Pendulum::Pendulum() :
+    ms_state_("pendulum"),
+    state_data_(2) 
+{
+
+}
+
 void Pendulum::step_simulation(mel::Time time, double position_ref, double velocity_ref) {
 
     // compute torque of first joint given reference position and velocity
@@ -16,6 +24,10 @@ void Pendulum::step_simulation(mel::Time time, double position_ref, double veloc
     // integrate velocities to find positions
     Q[0] = Qd2Q[0].update(Qd[0], time);
     Q[1] = Qd2Q[1].update(Qd[1], time);
+
+    state_data_[0] = Q[0];
+    state_data_[1] = Q[1];
+    ms_state_.write_data(state_data_);
 }
 
 double Pendulum::natural_frequency(int mode) {

@@ -8,17 +8,10 @@
 import os
 import shutil
 
-keep = ['bin/windows/Release/myo64.dll']
+keep = ['bin/Release/myo64.dll']
 
 folders = ['build',
-           'build/linux_make',
-           'build/linux_ninja',
-           'build/windows_make',
-           'build/windows_msvc',
-           'build/windows_ninja',
-           'bin',
-           'bin/linux',
-           'bin/windows']
+           'bin']
 
 files = []
 

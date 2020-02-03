@@ -4,10 +4,14 @@
 #include <MEL/Math/Constants.hpp>
 #include <MEL/Math/Functions.hpp>
 #include <MEL/Math/Integrator.hpp>
+#include <MEL/Communications/MelShare.hpp>
 
 class Pendulum {
 
 public:
+
+    /// Constructor
+    Pendulum();
 
     /// Steps the pendulum simulation
     void step_simulation(mel::Time time, double position_ref, double velocity_ref);
@@ -37,5 +41,8 @@ private:
 
     std::array<mel::Integrator, 2> Qdd2Qd = { mel::Integrator(Qd[0]), mel::Integrator(Qd[1]) };
     std::array<mel::Integrator, 2> Qd2Q   = { mel::Integrator(Q[0]),  mel::Integrator(Q[1]) };
+
+    mel::MelShare ms_state_;
+    std::vector<double> state_data_;
 
 };

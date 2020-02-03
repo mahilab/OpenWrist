@@ -18,13 +18,9 @@
 #ifndef MEL_OWCONFIGURATION_HPP
 #define MEL_OWCONFIGURATION_HPP
 
-#include <MEL/Core/Amplifier.hpp>
-#include <MEL/Daq/Daq.hpp>
-#include <MEL/Daq/Encoder.hpp>
-#include <MEL/Daq/Input.hpp>
-#include <MEL/Daq/Output.hpp>
-#include <MEL/Daq/Velocity.hpp>
-#include <MEL/Daq/Watchdog.hpp>
+#include <MEL/Mechatronics/Amplifier.hpp>
+#include <MEL/Daq/DaqBase.hpp>
+#include <MEL/Daq/Quanser/Q8Usb.hpp>
 #include <vector>
 
 
@@ -45,7 +41,7 @@ class Q8Usb;
 struct OwConfiguration {
 public:
     /// Generic Configuration 1 (creates Amplifiers)
-    OwConfiguration(Daq& daq,
+    OwConfiguration(DaqBase& daq,
                     Watchdog& watchdog,
                     const std::vector<Logic>& enable_levels,
                     const std::vector<DigitalOutput::Channel>& enable_channels,
@@ -56,14 +52,12 @@ public:
                     const std::vector<DigitalInput::Channel>& fault_channels,
                     const std::vector<double>& sense_gains,
                     const std::vector<AnalogInput::Channel>& sense_channel,
-                    const std::vector<Encoder::Channel>& encoder_channels,
-                    const std::vector<Velocity::Channel>& velocity_channels);
+                    const std::vector<QuanserEncoder::Channel>& encoder_channels);
 
     /// Generic Configuration 2 (given Amplifiers)
-    OwConfiguration(Daq& daq,
+    OwConfiguration(DaqBase& daq,
                     Watchdog& watchdog,
-                    const std::vector<Encoder::Channel>& encoder_channels,
-                    const std::vector<Velocity::Channel>& velocity_channels,
+                    const std::vector<QuanserEncoder::Channel>& encoder_channels,
                     const std::vector<Amplifier>& amplifiers);
 
 
@@ -71,14 +65,10 @@ private:
 
     friend class OpenWrist;
 
-    Daq& daq_;            ///< DAQ controlling the OpenWrist
-    Watchdog& watchdog_;  ///< watchdog the OpenWrist is guarded by
-    std::vector<Encoder::Channel>
-        encoder_channels_;  ///< encoder channels that measure motor positions
-    std::vector<Velocity::Channel>
-        velocity_channels_;  ///< encoder channels that measure motor velocities
-    std::vector<Amplifier> amplifiers_;  ///< the amplifiers being use to
-                                         ///< control the OpenWrist's motors
+    DaqBase& daq_;                                     ///< DAQ controlling the OpenWrist
+    Watchdog& watchdog_;                               ///< watchdog the OpenWrist is guarded by
+    std::vector<QuanserEncoder::Channel>  encoder_channels_;  ///< encoder channels that measure motor positions
+    std::vector<Amplifier> amplifiers_;                ///< the amplifiers being use to control the OpenWrist's motors
 };
 
 }  // namespace mel

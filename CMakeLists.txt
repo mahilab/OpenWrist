@@ -1,64 +1,25 @@
 cmake_minimum_required(VERSION 3.7)
 
-set(MEL_ROOT "C:/Git/MEL" CACHE FILEPATH "Absolute path to MEL.")
-set(QUANSER_ROOT "C:/Program Files/Quanser" CACHE FILEPATH "Absolute path to Quanser installation.")
-
-# enable C++11
-set(CMAKE_CXX_STANDARD 11)
+set(EIGEN_ROOT "C:/dev/eigen" CACHE FILEPATH "Absolute path to Eigen installation.")
 
 # create project
-project(OpenWrist)
-
-# add configurations
-set(CMAKE_CONFIGURATION_TYPES Release)
+project(OpenWrist VERSION 0.1.0 LANGUAGES CXX)
 
 # set binary output location (optional, but recommended)
-if(WIN32)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/windows)
-else()
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/linux)
-endif()
-
-# add definitons
-if(WIN32)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_WINSOCK_DEPRECATED_NO_WARNINGS)
-endif()
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 # include directories (your includes and MEL's)
-include_directories("src" "../MEII/include" "../MEL/include" "C:/dev/myo-sdk-win-0.9.0/include")
+include_directories("src" ${EIGEN_ROOT})
 
-# link MEL and other libs
-set(LINK_LIBS "")
-if(WIN32)
-    link_directories("${MEL_ROOT}/lib/windows/Release")
-    if (CMAKE_SIZEOF_VOID_P EQUAL 8) # 64-bit
-        link_directories("${QUANSER_ROOT}/QUARC/lib/win64")
-    else()
-        link_directories("${QUANSER_ROOT}/QUARC/lib/windows")
-    endif()
-    link_directories("C:/dev/myo-sdk-win-0.9.0/lib")
-    link_directories("../MEII/lib/Release")
-    list(APPEND LINK_LIBS
-        MEL
-        ws2_32
-        winmm
-        Pdh
-        Psapi
-        hil
-        quanser_communications
-        quanser_runtime
-        quanser_common
-        bufferoverflowU
-        legacy_stdio_definitions
-        XInput)
-endif()
+# find MEL
+find_package(MEL REQUIRED)
 
 # get common files
-
 set(OPENWRIST_SRC
     src/OpenWrist.hpp
-    src/OwConfiguration
-    src/OwParameters
+    src/OwConfiguration.hpp
+    src/OwConfiguration.cpp
+    src/OwParameters.hpp
     src/OpenWrist.cpp
     src/OwConfiguration.cpp)
 
@@ -77,34 +38,46 @@ set(CUFF_SRC
 # Various Demos and Utilities
 add_executable(demos ${OPENWRIST_SRC}
     src/demos.cpp
-    src/Games/Jedi.cpp
-    src/Games/Jedi.hpp
-    src/HapticGuidance/Pendulum.cpp
-    src/HapticGuidance/Pendulum.hpp
-    src/HapticTraining/BallAndBeam.cpp
-    src/HapticTraining/BallAndBeam.hpp)
-target_link_libraries(demos ${LINK_LIBS})
-
-# Haptics Symposium 2018 Experiments
-add_executable(haptic_guidance ${OPENWRIST_SRC} ${CUFF_SRC}
-    src/HapticGuidance/main.cpp
-    src/HapticGuidance/HapticGuidance.hpp
-    src/HapticGuidance/HapticGuidance.cpp
-    src/HapticGuidance/Pendulum.hpp
-    src/HapticGuidance/Pendulum.cpp)
-target_link_libraries(haptic_guidance ${LINK_LIBS})
+    src/Games/Jedi/Jedi.cpp
+    src/Games/Jedi/Jedi.hpp
+    src/Games/OctagonSqueeze/OctagonSqueeze.hpp
+    src/Games/OctagonSqueeze/OctagonSqueeze.cpp
+    src/Games/Airplane/Airplane.cpp
+    src/Games/Airplane/Airplane.hpp
+    src/Simulations/Pendulum.cpp
+    src/Simulations/Pendulum.hpp
+    src/Simulations/BallAndBeam.cpp
+    src/Simulations/BallAndBeam.hpp
+    ${CUFF_SRC}
+)
+target_link_libraries(demos MEL::quanser)
 
 # ToH 2019 Experiments
 add_executable(haptic_training ${OPENWRIST_SRC} ${CUFF_SRC}
     src/HapticTraining/main.cpp
-    src/HapticTraining/FurutaPendulum.hpp
-    src/HapticTraining/FurutaPendulum.cpp
-    src/HapticTraining/BallAndBeam.hpp
-    src/HapticTraining/BallAndBeam.cpp
+    src/Simulations/FurutaPendulum.hpp
+    src/Simulations/FurutaPendulum.cpp
+    src/Simulations/BallAndBeam.hpp
+    src/Simulations/BallAndBeam.cpp
     src/HapticTraining/HapticTraining.hpp
-    src/HapticTraining/HapticTraining.cpp)
-target_link_libraries(haptic_training ${LINK_LIBS})
+    src/HapticTraining/HapticTraining.cpp
+    src/HapticTraining/main2.cpp)
+target_link_libraries(haptic_training MEL::quanser)
 
-# Myo EMG Control - ELEC 575 2018 Final Project
-add_executable(myo ${OPENWRIST_SRC} src/Myo/main.cpp src/Myo/MyoBand.cpp src/Myo/MyoBand.hpp)
-target_link_libraries(myo ${LINK_LIBS} myo64 MEII)
+# X-wing
+add_executable(xwing ${OPENWRIST_SRC}
+    src/Games/XWing/main.cpp
+    src/Games/XWing/XWing.hpp
+    src/Games/XWing/XWing.cpp)
+target_link_libraries(xwing MEL::quanser)
+
+# Caz tests
+add_executable(testing tests/testing.cpp ${OPENWRIST_SRC})
+target_link_libraries(testing MEL::quanser)
+
+# GUI Demo Launcher
+find_package(carnot)
+if (carnot_FOUND)
+    add_executable(demo-gui src/GUI/demo.cpp ${OPENWRIST_SRC})
+    target_link_libraries(demo-gui MEL::quanser carnot)
+endif()

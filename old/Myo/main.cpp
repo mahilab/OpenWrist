@@ -1,15 +1,14 @@
-#include "MyoBand.hpp"  
+#include <MEL/Devices/Myo/MyoBand.hpp>
 #include <MEL/Logging/Log.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Utility/Console.hpp>
-#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Communications/MelShare.hpp>
 #include <MEII/EMG/MesArray.hpp>
 #include "MEL/Daq/Quanser/Q8Usb.hpp"
 #include "MEL/Utility/System.hpp"
 #include "MEL/Logging/Log.hpp"
 #include "MEL/Utility/Console.hpp"
 #include "MEII/EMG/MesArray.hpp"
-#include "MEL/Communications/Windows/MelShare.hpp"
 #include "MEL/Utility/Windows/Keyboard.hpp"
 #include "MEII/Classification/EmgDirClassifier.hpp"
 #include <MEL/Core/Clock.hpp>
@@ -33,7 +32,7 @@ bool handler(CtrlEvent event) {
 
 int main(int argc, char *argv[]) {
 
-    // handle inputs 
+    // handle inputs
     std::vector<uint32> emg_channel_numbers = { 0,1,2,3,4,5,6,7 };
 
     mel::MyoBand myo("my_myo");
@@ -44,7 +43,7 @@ int main(int argc, char *argv[]) {
     // register ctrl-c handler
     register_ctrl_handler(handler);
 
-    // construct array of Myoelectric Signals    
+    // construct array of Myoelectric Signals
     MesArray mes(myo.get_channels(emg_channel_numbers));
 
     // make MelShares
@@ -63,14 +62,14 @@ int main(int argc, char *argv[]) {
     std::size_t prev_pred_label = 0;
 
     // make Q8 USB that's configured for current control with VoltPAQ-X4
-    QOptions qoptions;
-    qoptions.set_update_rate(QOptions::UpdateRate::Fast);
-    qoptions.set_analog_output_mode(0, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
-    qoptions.set_analog_output_mode(1, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
-    qoptions.set_analog_output_mode(2, QOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    QuanserOptions qoptions;
+    qoptions.set_update_rate(QuanserOptions::UpdateRate::Fast);
+    qoptions.set_analog_output_mode(0, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    qoptions.set_analog_output_mode(1, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
+    qoptions.set_analog_output_mode(2, QuanserOptions::AoMode::CurrentMode1, 0, 2.0, 20.0, 0, -1, 0, 1000);
     Q8Usb q8(qoptions);
 
-    VoltPaqX4 vpx4(q8.digital_output[{ 0, 1, 2 }], q8.analog_output[{ 0, 1, 2 }], q8.digital_input[{0, 1, 2}], q8.analog_input[{ 0, 1, 2 }]);
+    VoltPaqX4 vpx4(q8.DO[{ 0, 1, 2 }], q8.AO[{ 0, 1, 2 }], q8.DI[{0, 1, 2}], q8.AI[{ 0, 1, 2 }]);
 
     // create OpenWrist and bind Q8 channels to it
     OwConfiguration config(

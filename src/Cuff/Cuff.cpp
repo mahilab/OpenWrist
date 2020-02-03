@@ -15,55 +15,49 @@ Cuff::~Cuff() {
         disable();
 }
 
-bool Cuff::enable() {
-
-    if (!is_enabled()) {
-        std::cout << "Enabling CUFF ...";
-        // attempt to open port
-        open_port();
-        if (port_opened_) {
-            /* attempt to activate communications */
-            char activated = 0;
-            commActivate(&comm_settings_t_, CUFF_ID, 1);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-            commGetActivate(&comm_settings_t_, CUFF_ID, &activated);
-            if (activated) {
-                // set initial motor positions
-                short int motpos_zero[2];
-                reference_motor_positions_[0] = 0;
-                reference_motor_positions_[1] = 0;
-                commSetInputs(&comm_settings_t_, CUFF_ID, motpos_zero);
-                // start IO thread
-                poll_io_ = true;
-                io_thread_ = std::thread(&Cuff::io_thread_func, this);
-                std::cout << "Done" << std::endl;
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                return Device::enable();
-            }
-            else {
-                std::cout << "Failed. Could not activate communications." << std::endl;
-                return false;
-            }
+bool Cuff::on_enable() {
+    std::cout << "Enabling CUFF ...";
+    // attempt to open port
+    open_port();
+    if (port_opened_) {
+        /* attempt to activate communications */
+        char activated = 0;
+        commActivate(&comm_settings_t_, CUFF_ID, 1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        commGetActivate(&comm_settings_t_, CUFF_ID, &activated);
+        if (activated) {
+            // set initial motor positions
+            short int motpos_zero[2];
+            reference_motor_positions_[0] = 0;
+            reference_motor_positions_[1] = 0;
+            commSetInputs(&comm_settings_t_, CUFF_ID, motpos_zero);
+            // start IO thread
+            poll_io_ = true;
+            io_thread_ = std::thread(&Cuff::io_thread_func, this);
+            std::cout << "Done" << std::endl;
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            return true;
         }
         else {
-            std::cout << "Failed. Could not open port." << std::endl;
+            std::cout << "Failed. Could not activate communications." << std::endl;
             return false;
         }
     }
+    else {
+        std::cout << "Failed. Could not open port." << std::endl;
+        return false;
+    }
 }
 
-bool Cuff::disable() {
-    if (is_enabled()) {
-        std::cout << "Disabling CUFF ... ";
-        set_motor_positions(0, 0, false);
-        commActivate(&comm_settings_t_, CUFF_ID, 0);
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-        poll_io_ = false;
-        io_thread_.join();
-        std::cout << "Done" << std::endl;
-        return Device::disable();
-    }
-    return false;
+bool Cuff::on_disable() {
+    std::cout << "Disabling CUFF ... ";
+    set_motor_positions(0, 0, false);
+    commActivate(&comm_settings_t_, CUFF_ID, 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    poll_io_ = false;
+    io_thread_.join();
+    std::cout << "Done" << std::endl;
+    return true;
 }
 
 void Cuff::open_port() {
@@ -131,7 +125,7 @@ int Cuff::port_selection() {
 */
 
 
-void Cuff::pretension(int force_newtons, short int* motpos_zero, short int* scaling_factor) {
+void Cuff::oldpretension(int force_newtons, short int* motpos_zero, short int* scaling_factor) {
     std::cout << "Pretensioning CUFF ... ";
     short int stepmot, act_mot_pos_0, act_mot_pos_1, act_mot_cur_0, act_mot_cur_1;
 	std::chrono::high_resolution_clock::time_point tstart, tend;
@@ -144,7 +138,7 @@ void Cuff::pretension(int force_newtons, short int* motpos_zero, short int* scal
 	motpos_zero[1] = 0;
 
 	tstart = std::chrono::high_resolution_clock::now();
-
+   
 	for (int i = 0; i < 80; i++) {
         get_motor_currents(act_mot_cur_0, act_mot_cur_1, false);
 		motpos_zero[0] = motpos_zero[0] - (10 * (50 - act_mot_cur_0));
@@ -157,6 +151,7 @@ void Cuff::pretension(int force_newtons, short int* motpos_zero, short int* scal
 		std::this_thread::sleep_for(std::chrono::microseconds (50000 - elapsed_time_us));
 		tstart = std::chrono::high_resolution_clock::now();
 	}
+
 	std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
 	stepmot = 0;
@@ -189,6 +184,72 @@ void Cuff::pretension(int force_newtons, short int* motpos_zero, short int* scal
     motpos_zero[0] = motpos_zero[0] - (0.1138*pow(force_newtons, 3) - 5.204*pow(force_newtons, 2) + 89.22*force_newtons + 0) * scaling_factor[0];
     motpos_zero[1] = motpos_zero[1] + (0.1138*pow(force_newtons, 3) - 5.204*pow(force_newtons, 2) + 89.22*force_newtons + 0) * scaling_factor[1];
     set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+    std::cout << "Done" << std::endl;
+}
+
+void Cuff::pretension(short int* motpos_zero) {
+
+    std::cout << "Pretensioning CUFF ... ";
+    short int act_mot_pos_0, act_mot_pos_1, act_mot_cur_0, act_mot_cur_1;//true values to read
+    int MAX_VAL_CAR_0 = 570;
+    int MAX_VAL_CAR_1 = 570;
+
+	motpos_zero[0] = 0;
+	motpos_zero[1] = 0;
+
+    get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+    while(act_mot_cur_0<50 || act_mot_cur_1> -50) {//start with increments of 600
+            get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+            if(act_mot_cur_0<50)
+            motpos_zero[0] = motpos_zero[0] - 600;
+            if(act_mot_cur_1>-50)
+            motpos_zero[1] = motpos_zero[1] + 600;
+
+           // std::cout << act_mot_cur_0 << '\t' << act_mot_cur_1 << '\t' << motpos_zero[0] << '\t' << motpos_zero[1] << '\n';
+            set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        motpos_zero[0] = motpos_zero[0] + 1200;//back up a bit
+        motpos_zero[1] = motpos_zero[1] - 1200;
+        set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+	while(act_mot_cur_0<50 || act_mot_cur_1> -50) {//then do increments of 300
+        get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+        if(act_mot_cur_0<50)
+		motpos_zero[0] = motpos_zero[0] - 300;
+        if(act_mot_cur_1>-50)
+		motpos_zero[1] = motpos_zero[1] + 300;
+
+       // std::cout << act_mot_cur_0 << '\t' << act_mot_cur_1 << '\t' << motpos_zero[0] << '\t' << motpos_zero[1] << '\n';
+        set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+    motpos_zero[0] = motpos_zero[0] + 600;//back up a bit
+	motpos_zero[1] = motpos_zero[1] - 600;
+    set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+    while(act_mot_cur_0<50 || act_mot_cur_1> -50) {//now go with increments of 100
+        get_motor_currents(act_mot_cur_0,act_mot_cur_1,false);
+
+        if(act_mot_cur_0<50)
+		motpos_zero[0] = motpos_zero[0] - 100;
+        if(act_mot_cur_1>-50)
+		motpos_zero[1] = motpos_zero[1] + 100;
+
+       // std::cout << act_mot_cur_0 << '\t' << act_mot_cur_1 << '\t' << motpos_zero[0] << '\t' << motpos_zero[1] << '\n';
+        set_motor_positions(motpos_zero[0], motpos_zero[1], false);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	}
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+
     std::cout << "Done" << std::endl;
 }
 

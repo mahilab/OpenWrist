@@ -5,7 +5,7 @@
 #include <MEL/Math/Constants.hpp>
 #include <MEL/Math/Functions.hpp>
 #include <MEL/Math/Integrator.hpp>
-#include <MEL/Communications/Windows/MelShare.hpp>
+#include <MEL/Communications/MelShare.hpp>
 
 class FurutaPendulum {
 
@@ -17,11 +17,17 @@ public:
     /// Steps the pendulum simulation
     void update(mel::Time time, double tau);
 
+    /// Steps the pendulum simulation with added noise
+    void update(mel::Time time, double tau, double ball_accel_noise);
+
     /// Resets the pendulum integrators
     void reset(double q1_0 = 0.0, double q2_0 = mel::PI, double q1d_0 = 0.0, double q2d_0 = 0.0);
 
     /// Reads properties from external applications (Unity)
     void read_properties();
+
+    /// Writes properties to external applications (Unity)
+    void write_properties();
 
     /// Write state
     void write_state();
@@ -54,7 +60,9 @@ public:
 
     std::vector<double> data_props_, data_state_;
 
-    bool upright;
+    bool invert_upright;
+
+    bool balance_upright;
 
 private:
 

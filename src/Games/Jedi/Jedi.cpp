@@ -1,6 +1,6 @@
 #include "Jedi.hpp"
 #include <MEL/Utility/System.hpp>
-#include <MEL/Utility/Windows/Keyboard.hpp>
+#include <MEL/Devices/Windows/Keyboard.hpp>
 
 Jedi::Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, ctrl_bool& stop_flag) :
     StateMachine(4),

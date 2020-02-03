@@ -1,5 +1,5 @@
-#include <MEL/Communications/Windows/MelShare.hpp>
-#include <MEL/Core/PdController.hpp>
+#include <MEL/Communications/MelShare.hpp>
+#include <MEL/Mechatronics/PdController.hpp>
 #include <MEL/Core/Timer.hpp>
 #include <MEL/Utility/StateMachine.hpp>
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
@@ -7,6 +7,8 @@
 #include "Cuff/Cuff.hpp"
 #include "OpenWrist.hpp"
 #include "Pendulum.hpp"
+// #include <MEL/Logging/DataLogger.hpp>
+
 
 //----------------------------------------------------------------------------
 // Hatpic guidance experiements with OpenWrist, CUFF, and MahiExo-II
@@ -181,9 +183,9 @@ public:
    // PdController pd1_meii_ = PdController(4, 0.05); // half of Craig's default PD Controller
 
     // CUFF
-    const short int cuff_normal_force_ = 3;
+    const short int cuff_normal_force_ = 4;
     const short int cuff_ff_gain_ = 250;
-    const short int cuff_fb_gain_ = 175;
+    const short int cuff_fb_gain_ = 350;
     short int offset[2];
     short int scaling_factor[2];
 
@@ -288,6 +290,8 @@ public:
     bool auto_stop_ = false;
 
     // DATA LOGGING
+    // DataLogger main_log_;
+    // DataLogger trial_log_;
     //DataLog main_log_ = DataLog("main_log", true, 100);
     //DataLog trial_log_ = DataLog("trial_log", false, 180000);
     void init_logs();
@@ -305,6 +309,9 @@ public:
     std::vector<double> scores_data_; // current score, expert score, high score, max score
 
     MelShare ms_confirmer_;
+
+    MelShare ms_ow_state;
+    std::vector<double> ow_state_data_;
 
     // MelShare meii_state_ = MelShare("meii_state");
     // std::vector<double> meii_data_ = { 0, 0, 0, 0, 0 };

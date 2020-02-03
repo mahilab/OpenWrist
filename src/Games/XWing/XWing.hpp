@@ -5,15 +5,17 @@
 #include "OpenWrist.hpp"
 #include <MEL/Communications/MelNet.hpp>
 #include <MEL/Daq/Quanser/Q8Usb.hpp>
-#include <MEL/Utility/Console.hpp>
+#include <MEL/Core/Console.hpp>
+#include <MEL/Communications/MelShare.hpp>
+
 
 using namespace mel;
 
-class Jedi : public StateMachine {
+class XWing : public StateMachine {
 
 public:
 
-    Jedi(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, ctrl_bool& stop_flag);
+	XWing(Timer timer, Q8Usb& ow_daq, OpenWrist& ow, ctrl_bool& stop_flag);
 
 private:
 
@@ -35,9 +37,9 @@ private:
     void sf_stop(const NoEventData*);
 
     // STATE ACTIONS
-    StateAction<Jedi, NoEventData, &Jedi::sf_start> sa_start;
-    StateAction<Jedi, NoEventData, &Jedi::sf_play>  sa_play;
-    StateAction<Jedi, NoEventData, &Jedi::sf_stop>  sa_stop;
+	StateAction<XWing, NoEventData, &XWing::sf_start> sa_start;
+    StateAction<XWing, NoEventData, &XWing::sf_play>  sa_play;
+    StateAction<XWing, NoEventData, &XWing::sf_stop>  sa_stop;
 
     // STATE MAP
     virtual const StateMapRow* get_state_map() {
@@ -61,14 +63,20 @@ private:
     OpenWrist& ow_;
 
     // STOP FLAG
-   ctrl_bool stop_flag_;
+    ctrl_bool& stop_flag_;
 
     std::vector<double> state_;
+	std::vector<double> impulse_data_;
+    std::vector<double> impulse_data_temp_;
 
     Clock pulse_clock_;
 
     // MELSHARES
-    MelNet ow_state_;
-    MelNet impulse_;
+	MelShare ow_state_;
+	MelShare impulses_;
+
+    double tau0, tau1, tau2;
+
+    PdController pd0, pd1, pd2;
 
 };

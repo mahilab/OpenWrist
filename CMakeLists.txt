@@ -17,10 +17,12 @@ find_package(MEL REQUIRED)
 # get common files
 set(OPENWRIST_SRC
     src/OpenWrist.hpp
+    src/OpenWrist.cpp
     src/OwConfiguration.hpp
     src/OwConfiguration.cpp
+    src/OpenWristSim.hpp
+    src/OpenWristSim.cpp
     src/OwParameters.hpp
-    src/OpenWrist.cpp
     src/OwConfiguration.cpp)
 
 set(CUFF_SRC

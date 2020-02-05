@@ -20,8 +20,6 @@ set(OPENWRIST_SRC
     src/OpenWrist.cpp
     src/OwConfiguration.hpp
     src/OwConfiguration.cpp
-    src/OpenWristSim.hpp
-    src/OpenWristSim.cpp
     src/OwParameters.hpp
     src/OwConfiguration.cpp)
 
@@ -76,6 +74,13 @@ target_link_libraries(xwing MEL::quanser)
 # Caz tests
 add_executable(testing tests/testing.cpp ${OPENWRIST_SRC})
 target_link_libraries(testing MEL::quanser)
+
+# OpenWrist simulation
+add_executable(sim_bench src/OpenWristSim/OpenWristSim.hpp src/OpenWristSim/OpenWristSim.cpp src/OpenWristSim/main.cpp)
+target_link_libraries(sim_bench MEL::MEL)
+
+add_library(sim SHARED src/OpenWristSim/OpenWristSim.hpp src/OpenWristSim/OpenWristSim.cpp src/OpenWristSim/dll.cpp)
+target_link_libraries(sim MEL::MEL)
 
 # GUI Demo Launcher
 find_package(carnot)

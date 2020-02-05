@@ -66,7 +66,10 @@ MVG = simplify(expand(MVG));
 [M,V,G] = separate_mvg(MVG,Qdd,g);
 
 %% Get Equation of Motion
-EOM = Tau == M*Qdd + Jm.*Eta.^2.*Qdd + V + G + B.*Qd + Fk.*sign(Qd);
+EOM = Tau == M*Qdd + Jm.*Eta.^2.*Qdd + V + G + B.*Qd + Fk.*tanh(10 * Qd);
+
+%% Solved for acclerations ( i.e inv(M) * (Tau - V - G) )
+Qdd_solved = inv(MM + diag(Jm.*Eta.^2)) * (Tau - V - G - B.*Qd - Fk.*tanh(10 * Qd));
 
 %% Numerical Evaluation
 openWrist = OpenWristInit();

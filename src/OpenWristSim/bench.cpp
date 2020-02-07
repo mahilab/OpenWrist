@@ -1,11 +1,11 @@
-#include "OpenWristSim.hpp"
+#include "OpenWristModel.hpp"
 #include <MEL/Core.hpp>
 
 using namespace mel;
 
 int main(int argc, char const *argv[])
 {
-    OpenWristSim sim;
+    OpenWristModel sim;
     Clock clk;
     for (int i = 0; i < 1000000; ++i) 
         sim.update(clk.get_elapsed_time());

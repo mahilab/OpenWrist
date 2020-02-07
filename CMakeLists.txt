@@ -1,18 +1,14 @@
 cmake_minimum_required(VERSION 3.7)
 
-set(EIGEN_ROOT "C:/dev/eigen" CACHE FILEPATH "Absolute path to Eigen installation.")
-
 # create project
 project(OpenWrist VERSION 0.1.0 LANGUAGES CXX)
 
-# set binary output location (optional, but recommended)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
-
 # include directories (your includes and MEL's)
-include_directories("src" ${EIGEN_ROOT})
+include_directories("src")
 
 # find MEL
 find_package(MEL REQUIRED)
+find_package(Eigen3 REQUIRED NO_MODULE)
 
 # get common files
 set(OPENWRIST_SRC
@@ -75,12 +71,17 @@ target_link_libraries(xwing MEL::quanser)
 add_executable(testing tests/testing.cpp ${OPENWRIST_SRC})
 target_link_libraries(testing MEL::quanser)
 
-# OpenWrist simulation
-add_executable(sim_bench src/OpenWristSim/OpenWristSim.hpp src/OpenWristSim/OpenWristSim.cpp src/OpenWristSim/main.cpp)
-target_link_libraries(sim_bench MEL::MEL)
+# OpenWristSim
+add_executable(openwrist_model_bench src/OpenWristSim/OpenWristModel.hpp src/OpenWristSim/OpenWristModel.cpp src/OpenWristSim/bench.cpp)
+target_link_libraries(openwrist_model_bench MEL::MEL Eigen3::Eigen)
 
-add_library(sim SHARED src/OpenWristSim/OpenWristSim.hpp src/OpenWristSim/OpenWristSim.cpp src/OpenWristSim/dll.cpp)
-target_link_libraries(sim MEL::MEL)
+add_executable(openwrist_sim_pd_tuner src/OpenWristSim/OpenWristSim.hpp src/OpenWristSim/OpenWristSim.cpp src/OpenWristSim/pd_tuner.cpp)
+target_link_libraries(openwrist_sim_pd_tuner MEL::MEL Eigen3::Eigen)
+
+add_library(openwrist_model SHARED src/OpenWristSim/OpenWristModel.hpp src/OpenWristSim/OpenWristModel.cpp src/OpenWristSim/dll.cpp)
+target_link_libraries(openwrist_model MEL::MEL Eigen3::Eigen)
+
+
 
 # GUI Demo Launcher
 find_package(carnot)
